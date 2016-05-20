@@ -1,0 +1,1 @@
+/home/scps950707/opencv/Background-Subtraction-using-GMM-master/CMakeFiles/Back.dir
