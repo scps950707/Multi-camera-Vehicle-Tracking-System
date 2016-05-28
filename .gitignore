@@ -27,3 +27,4 @@
 *.out
 *.app
 Back-Subtract-GMM/build/
+BackgroundSubtractor/build
