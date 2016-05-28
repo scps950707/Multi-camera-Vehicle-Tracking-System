@@ -4,47 +4,15 @@
 #include <iostream>
 #include <opencv2/features2d/features2d.hpp>
 #include <vector>
-const double pi = 3.142;
-const double cthr = 0.00001;
-const double alpha = 0.002;
-const double cT = 0.05;
-const double covariance0 = 11.0;
-const double cf = 0.1;
-const double cfbar = 1.0 - cf;
-const double temp_thr = 9.0 * covariance0 * covariance0;
-const double prune = -alpha * cT;
-const double alpha_bar = 1.0 - alpha;
+#include "bsgmm.hpp"
 //Temperory variable
 int overall = 0;
-//Structure used for saving various components for each pixel
-struct gaussian
-{
-  double mean[3], covariance;
-  double weight;
-  // Represents the measure to which a particular component defines the pixel value
-  gaussian *Next;
-  gaussian *Previous;
-} *ptr, *start, *rear, *g_temp, *save, *next, *previous, *nptr, *temp_ptr;
-struct Node
-{
-  gaussian *pixel_s;
-  gaussian *pixel_r;
-  int no_of_components;
-  Node *Next;
-} *N_ptr, *N_start, *N_rear;
-struct Node1
-{
-  cv::Mat gauss;
-  int no_of_comp;
-  Node1 *Next;
-} *N1_ptr, *N1_start, *N1_rear;
+struct gaussian *ptr, *start, *rear, *g_temp, *save, *next, *previous, *nptr, *temp_ptr;
+struct node *N_ptr, *N_start, *N_rear;
 //Some function associated with the structure management
-Node *Create_Node( double info1, double info2, double info3 );
-void Insert_End_Node( Node *np );
-gaussian *Create_gaussian( double info1, double info2, double info3 );
-Node *Create_Node( double info1, double info2, double info3 )
+node *Create_Node( double info1, double info2, double info3 )
 {
-  N_ptr = new Node;
+  N_ptr = new node;
   if ( N_ptr != NULL )
   {
     N_ptr->Next = NULL;
@@ -68,7 +36,7 @@ gaussian *Create_gaussian( double info1, double info2, double info3 )
   }
   return ptr;
 }
-void Insert_End_Node( Node *np )
+void Insert_End_Node( node *np )
 {
   if ( N_start != NULL )
   {
@@ -189,7 +157,7 @@ int main( int argc, char *argv[] )
   bool close = false;
   int background;
   double mult;
-  double duration, duration1;
+  double duration1;
   double temp_cov = 0.0;
   double weight = 0.0;
   double var = 0.0;
@@ -206,9 +174,8 @@ int main( int argc, char *argv[] )
       capture = cv::VideoCapture( "PETS2009_sample_1.avi" );
       capture.read( orig_img );
     }
-    int count = 0;
     N_ptr = N_start;
-    duration = static_cast<double>( cv::getTickCount() );
+    duration1 = static_cast<double>( cv::getTickCount() );
     for ( i = 0; i < nL; i++ )
     {
       r_ptr = orig_img.ptr( i );
@@ -342,10 +309,6 @@ int main( int argc, char *argv[] )
         N_ptr = N_ptr->Next;
       }
     }
-    /* duration = static_cast<double>( cv::getTickCount() ) - duration; */
-    /* duration /= cv::getTickFrequency(); */
-    /* std::cout << "\n duration :" << duration; */
-    /* std::cout << "\n counts : " << count; */
     cv::imshow( "video", orig_img );
     cv::imshow( "gp", bin_img );
     if ( cv::waitKey( 1 ) > 0 )
