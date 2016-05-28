@@ -3,7 +3,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <iostream>
 #include <opencv2/features2d/features2d.hpp>
-#include <vector>
+#include <stdlib.h>
 #include "bsgmm.hpp"
 //Temperory variable
 int overall = 0;
@@ -103,8 +103,6 @@ gaussian *Delete_gaussian( gaussian *nptr )
 }
 int main( int argc, char *argv[] )
 {
-  int i, j, k;
-  i = j = k = 0;
   // Declare matrices to store original and resultant binary image
   cv::Mat orig_img, bin_img;
   //Declare a VideoCapture object to store incoming frame and initialize it
@@ -113,19 +111,18 @@ int main( int argc, char *argv[] )
   if ( !capture.read( orig_img ) )
   {
     std::cout << " Can't recieve input from source ";
-    exit( 1 );
+    exit( EXIT_FAILURE );
   }
-  /* cv::resize( orig_img, orig_img, cv::Size( 340, 260 ) ); */
   cv::cvtColor( orig_img, orig_img, CV_BGR2YCrCb );
   //Initializing the binary image with the same dimensions as original image
   bin_img = cv::Mat( orig_img.rows, orig_img.cols, CV_8U, cv::Scalar( 0 ) );
   cv::Vec3f val;
   uchar *r_ptr;
   uchar *b_ptr;
-  for ( i = 0; i < orig_img.rows; i++ )
+  for (int i = 0; i < orig_img.rows; i++ )
   {
     r_ptr = orig_img.ptr( i );
-    for ( j = 0; j < orig_img.cols; j++ )
+    for (int j = 0; j < orig_img.cols; j++ )
     {
       N_ptr = Create_Node( *r_ptr, *( r_ptr + 1 ), *( r_ptr + 2 ) );
       if ( N_ptr != NULL )
@@ -136,7 +133,7 @@ int main( int argc, char *argv[] )
       else
       {
         std::cout << "Memory limit reached... ";
-        exit( 0 );
+        exit( EXIT_FAILURE );
       }
     }
   }
@@ -167,11 +164,11 @@ int main( int argc, char *argv[] )
   {
     capture.read( orig_img );
     N_ptr = N_start;
-    for ( i = 0; i < nL; i++ )
+    for (int i = 0; i < nL; i++ )
     {
       r_ptr = orig_img.ptr( i );
       b_ptr = bin_img.ptr( i );
-      for ( j = 0; j < nC; j += 3 )
+      for (int j = 0; j < nC; j += 3 )
       {
         sum = 0.0;
         close = false;
@@ -188,7 +185,7 @@ int main( int argc, char *argv[] )
           Delete_gaussian( rear );
           N_ptr->no_of_components--;
         }
-        for ( k = 0; k < N_ptr->no_of_components; k++ )
+        for (int k = 0; k < N_ptr->no_of_components; k++ )
         {
           weight = ptr->weight;
           mult = alpha / weight;
