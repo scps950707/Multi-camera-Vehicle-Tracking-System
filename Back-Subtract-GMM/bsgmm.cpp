@@ -9,7 +9,7 @@
 using namespace std;
 //Temperory variable
 int overall = 0;
-struct gaussian *ptr, *start, *rear, *nextptr, *previous, *temp_ptr;
+gaussian *ptr, *head, *tail,  *temp_ptr;
 vector<NODE> NodeList;
 vector<NODE>::iterator nodeIter;
 //Some function associated with the structure management
@@ -30,53 +30,54 @@ gaussian *Create_gaussian( double info1, double info2, double info3 )
     ptr->mean[2] = info3;
     ptr->covariance = covariance0;
     ptr->weight = alpha;
-    ptr->Next = NULL;
-    ptr->Previous = NULL;
+    ptr->next = NULL;
+    ptr->prev = NULL;
   }
   return ptr;
 }
 void Insert_End_gaussian( gaussian *nptr )
 {
-  if ( start != NULL )
+  if ( head != NULL )
   {
-    rear->Next = nptr;
-    nptr->Previous = rear;
-    rear = nptr;
+    tail->next = nptr;
+    nptr->prev = tail;
+    tail = nptr;
   }
   else
   {
-    start = rear = nptr;
+    head = tail = nptr;
   }
 }
 gaussian *Delete_gaussian( gaussian *nptr )
 {
-  previous = nptr->Previous;
-  nextptr = nptr->Next;
-  if ( start != NULL )
+  gaussian *previous, *nextptr;
+  previous = nptr->prev;
+  nextptr = nptr->next;
+  if ( head != NULL )
   {
-    if ( nptr == start && nptr == rear )
+    if ( nptr == head && nptr == tail )
     {
-      start = rear = NULL;
+      head = tail = NULL;
       delete nptr;
     }
-    else if ( nptr == start )
+    else if ( nptr == head )
     {
-      nextptr->Previous = NULL;
-      start = nextptr;
+      nextptr->prev = NULL;
+      head = nextptr;
       delete nptr;
-      nptr = start;
+      nptr = head;
     }
-    else if ( nptr == rear )
+    else if ( nptr == tail )
     {
-      previous->Next = NULL;
-      rear = previous;
+      previous->next = NULL;
+      tail = previous;
       delete nptr;
-      nptr = rear;
+      nptr = tail;
     }
     else
     {
-      previous->Next = nextptr;
-      nextptr->Previous = previous;
+      previous->next = nextptr;
+      nextptr->prev = previous;
       delete nptr;
       nptr = nextptr;
     }
@@ -113,7 +114,7 @@ int main( int argc, char *argv[] )
     {
       NODE tmp = Create_Node( *r_ptr, *( r_ptr + 1 ), *( r_ptr + 2 ) );
       tmp.pixel_s->weight = 1.0;
-      NodeList.push_back(tmp);
+      NodeList.push_back( tmp );
     }
   }
   capture.read( orig_img );
@@ -128,19 +129,19 @@ int main( int argc, char *argv[] )
     nL = orig_img.rows;
     nC = orig_img.cols * orig_img.channels();
   }
-  double mal_dist;
-  double sum = 0.0;
-  bool close = false;
-  int background;
-  double mult;
-  double temp_cov = 0.0;
-  double weight = 0.0;
-  double var = 0.0;
-  double muR, muG, muB, dR, dG, dB, rVal, gVal, bVal;
   //Step 2: Modelling each pixel with Gaussian
   bin_img = cv::Mat( orig_img.rows, orig_img.cols, CV_8UC1, cv::Scalar( 0 ) );
   while ( 1 )
   {
+    double mal_dist;
+    double sum = 0.0;
+    bool close = false;
+    int background;
+    double mult;
+    double temp_cov = 0.0;
+    double weight = 0.0;
+    double var = 0.0;
+    double muR, muG, muB, dR, dG, dB, rVal, gVal, bVal;
     capture.read( orig_img );
     nodeIter = NodeList.begin();
     for ( int i = 0; i < nL; i++ )
@@ -155,13 +156,13 @@ int main( int argc, char *argv[] )
         rVal = *( r_ptr++ );
         gVal = *( r_ptr++ );
         bVal = *( r_ptr++ );
-        start = nodeIter->pixel_s;
-        rear = nodeIter->pixel_r;
-        ptr = start;
+        head = nodeIter->pixel_s;
+        tail = nodeIter->pixel_r;
+        ptr = head;
         temp_ptr = NULL;
         if ( nodeIter->no_of_components > 4 )
         {
-          Delete_gaussian( rear );
+          Delete_gaussian( tail );
           nodeIter->no_of_components--;
         }
         for ( int k = 0; k < nodeIter->no_of_components; k++ )
@@ -206,7 +207,7 @@ int main( int argc, char *argv[] )
             sum += weight;
             ptr->weight = weight;
           }
-          ptr = ptr->Next;
+          ptr = ptr->next;
         }
         if ( close == false )
         {
@@ -216,62 +217,63 @@ int main( int argc, char *argv[] )
           ptr->mean[1] = gVal;
           ptr->mean[2] = bVal;
           ptr->covariance = covariance0;
-          ptr->Next = NULL;
-          ptr->Previous = NULL;
-          if ( start == NULL )
+          ptr->next = NULL;
+          ptr->prev = NULL;
+          if ( head == NULL )
           {
-            start = rear = NULL;
+            head = tail = NULL;
           }
           else
           {
-            ptr->Previous = rear;
-            rear->Next = ptr;
-            rear = ptr;
+            ptr->prev = tail;
+            tail->next = ptr;
+            tail = ptr;
           }
           temp_ptr = ptr;
           nodeIter->no_of_components++;
         }
-        ptr = start;
+        ptr = head;
         while ( ptr != NULL )
         {
           ptr->weight /= sum;
-          ptr = ptr->Next;
+          ptr = ptr->next;
         }
-        while ( temp_ptr != NULL && temp_ptr->Previous != NULL )
+        while ( temp_ptr != NULL && temp_ptr->prev != NULL )
         {
-          if ( temp_ptr->weight <= temp_ptr->Previous->weight )
+          if ( temp_ptr->weight <= temp_ptr->prev->weight )
           {
             break;
           }
           else
           {
-            nextptr = temp_ptr->Next;
-            previous = temp_ptr->Previous;
-            if ( start == previous )
+            gaussian *nextptr, *previous;
+            nextptr = temp_ptr->next;
+            previous = temp_ptr->prev;
+            if ( head == previous )
             {
-              start = temp_ptr;
+              head = temp_ptr;
             }
-            previous->Next = nextptr;
-            temp_ptr->Previous = previous->Previous;
-            temp_ptr->Next = previous;
-            if ( previous->Previous != NULL )
+            previous->next = nextptr;
+            temp_ptr->prev = previous->prev;
+            temp_ptr->next = previous;
+            if ( previous->prev != NULL )
             {
-              previous->Previous->Next = temp_ptr;
+              previous->prev->next = temp_ptr;
             }
             if ( nextptr != NULL )
             {
-              nextptr->Previous = previous;
+              nextptr->prev = previous;
             }
             else
             {
-              rear = previous;
+              tail = previous;
             }
-            previous->Previous = temp_ptr;
+            previous->prev = temp_ptr;
           }
-          temp_ptr = temp_ptr->Previous;
+          temp_ptr = temp_ptr->prev;
         }
-        nodeIter->pixel_s = start;
-        nodeIter->pixel_r = rear;
+        nodeIter->pixel_s = head;
+        nodeIter->pixel_r = tail;
         *b_ptr++ = background;
         nodeIter++;
       }

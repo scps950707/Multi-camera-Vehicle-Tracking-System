@@ -11,14 +11,14 @@ const double prune = -alpha * cT;
 const double alpha_bar = 1.0 - alpha;
 
 //Structure used for saving various components for each pixel
-struct gaussian
+typedef struct tmp
 {
   double mean[3], covariance;
   double weight;
   // Represents the measure to which a particular component defines the pixel value
-  gaussian *Next;
-  gaussian *Previous;
-};
+  tmp *next;
+  tmp *prev;
+}gaussian;
 typedef struct
 {
   gaussian *pixel_s;
