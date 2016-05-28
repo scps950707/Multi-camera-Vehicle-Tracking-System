@@ -157,25 +157,16 @@ int main( int argc, char *argv[] )
   bool close = false;
   int background;
   double mult;
-  double duration1;
   double temp_cov = 0.0;
   double weight = 0.0;
   double var = 0.0;
   double muR, muG, muB, dR, dG, dB, rVal, gVal, bVal;
   //Step 2: Modelling each pixel with Gaussian
-  duration1 = static_cast<double>( cv::getTickCount() );
   bin_img = cv::Mat( orig_img.rows, orig_img.cols, CV_8UC1, cv::Scalar( 0 ) );
   while ( 1 )
   {
-    if ( !capture.read( orig_img ) )
-    {
-      break;
-      capture.release();
-      capture = cv::VideoCapture( "PETS2009_sample_1.avi" );
-      capture.read( orig_img );
-    }
+    capture.read( orig_img );
     N_ptr = N_start;
-    duration1 = static_cast<double>( cv::getTickCount() );
     for ( i = 0; i < nL; i++ )
     {
       r_ptr = orig_img.ptr( i );
@@ -316,8 +307,5 @@ int main( int argc, char *argv[] )
       break;
     }
   }
-  duration1 = static_cast<double>( cv::getTickCount() ) - duration1;
-  duration1 /= cv::getTickFrequency();
-  std::cout << "\n duration1 :" << duration1;
   return 0;
 }
