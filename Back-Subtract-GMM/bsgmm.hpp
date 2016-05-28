@@ -19,13 +19,12 @@ struct gaussian
   gaussian *Next;
   gaussian *Previous;
 };
-struct node
+typedef struct
 {
   gaussian *pixel_s;
   gaussian *pixel_r;
   int no_of_components;
-  node *Next;
-};
-node *Create_Node( double info1, double info2, double info3 );
-void Insert_End_Node( node *np );
+}NODE;
+NODE Create_Node( double info1, double info2, double info3 );
+void Insert_End_Node( NODE *np );
 gaussian *Create_gaussian( double info1, double info2, double info3 );

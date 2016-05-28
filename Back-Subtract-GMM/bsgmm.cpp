@@ -5,21 +5,20 @@
 #include <opencv2/features2d/features2d.hpp>
 #include <stdlib.h>
 #include "bsgmm.hpp"
+#include <vector>
+using namespace std;
 //Temperory variable
 int overall = 0;
-struct gaussian *ptr, *start, *rear, *g_temp, *save, *next, *previous, *nptr, *temp_ptr;
-struct node *N_ptr, *N_start, *N_rear;
+struct gaussian *ptr, *start, *rear, *nextptr, *previous, *temp_ptr;
+vector<NODE> NodeList;
+vector<NODE>::iterator nodeIter;
 //Some function associated with the structure management
-node *Create_Node( double info1, double info2, double info3 )
+NODE Create_Node( double info1, double info2, double info3 )
 {
-  N_ptr = new node;
-  if ( N_ptr != NULL )
-  {
-    N_ptr->Next = NULL;
-    N_ptr->no_of_components = 1;
-    N_ptr->pixel_s = N_ptr->pixel_r = Create_gaussian( info1, info2, info3 );
-  }
-  return N_ptr;
+  NODE tmp;
+  tmp.no_of_components = 1;
+  tmp.pixel_r = tmp.pixel_s = Create_gaussian( info1, info2, info3 );
+  return tmp;
 }
 gaussian *Create_gaussian( double info1, double info2, double info3 )
 {
@@ -35,18 +34,6 @@ gaussian *Create_gaussian( double info1, double info2, double info3 )
     ptr->Previous = NULL;
   }
   return ptr;
-}
-void Insert_End_Node( node *np )
-{
-  if ( N_start != NULL )
-  {
-    N_rear->Next = np;
-    N_rear = np;
-  }
-  else
-  {
-    N_start = N_rear = np;
-  }
 }
 void Insert_End_gaussian( gaussian *nptr )
 {
@@ -64,7 +51,7 @@ void Insert_End_gaussian( gaussian *nptr )
 gaussian *Delete_gaussian( gaussian *nptr )
 {
   previous = nptr->Previous;
-  next = nptr->Next;
+  nextptr = nptr->Next;
   if ( start != NULL )
   {
     if ( nptr == start && nptr == rear )
@@ -74,8 +61,8 @@ gaussian *Delete_gaussian( gaussian *nptr )
     }
     else if ( nptr == start )
     {
-      next->Previous = NULL;
-      start = next;
+      nextptr->Previous = NULL;
+      start = nextptr;
       delete nptr;
       nptr = start;
     }
@@ -88,10 +75,10 @@ gaussian *Delete_gaussian( gaussian *nptr )
     }
     else
     {
-      previous->Next = next;
-      next->Previous = previous;
+      previous->Next = nextptr;
+      nextptr->Previous = previous;
       delete nptr;
-      nptr = next;
+      nptr = nextptr;
     }
   }
   else
@@ -119,22 +106,14 @@ int main( int argc, char *argv[] )
   cv::Vec3f val;
   uchar *r_ptr;
   uchar *b_ptr;
-  for (int i = 0; i < orig_img.rows; i++ )
+  for ( int i = 0; i < orig_img.rows; i++ )
   {
     r_ptr = orig_img.ptr( i );
-    for (int j = 0; j < orig_img.cols; j++ )
+    for ( int j = 0; j < orig_img.cols; j++ )
     {
-      N_ptr = Create_Node( *r_ptr, *( r_ptr + 1 ), *( r_ptr + 2 ) );
-      if ( N_ptr != NULL )
-      {
-        N_ptr->pixel_s->weight = 1.0;
-        Insert_End_Node( N_ptr );
-      }
-      else
-      {
-        std::cout << "Memory limit reached... ";
-        exit( EXIT_FAILURE );
-      }
+      NODE tmp = Create_Node( *r_ptr, *( r_ptr + 1 ), *( r_ptr + 2 ) );
+      tmp.pixel_s->weight = 1.0;
+      NodeList.push_back(tmp);
     }
   }
   capture.read( orig_img );
@@ -163,12 +142,12 @@ int main( int argc, char *argv[] )
   while ( 1 )
   {
     capture.read( orig_img );
-    N_ptr = N_start;
-    for (int i = 0; i < nL; i++ )
+    nodeIter = NodeList.begin();
+    for ( int i = 0; i < nL; i++ )
     {
       r_ptr = orig_img.ptr( i );
       b_ptr = bin_img.ptr( i );
-      for (int j = 0; j < nC; j += 3 )
+      for ( int j = 0; j < nC; j += 3 )
       {
         sum = 0.0;
         close = false;
@@ -176,16 +155,16 @@ int main( int argc, char *argv[] )
         rVal = *( r_ptr++ );
         gVal = *( r_ptr++ );
         bVal = *( r_ptr++ );
-        start = N_ptr->pixel_s;
-        rear = N_ptr->pixel_r;
+        start = nodeIter->pixel_s;
+        rear = nodeIter->pixel_r;
         ptr = start;
         temp_ptr = NULL;
-        if ( N_ptr->no_of_components > 4 )
+        if ( nodeIter->no_of_components > 4 )
         {
           Delete_gaussian( rear );
-          N_ptr->no_of_components--;
+          nodeIter->no_of_components--;
         }
-        for (int k = 0; k < N_ptr->no_of_components; k++ )
+        for ( int k = 0; k < nodeIter->no_of_components; k++ )
         {
           weight = ptr->weight;
           mult = alpha / weight;
@@ -220,7 +199,7 @@ int main( int argc, char *argv[] )
           {
             ptr = Delete_gaussian( ptr );
             weight = 0;
-            N_ptr->no_of_components--;
+            nodeIter->no_of_components--;
           }
           else
           {
@@ -250,7 +229,7 @@ int main( int argc, char *argv[] )
             rear = ptr;
           }
           temp_ptr = ptr;
-          N_ptr->no_of_components++;
+          nodeIter->no_of_components++;
         }
         ptr = start;
         while ( ptr != NULL )
@@ -266,22 +245,22 @@ int main( int argc, char *argv[] )
           }
           else
           {
-            next = temp_ptr->Next;
+            nextptr = temp_ptr->Next;
             previous = temp_ptr->Previous;
             if ( start == previous )
             {
               start = temp_ptr;
             }
-            previous->Next = next;
+            previous->Next = nextptr;
             temp_ptr->Previous = previous->Previous;
             temp_ptr->Next = previous;
             if ( previous->Previous != NULL )
             {
               previous->Previous->Next = temp_ptr;
             }
-            if ( next != NULL )
+            if ( nextptr != NULL )
             {
-              next->Previous = previous;
+              nextptr->Previous = previous;
             }
             else
             {
@@ -291,10 +270,10 @@ int main( int argc, char *argv[] )
           }
           temp_ptr = temp_ptr->Previous;
         }
-        N_ptr->pixel_s = start;
-        N_ptr->pixel_r = rear;
+        nodeIter->pixel_s = start;
+        nodeIter->pixel_r = rear;
         *b_ptr++ = background;
-        N_ptr = N_ptr->Next;
+        nodeIter++;
       }
     }
     cv::imshow( "video", orig_img );
