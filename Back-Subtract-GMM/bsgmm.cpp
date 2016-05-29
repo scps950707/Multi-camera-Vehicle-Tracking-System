@@ -5,21 +5,20 @@
 #include <opencv2/features2d/features2d.hpp>
 #include <stdlib.h>
 #include "bsgmm.hpp"
+#include <vector>
+using namespace std;
 //Temperory variable
 int overall = 0;
-struct gaussian *ptr, *start, *rear, *g_temp, *save, *next, *previous, *nptr, *temp_ptr;
-struct node *N_ptr, *N_start, *N_rear;
+gaussian *ptr, *head, *tail,  *temp_ptr;
+vector<NODE> NodeList;
+vector<NODE>::iterator nodeIter;
 //Some function associated with the structure management
-node *Create_Node( double info1, double info2, double info3 )
+NODE Create_Node( double info1, double info2, double info3 )
 {
-  N_ptr = new node;
-  if ( N_ptr != NULL )
-  {
-    N_ptr->Next = NULL;
-    N_ptr->no_of_components = 1;
-    N_ptr->pixel_s = N_ptr->pixel_r = Create_gaussian( info1, info2, info3 );
-  }
-  return N_ptr;
+  NODE tmp;
+  tmp.numComponents = 1;
+  tmp.pixel_r = tmp.pixel_s = Create_gaussian( info1, info2, info3 );
+  return tmp;
 }
 gaussian *Create_gaussian( double info1, double info2, double info3 )
 {
@@ -31,173 +30,150 @@ gaussian *Create_gaussian( double info1, double info2, double info3 )
     ptr->mean[2] = info3;
     ptr->covariance = covariance0;
     ptr->weight = alpha;
-    ptr->Next = NULL;
-    ptr->Previous = NULL;
+    ptr->next = NULL;
+    ptr->prev = NULL;
   }
   return ptr;
 }
-void Insert_End_Node( node *np )
-{
-  if ( N_start != NULL )
-  {
-    N_rear->Next = np;
-    N_rear = np;
-  }
-  else
-  {
-    N_start = N_rear = np;
-  }
-}
 void Insert_End_gaussian( gaussian *nptr )
 {
-  if ( start != NULL )
+  if ( head != NULL )
   {
-    rear->Next = nptr;
-    nptr->Previous = rear;
-    rear = nptr;
+    tail->next = nptr;
+    nptr->prev = tail;
+    tail = nptr;
   }
   else
   {
-    start = rear = nptr;
+    head = tail = nptr;
   }
 }
 gaussian *Delete_gaussian( gaussian *nptr )
 {
-  previous = nptr->Previous;
-  next = nptr->Next;
-  if ( start != NULL )
+  gaussian *previous, *nextptr;
+  previous = nptr->prev;
+  nextptr = nptr->next;
+  if ( head != NULL )
   {
-    if ( nptr == start && nptr == rear )
+    if ( nptr == head && nptr == tail )
     {
-      start = rear = NULL;
+      head = tail = NULL;
       delete nptr;
     }
-    else if ( nptr == start )
+    else if ( nptr == head )
     {
-      next->Previous = NULL;
-      start = next;
+      nextptr->prev = NULL;
+      head = nextptr;
       delete nptr;
-      nptr = start;
+      nptr = head;
     }
-    else if ( nptr == rear )
+    else if ( nptr == tail )
     {
-      previous->Next = NULL;
-      rear = previous;
+      previous->next = NULL;
+      tail = previous;
       delete nptr;
-      nptr = rear;
+      nptr = tail;
     }
     else
     {
-      previous->Next = next;
-      next->Previous = previous;
+      previous->next = nextptr;
+      nextptr->prev = previous;
       delete nptr;
-      nptr = next;
+      nptr = nextptr;
     }
   }
   else
   {
     std::cout << "Underflow........";
-    exit( 0 );
+    exit( EXIT_FAILURE );
   }
   return nptr;
 }
 int main( int argc, char *argv[] )
 {
   // Declare matrices to store original and resultant binary image
-  cv::Mat orig_img, bin_img;
+  cv::Mat inputImg, outputImg;
   //Declare a VideoCapture object to store incoming frame and initialize it
   cv::VideoCapture capture( argv[1] );
   //Checking if input source is valid
-  if ( !capture.read( orig_img ) )
+  if ( !capture.read( inputImg ) )
   {
     std::cout << " Can't recieve input from source ";
     exit( EXIT_FAILURE );
   }
-  cv::cvtColor( orig_img, orig_img, CV_BGR2YCrCb );
+  cv::cvtColor( inputImg, inputImg, CV_BGR2YCrCb );
   //Initializing the binary image with the same dimensions as original image
-  bin_img = cv::Mat( orig_img.rows, orig_img.cols, CV_8U, cv::Scalar( 0 ) );
-  cv::Vec3f val;
-  uchar *r_ptr;
-  uchar *b_ptr;
-  for (int i = 0; i < orig_img.rows; i++ )
+  outputImg = cv::Mat( inputImg.rows, inputImg.cols, CV_8U, cv::Scalar( 0 ) );
+  uchar *inputPtr;
+  uchar *outputPtr;
+  for ( int i = 0; i < inputImg.rows; i++ )
   {
-    r_ptr = orig_img.ptr( i );
-    for (int j = 0; j < orig_img.cols; j++ )
+    inputPtr = inputImg.ptr( i );
+    for ( int j = 0; j < inputImg.cols; j++ )
     {
-      N_ptr = Create_Node( *r_ptr, *( r_ptr + 1 ), *( r_ptr + 2 ) );
-      if ( N_ptr != NULL )
-      {
-        N_ptr->pixel_s->weight = 1.0;
-        Insert_End_Node( N_ptr );
-      }
-      else
-      {
-        std::cout << "Memory limit reached... ";
-        exit( EXIT_FAILURE );
-      }
+      NODE tmp = Create_Node( *inputPtr, *( inputPtr + 1 ), *( inputPtr + 2 ) );
+      tmp.pixel_s->weight = 1.0;
+      NodeList.push_back( tmp );
     }
   }
-  capture.read( orig_img );
+  capture.read( inputImg );
   int nL, nC;
-  if ( orig_img.isContinuous() == true )
+  if ( inputImg.isContinuous() == true )
   {
     nL = 1;
-    nC = orig_img.rows * orig_img.cols * orig_img.channels();
+    nC = inputImg.rows * inputImg.cols * inputImg.channels();
   }
   else
   {
-    nL = orig_img.rows;
-    nC = orig_img.cols * orig_img.channels();
+    nL = inputImg.rows;
+    nC = inputImg.cols * inputImg.channels();
   }
-  double mal_dist;
-  double sum = 0.0;
-  bool close = false;
-  int background;
-  double mult;
-  double temp_cov = 0.0;
-  double weight = 0.0;
-  double var = 0.0;
-  double muR, muG, muB, dR, dG, dB, rVal, gVal, bVal;
   //Step 2: Modelling each pixel with Gaussian
-  bin_img = cv::Mat( orig_img.rows, orig_img.cols, CV_8UC1, cv::Scalar( 0 ) );
-  while ( 1 )
+  outputImg = cv::Mat( inputImg.rows, inputImg.cols, CV_8UC1, cv::Scalar( 0 ) );
+  while ( true )
   {
-    capture.read( orig_img );
-    N_ptr = N_start;
-    for (int i = 0; i < nL; i++ )
+    double mal_dist;
+    double sum = 0.0;
+    bool close = false;
+    int background;
+    double tmpCovariance = 0.0;
+    double var = 0.0;
+    if ( !capture.read( inputImg ) )
     {
-      r_ptr = orig_img.ptr( i );
-      b_ptr = bin_img.ptr( i );
-      for (int j = 0; j < nC; j += 3 )
+      break;
+    }
+    nodeIter = NodeList.begin();
+    for ( int i = 0; i < nL; i++ )
+    {
+      inputPtr = inputImg.ptr( i );
+      outputPtr = outputImg.ptr( i );
+      for ( int j = 0; j < nC; j += 3 )
       {
         sum = 0.0;
         close = false;
         background = 0;
-        rVal = *( r_ptr++ );
-        gVal = *( r_ptr++ );
-        bVal = *( r_ptr++ );
-        start = N_ptr->pixel_s;
-        rear = N_ptr->pixel_r;
-        ptr = start;
+        double rVal = *( inputPtr++ );
+        double gVal = *( inputPtr++ );
+        double bVal = *( inputPtr++ );
+        head = nodeIter->pixel_s;
+        tail = nodeIter->pixel_r;
+        ptr = head;
         temp_ptr = NULL;
-        if ( N_ptr->no_of_components > 4 )
+        if ( nodeIter->numComponents > 4 )
         {
-          Delete_gaussian( rear );
-          N_ptr->no_of_components--;
+          Delete_gaussian( tail );
+          nodeIter->numComponents--;
         }
-        for (int k = 0; k < N_ptr->no_of_components; k++ )
+        for ( int k = 0; k < nodeIter->numComponents; k++ )
         {
-          weight = ptr->weight;
-          mult = alpha / weight;
+          double weight = ptr->weight;
+          double mult = alpha / weight;
           weight = weight * alpha_bar + prune;
           if ( close == false )
           {
-            muR = ptr->mean[0];
-            muG = ptr->mean[1];
-            muB = ptr->mean[2];
-            dR = rVal - muR;
-            dG = gVal - muG;
-            dB = bVal - muB;
+            double dR = rVal - ptr->mean[0];
+            double dG = gVal - ptr->mean[1];
+            double dB = bVal - ptr->mean[2];
             var = ptr->covariance;
             mal_dist = ( dR * dR + dG * dG + dB * dB );
             if ( ( sum < cfbar ) && ( mal_dist < 16.0 * var * var ) )
@@ -208,11 +184,11 @@ int main( int argc, char *argv[] )
             {
               weight += alpha;
               close = true;
-              ptr->mean[0] = muR + mult * dR;
-              ptr->mean[1] = muG + mult * dG;
-              ptr->mean[2] = muB + mult * dB;
-              temp_cov = var + mult * ( mal_dist - var );
-              ptr->covariance = temp_cov < 5.0 ? 5.0 : ( temp_cov > 20.0 ? 20.0 : temp_cov );
+              ptr->mean[0] += mult * dR;
+              ptr->mean[1] += mult * dG;
+              ptr->mean[2] += mult * dB;
+              tmpCovariance = var + mult * ( mal_dist - var );
+              ptr->covariance = tmpCovariance < 5.0 ? 5.0 : ( tmpCovariance > 20.0 ? 20.0 : tmpCovariance );
               temp_ptr = ptr;
             }
           }
@@ -220,14 +196,14 @@ int main( int argc, char *argv[] )
           {
             ptr = Delete_gaussian( ptr );
             weight = 0;
-            N_ptr->no_of_components--;
+            nodeIter->numComponents--;
           }
           else
           {
             sum += weight;
             ptr->weight = weight;
           }
-          ptr = ptr->Next;
+          ptr = ptr->next;
         }
         if ( close == false )
         {
@@ -237,72 +213,73 @@ int main( int argc, char *argv[] )
           ptr->mean[1] = gVal;
           ptr->mean[2] = bVal;
           ptr->covariance = covariance0;
-          ptr->Next = NULL;
-          ptr->Previous = NULL;
-          if ( start == NULL )
+          ptr->next = NULL;
+          ptr->prev = NULL;
+          if ( head == NULL )
           {
-            start = rear = NULL;
+            head = tail = NULL;
           }
           else
           {
-            ptr->Previous = rear;
-            rear->Next = ptr;
-            rear = ptr;
+            ptr->prev = tail;
+            tail->next = ptr;
+            tail = ptr;
           }
           temp_ptr = ptr;
-          N_ptr->no_of_components++;
+          nodeIter->numComponents++;
         }
-        ptr = start;
+        ptr = head;
         while ( ptr != NULL )
         {
           ptr->weight /= sum;
-          ptr = ptr->Next;
+          ptr = ptr->next;
         }
-        while ( temp_ptr != NULL && temp_ptr->Previous != NULL )
+        while ( temp_ptr != NULL && temp_ptr->prev != NULL )
         {
-          if ( temp_ptr->weight <= temp_ptr->Previous->weight )
+          if ( temp_ptr->weight <= temp_ptr->prev->weight )
           {
             break;
           }
           else
           {
-            next = temp_ptr->Next;
-            previous = temp_ptr->Previous;
-            if ( start == previous )
+            gaussian *nextptr, *previous;
+            nextptr = temp_ptr->next;
+            previous = temp_ptr->prev;
+            if ( head == previous )
             {
-              start = temp_ptr;
+              head = temp_ptr;
             }
-            previous->Next = next;
-            temp_ptr->Previous = previous->Previous;
-            temp_ptr->Next = previous;
-            if ( previous->Previous != NULL )
+            previous->next = nextptr;
+            temp_ptr->prev = previous->prev;
+            temp_ptr->next = previous;
+            if ( previous->prev != NULL )
             {
-              previous->Previous->Next = temp_ptr;
+              previous->prev->next = temp_ptr;
             }
-            if ( next != NULL )
+            if ( nextptr != NULL )
             {
-              next->Previous = previous;
+              nextptr->prev = previous;
             }
             else
             {
-              rear = previous;
+              tail = previous;
             }
-            previous->Previous = temp_ptr;
+            previous->prev = temp_ptr;
           }
-          temp_ptr = temp_ptr->Previous;
+          temp_ptr = temp_ptr->prev;
         }
-        N_ptr->pixel_s = start;
-        N_ptr->pixel_r = rear;
-        *b_ptr++ = background;
-        N_ptr = N_ptr->Next;
+        nodeIter->pixel_s = head;
+        nodeIter->pixel_r = tail;
+        *outputPtr++ = background;
+        nodeIter++;
       }
     }
-    cv::imshow( "video", orig_img );
-    cv::imshow( "gp", bin_img );
+    cv::imshow( "video", inputImg );
+    cv::imshow( "GMM", outputImg );
     if ( cv::waitKey( 1 ) > 0 )
     {
       break;
     }
   }
-  return 0;
+  return EXIT_SUCCESS;
 }
