@@ -92,45 +92,44 @@ gaussian *Delete_gaussian( gaussian *nptr )
 int main( int argc, char *argv[] )
 {
   // Declare matrices to store original and resultant binary image
-  cv::Mat orig_img, bin_img;
+  cv::Mat inputImg, outputImg;
   //Declare a VideoCapture object to store incoming frame and initialize it
   cv::VideoCapture capture( argv[1] );
   //Checking if input source is valid
-  if ( !capture.read( orig_img ) )
+  if ( !capture.read( inputImg ) )
   {
     std::cout << " Can't recieve input from source ";
     exit( EXIT_FAILURE );
   }
-  cv::cvtColor( orig_img, orig_img, CV_BGR2YCrCb );
+  cv::cvtColor( inputImg, inputImg, CV_BGR2YCrCb );
   //Initializing the binary image with the same dimensions as original image
-  bin_img = cv::Mat( orig_img.rows, orig_img.cols, CV_8U, cv::Scalar( 0 ) );
-  cv::Vec3f val;
-  uchar *r_ptr;
-  uchar *b_ptr;
-  for ( int i = 0; i < orig_img.rows; i++ )
+  outputImg = cv::Mat( inputImg.rows, inputImg.cols, CV_8U, cv::Scalar( 0 ) );
+  uchar *inputPtr;
+  uchar *outputPtr;
+  for ( int i = 0; i < inputImg.rows; i++ )
   {
-    r_ptr = orig_img.ptr( i );
-    for ( int j = 0; j < orig_img.cols; j++ )
+    inputPtr = inputImg.ptr( i );
+    for ( int j = 0; j < inputImg.cols; j++ )
     {
-      NODE tmp = Create_Node( *r_ptr, *( r_ptr + 1 ), *( r_ptr + 2 ) );
+      NODE tmp = Create_Node( *inputPtr, *( inputPtr + 1 ), *( inputPtr + 2 ) );
       tmp.pixel_s->weight = 1.0;
       NodeList.push_back( tmp );
     }
   }
-  capture.read( orig_img );
+  capture.read( inputImg );
   int nL, nC;
-  if ( orig_img.isContinuous() == true )
+  if ( inputImg.isContinuous() == true )
   {
     nL = 1;
-    nC = orig_img.rows * orig_img.cols * orig_img.channels();
+    nC = inputImg.rows * inputImg.cols * inputImg.channels();
   }
   else
   {
-    nL = orig_img.rows;
-    nC = orig_img.cols * orig_img.channels();
+    nL = inputImg.rows;
+    nC = inputImg.cols * inputImg.channels();
   }
   //Step 2: Modelling each pixel with Gaussian
-  bin_img = cv::Mat( orig_img.rows, orig_img.cols, CV_8UC1, cv::Scalar( 0 ) );
+  outputImg = cv::Mat( inputImg.rows, inputImg.cols, CV_8UC1, cv::Scalar( 0 ) );
   while ( 1 )
   {
     double mal_dist;
@@ -139,23 +138,22 @@ int main( int argc, char *argv[] )
     int background;
     double mult;
     double temp_cov = 0.0;
-    double weight = 0.0;
     double var = 0.0;
     double muR, muG, muB, dR, dG, dB, rVal, gVal, bVal;
-    capture.read( orig_img );
+    capture.read( inputImg );
     nodeIter = NodeList.begin();
     for ( int i = 0; i < nL; i++ )
     {
-      r_ptr = orig_img.ptr( i );
-      b_ptr = bin_img.ptr( i );
+      inputPtr = inputImg.ptr( i );
+      outputPtr = outputImg.ptr( i );
       for ( int j = 0; j < nC; j += 3 )
       {
         sum = 0.0;
         close = false;
         background = 0;
-        rVal = *( r_ptr++ );
-        gVal = *( r_ptr++ );
-        bVal = *( r_ptr++ );
+        rVal = *( inputPtr++ );
+        gVal = *( inputPtr++ );
+        bVal = *( inputPtr++ );
         head = nodeIter->pixel_s;
         tail = nodeIter->pixel_r;
         ptr = head;
@@ -167,7 +165,7 @@ int main( int argc, char *argv[] )
         }
         for ( int k = 0; k < nodeIter->no_of_components; k++ )
         {
-          weight = ptr->weight;
+          double weight = ptr->weight;
           mult = alpha / weight;
           weight = weight * alpha_bar + prune;
           if ( close == false )
@@ -274,12 +272,12 @@ int main( int argc, char *argv[] )
         }
         nodeIter->pixel_s = head;
         nodeIter->pixel_r = tail;
-        *b_ptr++ = background;
+        *outputPtr++ = background;
         nodeIter++;
       }
     }
-    cv::imshow( "video", orig_img );
-    cv::imshow( "gp", bin_img );
+    cv::imshow( "video", inputImg );
+    cv::imshow( "gp", outputImg );
     if ( cv::waitKey( 1 ) > 0 )
     {
       break;
