@@ -140,7 +140,10 @@ int main( int argc, char *argv[] )
     double temp_cov = 0.0;
     double var = 0.0;
     double muR, muG, muB, dR, dG, dB, rVal, gVal, bVal;
-    capture.read( inputImg );
+    if ( !capture.read( inputImg ) )
+    {
+      break;
+    }
     nodeIter = NodeList.begin();
     for ( int i = 0; i < nL; i++ )
     {
