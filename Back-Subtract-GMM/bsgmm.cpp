@@ -16,7 +16,7 @@ vector<NODE>::iterator nodeIter;
 NODE Create_Node( double info1, double info2, double info3 )
 {
   NODE tmp;
-  tmp.no_of_components = 1;
+  tmp.numComponents = 1;
   tmp.pixel_r = tmp.pixel_s = Create_gaussian( info1, info2, info3 );
   return tmp;
 }
@@ -85,7 +85,7 @@ gaussian *Delete_gaussian( gaussian *nptr )
   else
   {
     std::cout << "Underflow........";
-    exit( 0 );
+    exit( EXIT_FAILURE );
   }
   return nptr;
 }
@@ -130,16 +130,14 @@ int main( int argc, char *argv[] )
   }
   //Step 2: Modelling each pixel with Gaussian
   outputImg = cv::Mat( inputImg.rows, inputImg.cols, CV_8UC1, cv::Scalar( 0 ) );
-  while ( 1 )
+  while ( true )
   {
     double mal_dist;
     double sum = 0.0;
     bool close = false;
     int background;
-    double mult;
-    double temp_cov = 0.0;
+    double tmpCovariance = 0.0;
     double var = 0.0;
-    double muR, muG, muB, dR, dG, dB, rVal, gVal, bVal;
     if ( !capture.read( inputImg ) )
     {
       break;
@@ -154,31 +152,28 @@ int main( int argc, char *argv[] )
         sum = 0.0;
         close = false;
         background = 0;
-        rVal = *( inputPtr++ );
-        gVal = *( inputPtr++ );
-        bVal = *( inputPtr++ );
+        double rVal = *( inputPtr++ );
+        double gVal = *( inputPtr++ );
+        double bVal = *( inputPtr++ );
         head = nodeIter->pixel_s;
         tail = nodeIter->pixel_r;
         ptr = head;
         temp_ptr = NULL;
-        if ( nodeIter->no_of_components > 4 )
+        if ( nodeIter->numComponents > 4 )
         {
           Delete_gaussian( tail );
-          nodeIter->no_of_components--;
+          nodeIter->numComponents--;
         }
-        for ( int k = 0; k < nodeIter->no_of_components; k++ )
+        for ( int k = 0; k < nodeIter->numComponents; k++ )
         {
           double weight = ptr->weight;
-          mult = alpha / weight;
+          double mult = alpha / weight;
           weight = weight * alpha_bar + prune;
           if ( close == false )
           {
-            muR = ptr->mean[0];
-            muG = ptr->mean[1];
-            muB = ptr->mean[2];
-            dR = rVal - muR;
-            dG = gVal - muG;
-            dB = bVal - muB;
+            double dR = rVal - ptr->mean[0];
+            double dG = gVal - ptr->mean[1];
+            double dB = bVal - ptr->mean[2];
             var = ptr->covariance;
             mal_dist = ( dR * dR + dG * dG + dB * dB );
             if ( ( sum < cfbar ) && ( mal_dist < 16.0 * var * var ) )
@@ -189,11 +184,11 @@ int main( int argc, char *argv[] )
             {
               weight += alpha;
               close = true;
-              ptr->mean[0] = muR + mult * dR;
-              ptr->mean[1] = muG + mult * dG;
-              ptr->mean[2] = muB + mult * dB;
-              temp_cov = var + mult * ( mal_dist - var );
-              ptr->covariance = temp_cov < 5.0 ? 5.0 : ( temp_cov > 20.0 ? 20.0 : temp_cov );
+              ptr->mean[0] += mult * dR;
+              ptr->mean[1] += mult * dG;
+              ptr->mean[2] += mult * dB;
+              tmpCovariance = var + mult * ( mal_dist - var );
+              ptr->covariance = tmpCovariance < 5.0 ? 5.0 : ( tmpCovariance > 20.0 ? 20.0 : tmpCovariance );
               temp_ptr = ptr;
             }
           }
@@ -201,7 +196,7 @@ int main( int argc, char *argv[] )
           {
             ptr = Delete_gaussian( ptr );
             weight = 0;
-            nodeIter->no_of_components--;
+            nodeIter->numComponents--;
           }
           else
           {
@@ -231,7 +226,7 @@ int main( int argc, char *argv[] )
             tail = ptr;
           }
           temp_ptr = ptr;
-          nodeIter->no_of_components++;
+          nodeIter->numComponents++;
         }
         ptr = head;
         while ( ptr != NULL )
@@ -280,11 +275,11 @@ int main( int argc, char *argv[] )
       }
     }
     cv::imshow( "video", inputImg );
-    cv::imshow( "gp", outputImg );
+    cv::imshow( "GMM", outputImg );
     if ( cv::waitKey( 1 ) > 0 )
     {
       break;
     }
   }
-  return 0;
+  return EXIT_SUCCESS;
 }
