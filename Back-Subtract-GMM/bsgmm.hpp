@@ -16,14 +16,15 @@ typedef struct tmp
   double weight;
   tmp *next;
   tmp *prev;
-}gaussian,*gaussianPtr;
+} gaussian, *gaussianPtr;
 typedef struct
 {
   gaussian *pixelCompoListHead;
   gaussian *pixelCompoListTail;
   int numComponents;
-}NODE,*NODEPTR;
+} NODE, *NODEPTR;
 NODE Create_Node( double r, double g, double b, double covariance, double weight );
 gaussianPtr Create_gaussian( double r, double g, double b, double covariance, double weight );
 void insertBack( gaussianPtr *head, gaussianPtr *tail, gaussianPtr newPtr );
 gaussianPtr popBack( gaussianPtr *head, gaussianPtr *tail, gaussianPtr target );
+void swapNode( gaussianPtr *head, gaussianPtr *tail, gaussianPtr p1, gaussianPtr p2 );

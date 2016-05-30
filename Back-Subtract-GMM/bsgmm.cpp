@@ -85,6 +85,32 @@ gaussianPtr popBack( gaussianPtr *head, gaussianPtr *tail, gaussianPtr target )
   }
   return target;
 }
+
+void swapNode( gaussianPtr *head, gaussianPtr *tail, gaussianPtr p1, gaussianPtr p2 )
+{
+  gaussianPtr nextptr = p2->next;
+  if ( *head == p1 )
+  {
+    *head = p2;
+  }
+  p1->next = nextptr;
+  p2->prev = p1->prev;
+  p2->next = p1;
+  if ( p1->prev != NULL )
+  {
+    p1->prev->next = p2;
+  }
+  if ( nextptr != NULL )
+  {
+    nextptr->prev = p1;
+  }
+  else
+  {
+    *tail = p1;
+  }
+  p1->prev = p2;
+}
+
 int main( int argc, char *argv[] )
 {
   cv::Mat inputImg, outputImg;
@@ -219,28 +245,7 @@ int main( int argc, char *argv[] )
           }
           else
           {
-            gaussianPtr nextptr = temp_ptr->next;
-            gaussianPtr previous = temp_ptr->prev;
-            if ( head == previous )
-            {
-              head = temp_ptr;
-            }
-            previous->next = nextptr;
-            temp_ptr->prev = previous->prev;
-            temp_ptr->next = previous;
-            if ( previous->prev != NULL )
-            {
-              previous->prev->next = temp_ptr;
-            }
-            if ( nextptr != NULL )
-            {
-              nextptr->prev = previous;
-            }
-            else
-            {
-              tail = previous;
-            }
-            previous->prev = temp_ptr;
+            swapNode( &head, &tail, temp_ptr->prev, temp_ptr );
           }
           temp_ptr = temp_ptr->prev;
         }
