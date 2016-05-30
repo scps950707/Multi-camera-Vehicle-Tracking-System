@@ -132,7 +132,6 @@ int main( int argc, char *argv[] )
   outputImg = cv::Mat( inputImg.rows, inputImg.cols, CV_8UC1, cv::Scalar( 0 ) );
   while ( true )
   {
-  :Q
     double MahalDis;
     // Mahalanobis distance
     double sum = 0.0;
