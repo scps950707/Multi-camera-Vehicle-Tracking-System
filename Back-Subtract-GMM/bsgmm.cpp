@@ -7,65 +7,75 @@
 #include "bsgmm.hpp"
 #include <vector>
 using namespace std;
-//Temperory variable
-int overall = 0;
-gaussian *ptr, *head, *tail,  *temp_ptr;
-NODE *pixelGaussianBuffer,*pixelPtr;
-//Some function associated with the structure management
-NODE Create_Node( double info1, double info2, double info3 )
+NODEPTR pixelGaussianBuffer, pixelPtr;
+NODE Create_Node( double r, double g, double b, double covariance, double weight )
 {
   NODE tmp;
   tmp.numComponents = 1;
-  tmp.pixel_r = tmp.pixel_s = Create_gaussian( info1, info2, info3 );
+  tmp.pixelCompoListTail = tmp.pixelCompoListHead = Create_gaussian( r, g, b, covariance, weight );
   return tmp;
 }
-gaussian *Create_gaussian( double info1, double info2, double info3 )
+gaussianPtr Create_gaussian( double r, double g, double b, double covariance, double weight )
 {
-  ptr = new gaussian;
+  gaussianPtr ptr = new gaussian;
   if ( ptr != NULL )
   {
-    ptr->mean[0] = info1;
-    ptr->mean[1] = info2;
-    ptr->mean[2] = info3;
-    ptr->covariance = covariance0;
-    ptr->weight = alpha;
+    ptr->mean[0] = r;
+    ptr->mean[1] = g;
+    ptr->mean[2] = b;
+    ptr->covariance = covariance;
+    ptr->weight = weight;
     ptr->next = NULL;
     ptr->prev = NULL;
   }
   return ptr;
 }
-gaussian *Delete_gaussian( gaussian *nptr )
+
+void insertBack( gaussianPtr *head, gaussianPtr *tail, gaussianPtr newPtr )
 {
-  gaussian *previous, *nextptr;
-  previous = nptr->prev;
-  nextptr = nptr->next;
+  if ( *head == NULL )
+  {
+    *head = *tail = newPtr;
+  }
+  else
+  {
+    newPtr->prev = *tail;
+    ( *tail )->next = newPtr;
+    *tail = newPtr;
+  }
+}
+
+gaussianPtr popBack( gaussianPtr *head, gaussianPtr *tail, gaussianPtr target )
+{
+  gaussianPtr previous = target->prev;
+  gaussianPtr nextptr = target->next;
   if ( head != NULL )
   {
-    if ( nptr == head && nptr == tail )
+    if ( target == *head && target == *tail )
     {
-      head = tail = NULL;
-      delete nptr;
+      *head = *tail = NULL;
+      delete target;
     }
-    else if ( nptr == head )
+    else if ( target == *head )
     {
       nextptr->prev = NULL;
-      head = nextptr;
-      delete nptr;
-      nptr = head;
+      *head = nextptr;
+      delete target;
+      target = *head;
     }
-    else if ( nptr == tail )
+    else if ( target == *tail )
     {
       previous->next = NULL;
-      tail = previous;
-      delete nptr;
-      nptr = tail;
+      *tail = previous;
+      delete target;
+      target = *tail;
     }
     else
     {
       previous->next = nextptr;
       nextptr->prev = previous;
-      delete nptr;
-      nptr = nextptr;
+      delete target;
+      target = nextptr;
     }
   }
   else
@@ -73,22 +83,18 @@ gaussian *Delete_gaussian( gaussian *nptr )
     std::cout << "Underflow........";
     exit( EXIT_FAILURE );
   }
-  return nptr;
+  return target;
 }
 int main( int argc, char *argv[] )
 {
-  // Declare matrices to store original and resultant binary image
   cv::Mat inputImg, outputImg;
-  //Declare a VideoCapture object to store incoming frame and initialize it
   cv::VideoCapture capture( argv[1] );
-  //Checking if input source is valid
   if ( !capture.read( inputImg ) )
   {
     std::cout << " Can't recieve input from source ";
     exit( EXIT_FAILURE );
   }
   cv::cvtColor( inputImg, inputImg, CV_BGR2YCrCb );
-  //Initializing the binary image with the same dimensions as original image
   outputImg = cv::Mat( inputImg.rows, inputImg.cols, CV_8U, cv::Scalar( 0 ) );
   uchar *inputPtr;
   uchar *outputPtr;
@@ -98,8 +104,8 @@ int main( int argc, char *argv[] )
     inputPtr = inputImg.ptr( i );
     for ( int j = 0; j < inputImg.cols; j++ )
     {
-      pixelGaussianBuffer[i * inputImg.cols + j] = Create_Node( *inputPtr, *( inputPtr + 1 ), *( inputPtr + 2 ) );
-      pixelGaussianBuffer[i * inputImg.cols + j].pixel_s->weight = 1.0;
+      pixelGaussianBuffer[i * inputImg.cols + j] = Create_Node( *inputPtr, *( inputPtr + 1 ), *( inputPtr + 2 ), defaultCovariance, alpha );
+      pixelGaussianBuffer[i * inputImg.cols + j].pixelCompoListHead->weight = 1.0;
     }
   }
   capture.read( inputImg );
@@ -114,7 +120,7 @@ int main( int argc, char *argv[] )
     nL = inputImg.rows;
     nC = inputImg.cols * inputImg.channels();
   }
-  //Step 2: Modelling each pixel with Gaussian
+
   outputImg = cv::Mat( inputImg.rows, inputImg.cols, CV_8UC1, cv::Scalar( 0 ) );
   while ( true )
   {
@@ -142,13 +148,13 @@ int main( int argc, char *argv[] )
         double rVal = *( inputPtr++ );
         double gVal = *( inputPtr++ );
         double bVal = *( inputPtr++ );
-        head = pixelPtr->pixel_s;
-        tail = pixelPtr->pixel_r;
-        ptr = head;
-        temp_ptr = NULL;
+        gaussianPtr head = pixelPtr->pixelCompoListHead;
+        gaussianPtr tail = pixelPtr->pixelCompoListTail;
+        gaussianPtr ptr = pixelPtr->pixelCompoListHead;
+        gaussianPtr temp_ptr = NULL;
         if ( pixelPtr->numComponents > 4 )
         {
-          Delete_gaussian( tail );
+          popBack( &head, &tail, tail );
           pixelPtr->numComponents--;
         }
         for ( int k = 0; k < pixelPtr->numComponents; k++ )
@@ -181,7 +187,7 @@ int main( int argc, char *argv[] )
           }
           if ( weight < -prune )
           {
-            ptr = Delete_gaussian( ptr );
+            ptr = popBack( &head, &tail, ptr );
             weight = 0;
             pixelPtr->numComponents--;
           }
@@ -194,24 +200,8 @@ int main( int argc, char *argv[] )
         }
         if ( close == false )
         {
-          ptr = new gaussian;
-          ptr->weight = alpha;
-          ptr->mean[0] = rVal;
-          ptr->mean[1] = gVal;
-          ptr->mean[2] = bVal;
-          ptr->covariance = covariance0;
-          ptr->next = NULL;
-          ptr->prev = NULL;
-          if ( head == NULL )
-          {
-            head = tail = NULL;
-          }
-          else
-          {
-            ptr->prev = tail;
-            tail->next = ptr;
-            tail = ptr;
-          }
+          ptr = Create_gaussian( rVal, gVal, bVal, defaultCovariance, alpha );
+          insertBack( &head, &tail, ptr );
           temp_ptr = ptr;
           pixelPtr->numComponents++;
         }
@@ -229,9 +219,8 @@ int main( int argc, char *argv[] )
           }
           else
           {
-            gaussian *nextptr, *previous;
-            nextptr = temp_ptr->next;
-            previous = temp_ptr->prev;
+            gaussianPtr nextptr = temp_ptr->next;
+            gaussianPtr previous = temp_ptr->prev;
             if ( head == previous )
             {
               head = temp_ptr;
@@ -255,8 +244,8 @@ int main( int argc, char *argv[] )
           }
           temp_ptr = temp_ptr->prev;
         }
-        pixelPtr->pixel_s = head;
-        pixelPtr->pixel_r = tail;
+        pixelPtr->pixelCompoListHead = head;
+        pixelPtr->pixelCompoListTail = tail;
         *outputPtr++ = background;
         pixelPtr++;
       }
