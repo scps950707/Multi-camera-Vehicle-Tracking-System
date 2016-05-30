@@ -10,8 +10,7 @@ using namespace std;
 //Temperory variable
 int overall = 0;
 gaussian *ptr, *head, *tail,  *temp_ptr;
-vector<NODE> NodeList;
-vector<NODE>::iterator nodeIter;
+NODE *pixelGaussianBuffer,*pixelPtr;
 //Some function associated with the structure management
 NODE Create_Node( double info1, double info2, double info3 )
 {
@@ -34,19 +33,6 @@ gaussian *Create_gaussian( double info1, double info2, double info3 )
     ptr->prev = NULL;
   }
   return ptr;
-}
-void Insert_End_gaussian( gaussian *nptr )
-{
-  if ( head != NULL )
-  {
-    tail->next = nptr;
-    nptr->prev = tail;
-    tail = nptr;
-  }
-  else
-  {
-    head = tail = nptr;
-  }
 }
 gaussian *Delete_gaussian( gaussian *nptr )
 {
@@ -106,14 +92,14 @@ int main( int argc, char *argv[] )
   outputImg = cv::Mat( inputImg.rows, inputImg.cols, CV_8U, cv::Scalar( 0 ) );
   uchar *inputPtr;
   uchar *outputPtr;
+  pixelGaussianBuffer = new NODE[inputImg.rows * inputImg.cols];
   for ( int i = 0; i < inputImg.rows; i++ )
   {
     inputPtr = inputImg.ptr( i );
     for ( int j = 0; j < inputImg.cols; j++ )
     {
-      NODE tmp = Create_Node( *inputPtr, *( inputPtr + 1 ), *( inputPtr + 2 ) );
-      tmp.pixel_s->weight = 1.0;
-      NodeList.push_back( tmp );
+      pixelGaussianBuffer[i * inputImg.cols + j] = Create_Node( *inputPtr, *( inputPtr + 1 ), *( inputPtr + 2 ) );
+      pixelGaussianBuffer[i * inputImg.cols + j].pixel_s->weight = 1.0;
     }
   }
   capture.read( inputImg );
@@ -143,7 +129,7 @@ int main( int argc, char *argv[] )
     {
       break;
     }
-    nodeIter = NodeList.begin();
+    pixelPtr = pixelGaussianBuffer;
     for ( int i = 0; i < nL; i++ )
     {
       inputPtr = inputImg.ptr( i );
@@ -156,16 +142,16 @@ int main( int argc, char *argv[] )
         double rVal = *( inputPtr++ );
         double gVal = *( inputPtr++ );
         double bVal = *( inputPtr++ );
-        head = nodeIter->pixel_s;
-        tail = nodeIter->pixel_r;
+        head = pixelPtr->pixel_s;
+        tail = pixelPtr->pixel_r;
         ptr = head;
         temp_ptr = NULL;
-        if ( nodeIter->numComponents > 4 )
+        if ( pixelPtr->numComponents > 4 )
         {
           Delete_gaussian( tail );
-          nodeIter->numComponents--;
+          pixelPtr->numComponents--;
         }
-        for ( int k = 0; k < nodeIter->numComponents; k++ )
+        for ( int k = 0; k < pixelPtr->numComponents; k++ )
         {
           double weight = ptr->weight;
           double mult = alpha / weight;
@@ -197,7 +183,7 @@ int main( int argc, char *argv[] )
           {
             ptr = Delete_gaussian( ptr );
             weight = 0;
-            nodeIter->numComponents--;
+            pixelPtr->numComponents--;
           }
           else
           {
@@ -227,7 +213,7 @@ int main( int argc, char *argv[] )
             tail = ptr;
           }
           temp_ptr = ptr;
-          nodeIter->numComponents++;
+          pixelPtr->numComponents++;
         }
         ptr = head;
         while ( ptr != NULL )
@@ -269,10 +255,10 @@ int main( int argc, char *argv[] )
           }
           temp_ptr = temp_ptr->prev;
         }
-        nodeIter->pixel_s = head;
-        nodeIter->pixel_r = tail;
+        pixelPtr->pixel_s = head;
+        pixelPtr->pixel_r = tail;
         *outputPtr++ = background;
-        nodeIter++;
+        pixelPtr++;
       }
     }
     cv::imshow( "video", inputImg );
