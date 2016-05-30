@@ -132,7 +132,9 @@ int main( int argc, char *argv[] )
   outputImg = cv::Mat( inputImg.rows, inputImg.cols, CV_8UC1, cv::Scalar( 0 ) );
   while ( true )
   {
-    double mal_dist;
+  :Q
+    double MahalDis;
+    // Mahalanobis distance
     double sum = 0.0;
     bool close = false;
     int background;
@@ -175,19 +177,19 @@ int main( int argc, char *argv[] )
             double dG = gVal - ptr->mean[1];
             double dB = bVal - ptr->mean[2];
             var = ptr->covariance;
-            mal_dist = ( dR * dR + dG * dG + dB * dB );
-            if ( ( sum < cfbar ) && ( mal_dist < 16.0 * var * var ) )
+            MahalDis = ( dR * dR + dG * dG + dB * dB );
+            if ( ( sum < cfbar ) && ( MahalDis < 16.0 * var * var ) )
             {
               background = 255;
             }
-            if ( mal_dist < 9.0 * var * var )
+            if ( MahalDis < 9.0 * var * var )
             {
               weight += alpha;
               close = true;
               ptr->mean[0] += mult * dR;
               ptr->mean[1] += mult * dG;
               ptr->mean[2] += mult * dB;
-              tmpCovariance = var + mult * ( mal_dist - var );
+              tmpCovariance = var + mult * ( MahalDis - var );
               ptr->covariance = tmpCovariance < 5.0 ? 5.0 : ( tmpCovariance > 20.0 ? 20.0 : tmpCovariance );
               temp_ptr = ptr;
             }
