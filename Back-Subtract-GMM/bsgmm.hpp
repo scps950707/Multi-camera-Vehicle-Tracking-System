@@ -28,3 +28,4 @@ gaussianPtr Create_gaussian( double r, double g, double b, double covariance, do
 void insertBack( gaussianPtr *head, gaussianPtr *tail, gaussianPtr newPtr );
 gaussianPtr popBack( gaussianPtr *head, gaussianPtr *tail, gaussianPtr target );
 void swapNode( gaussianPtr *head, gaussianPtr *tail, gaussianPtr p1, gaussianPtr p2 );
+void freeMem();

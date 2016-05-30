@@ -8,6 +8,7 @@
 #include <vector>
 using namespace std;
 NODEPTR pixelGaussianBuffer, pixelPtr;
+static int height, width;
 NODE Create_Node( double r, double g, double b, double covariance, double weight )
 {
   NODE tmp;
@@ -111,6 +112,21 @@ void swapNode( gaussianPtr *head, gaussianPtr *tail, gaussianPtr p1, gaussianPtr
   p1->prev = p2;
 }
 
+void freeMem()
+{
+  for ( int i = 0; i < width * height; i++ )
+  {
+    gaussianPtr tmp = pixelGaussianBuffer[i].pixelCompoListHead;
+    while ( tmp != NULL )
+    {
+      gaussianPtr toDel = tmp;
+      tmp = tmp->next;
+      delete toDel;
+    }
+  }
+  delete pixelGaussianBuffer;
+}
+
 int main( int argc, char *argv[] )
 {
   cv::Mat inputImg, outputImg;
@@ -122,6 +138,8 @@ int main( int argc, char *argv[] )
   }
   cv::cvtColor( inputImg, inputImg, CV_BGR2YCrCb );
   outputImg = cv::Mat( inputImg.rows, inputImg.cols, CV_8U, cv::Scalar( 0 ) );
+  width = inputImg.rows;
+  height = inputImg.cols;
   uchar *inputPtr;
   uchar *outputPtr;
   pixelGaussianBuffer = new NODE[inputImg.rows * inputImg.cols];
@@ -262,5 +280,6 @@ int main( int argc, char *argv[] )
       break;
     }
   }
+  freeMem();
   return EXIT_SUCCESS;
 }
