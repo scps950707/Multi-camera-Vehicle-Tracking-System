@@ -1,11 +1,11 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <iostream>
 #include <opencv2/features2d/features2d.hpp>
+#include <iostream>
 #include <stdlib.h>
-#include "bsgmm.hpp"
 #include <vector>
+#include "bsgmm.hpp"
 using namespace std;
 NODEPTR pixelGaussianBuffer, pixelPtr;
 static int height, width;
