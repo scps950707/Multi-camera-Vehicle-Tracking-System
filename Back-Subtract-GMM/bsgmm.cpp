@@ -153,18 +153,6 @@ int main( int argc, char *argv[] )
     }
   }
   capture.read( inputImg );
-  int nL, nC;
-  if ( inputImg.isContinuous() == true )
-  {
-    nL = 1;
-    nC = inputImg.rows * inputImg.cols * inputImg.channels();
-  }
-  else
-  {
-    nL = inputImg.rows;
-    nC = inputImg.cols * inputImg.channels();
-  }
-
   outputImg = cv::Mat( inputImg.rows, inputImg.cols, CV_8UC1, cv::Scalar( 0 ) );
   while ( true )
   {
@@ -180,98 +168,95 @@ int main( int argc, char *argv[] )
       break;
     }
     pixelPtr = pixelGaussianBuffer;
-    for ( int i = 0; i < nL; i++ )
+    inputPtr = inputImg.ptr( 0 );
+    outputPtr = outputImg.ptr( 0 );
+    for ( int j = 0; j < width * height; j ++ )
     {
-      inputPtr = inputImg.ptr( i );
-      outputPtr = outputImg.ptr( i );
-      for ( int j = 0; j < nC; j += 3 )
+      sum = 0.0;
+      close = false;
+      background = 0;
+      double rVal = *( inputPtr++ );
+      double gVal = *( inputPtr++ );
+      double bVal = *( inputPtr++ );
+      gaussianPtr head = pixelPtr->pixelCompoListHead;
+      gaussianPtr tail = pixelPtr->pixelCompoListTail;
+      gaussianPtr ptr = pixelPtr->pixelCompoListHead;
+      gaussianPtr temp_ptr = NULL;
+      if ( pixelPtr->numComponents > 4 )
       {
-        sum = 0.0;
-        close = false;
-        background = 0;
-        double rVal = *( inputPtr++ );
-        double gVal = *( inputPtr++ );
-        double bVal = *( inputPtr++ );
-        gaussianPtr head = pixelPtr->pixelCompoListHead;
-        gaussianPtr tail = pixelPtr->pixelCompoListTail;
-        gaussianPtr ptr = pixelPtr->pixelCompoListHead;
-        gaussianPtr temp_ptr = NULL;
-        if ( pixelPtr->numComponents > 4 )
-        {
-          popBack( &head, &tail, tail );
-          pixelPtr->numComponents--;
-        }
-        for ( int k = 0; k < pixelPtr->numComponents; k++ )
-        {
-          double weight = ptr->weight;
-          double mult = alpha / weight;
-          weight = weight * alpha_bar + prune;
-          if ( close == false )
-          {
-            double dR = rVal - ptr->mean[0];
-            double dG = gVal - ptr->mean[1];
-            double dB = bVal - ptr->mean[2];
-            var = ptr->covariance;
-            MahalDis = ( dR * dR + dG * dG + dB * dB );
-            if ( ( sum < cfbar ) && ( MahalDis < 16.0 * var * var ) )
-            {
-              background = 255;
-            }
-            if ( MahalDis < 9.0 * var * var )
-            {
-              weight += alpha;
-              close = true;
-              ptr->mean[0] += mult * dR;
-              ptr->mean[1] += mult * dG;
-              ptr->mean[2] += mult * dB;
-              tmpCovariance = var + mult * ( MahalDis - var );
-              ptr->covariance = tmpCovariance < 5.0 ? 5.0 : ( tmpCovariance > 20.0 ? 20.0 : tmpCovariance );
-              temp_ptr = ptr;
-            }
-          }
-          if ( weight < -prune )
-          {
-            ptr = popBack( &head, &tail, ptr );
-            weight = 0;
-            pixelPtr->numComponents--;
-          }
-          else
-          {
-            sum += weight;
-            ptr->weight = weight;
-          }
-          ptr = ptr->next;
-        }
+        popBack( &head, &tail, tail );
+        pixelPtr->numComponents--;
+      }
+      for ( int k = 0; k < pixelPtr->numComponents; k++ )
+      {
+        double weight = ptr->weight;
+        double mult = alpha / weight;
+        weight = weight * alpha_bar + prune;
         if ( close == false )
         {
-          ptr = Create_gaussian( rVal, gVal, bVal, defaultCovariance, alpha );
-          insertBack( &head, &tail, ptr );
-          temp_ptr = ptr;
-          pixelPtr->numComponents++;
-        }
-        ptr = head;
-        while ( ptr != NULL )
-        {
-          ptr->weight /= sum;
-          ptr = ptr->next;
-        }
-        while ( temp_ptr != NULL && temp_ptr->prev != NULL )
-        {
-          if ( temp_ptr->weight <= temp_ptr->prev->weight )
+          double dR = rVal - ptr->mean[0];
+          double dG = gVal - ptr->mean[1];
+          double dB = bVal - ptr->mean[2];
+          var = ptr->covariance;
+          MahalDis = ( dR * dR + dG * dG + dB * dB );
+          if ( ( sum < cfbar ) && ( MahalDis < 16.0 * var * var ) )
           {
-            break;
+            background = 255;
           }
-          else
+          if ( MahalDis < 9.0 * var * var )
           {
-            swapNode( &head, &tail, temp_ptr->prev, temp_ptr );
+            weight += alpha;
+            close = true;
+            ptr->mean[0] += mult * dR;
+            ptr->mean[1] += mult * dG;
+            ptr->mean[2] += mult * dB;
+            tmpCovariance = var + mult * ( MahalDis - var );
+            ptr->covariance = tmpCovariance < 5.0 ? 5.0 : ( tmpCovariance > 20.0 ? 20.0 : tmpCovariance );
+            temp_ptr = ptr;
           }
-          temp_ptr = temp_ptr->prev;
         }
-        pixelPtr->pixelCompoListHead = head;
-        pixelPtr->pixelCompoListTail = tail;
-        *outputPtr++ = background;
-        pixelPtr++;
+        if ( weight < -prune )
+        {
+          ptr = popBack( &head, &tail, ptr );
+          weight = 0;
+          pixelPtr->numComponents--;
+        }
+        else
+        {
+          sum += weight;
+          ptr->weight = weight;
+        }
+        ptr = ptr->next;
       }
+      if ( close == false )
+      {
+        ptr = Create_gaussian( rVal, gVal, bVal, defaultCovariance, alpha );
+        insertBack( &head, &tail, ptr );
+        temp_ptr = ptr;
+        pixelPtr->numComponents++;
+      }
+      ptr = head;
+      while ( ptr != NULL )
+      {
+        ptr->weight /= sum;
+        ptr = ptr->next;
+      }
+      while ( temp_ptr != NULL && temp_ptr->prev != NULL )
+      {
+        if ( temp_ptr->weight <= temp_ptr->prev->weight )
+        {
+          break;
+        }
+        else
+        {
+          swapNode( &head, &tail, temp_ptr->prev, temp_ptr );
+        }
+        temp_ptr = temp_ptr->prev;
+      }
+      pixelPtr->pixelCompoListHead = head;
+      pixelPtr->pixelCompoListTail = tail;
+      *outputPtr++ = background;
+      pixelPtr++;
     }
     cv::imshow( "video", inputImg );
     cv::imshow( "GMM", outputImg );
