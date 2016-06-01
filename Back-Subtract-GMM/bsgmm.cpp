@@ -3,126 +3,34 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/features2d/features2d.hpp>
 #include <iostream>
-#include <stdlib.h>
-#include <vector>
 #include "bsgmm.hpp"
 using namespace std;
 NODEPTR pixelGaussianBuffer, pixelPtr;
 static int height, width;
-NODE Create_Node( double r, double g, double b, double covariance, double weight )
+NODE Create_Node()
 {
   NODE tmp;
   tmp.numComponents = 1;
-  tmp.pixelCompoListTail = tmp.pixelCompoListHead = Create_gaussian( r, g, b, covariance, weight );
+  tmp.arr = new gaussian[5];
   return tmp;
 }
-gaussianPtr Create_gaussian( double r, double g, double b, double covariance, double weight )
-{
-  gaussianPtr ptr = new gaussian;
-  if ( ptr != NULL )
-  {
-    ptr->mean[0] = r;
-    ptr->mean[1] = g;
-    ptr->mean[2] = b;
-    ptr->covariance = covariance;
-    ptr->weight = weight;
-    ptr->next = NULL;
-    ptr->prev = NULL;
-  }
-  return ptr;
-}
 
-void insertBack( gaussianPtr *head, gaussianPtr *tail, gaussianPtr newPtr )
+gaussian Create_gaussian( double r, double g, double b, double variance, double weight )
 {
-  if ( *head == NULL )
-  {
-    *head = *tail = newPtr;
-  }
-  else
-  {
-    newPtr->prev = *tail;
-    ( *tail )->next = newPtr;
-    *tail = newPtr;
-  }
-}
-
-gaussianPtr popBack( gaussianPtr *head, gaussianPtr *tail, gaussianPtr target )
-{
-  gaussianPtr previous = target->prev;
-  gaussianPtr nextptr = target->next;
-  if ( head != NULL )
-  {
-    if ( target == *head && target == *tail )
-    {
-      *head = *tail = NULL;
-      delete target;
-    }
-    else if ( target == *head )
-    {
-      nextptr->prev = NULL;
-      *head = nextptr;
-      delete target;
-      target = *head;
-    }
-    else if ( target == *tail )
-    {
-      previous->next = NULL;
-      *tail = previous;
-      delete target;
-      target = *tail;
-    }
-    else
-    {
-      previous->next = nextptr;
-      nextptr->prev = previous;
-      delete target;
-      target = nextptr;
-    }
-  }
-  else
-  {
-    std::cout << "Underflow........";
-    exit( EXIT_FAILURE );
-  }
-  return target;
-}
-
-void swapNode( gaussianPtr *head, gaussianPtr *tail, gaussianPtr p1, gaussianPtr p2 )
-{
-  gaussianPtr nextptr = p2->next;
-  if ( *head == p1 )
-  {
-    *head = p2;
-  }
-  p1->next = nextptr;
-  p2->prev = p1->prev;
-  p2->next = p1;
-  if ( p1->prev != NULL )
-  {
-    p1->prev->next = p2;
-  }
-  if ( nextptr != NULL )
-  {
-    nextptr->prev = p1;
-  }
-  else
-  {
-    *tail = p1;
-  }
-  p1->prev = p2;
+  gaussian tmp;
+  tmp.mean[0] = r;
+  tmp.mean[1] = g;
+  tmp.mean[2] = b;
+  tmp.variance = variance;
+  tmp.weight = weight;
+  return tmp;
 }
 
 void freeMem()
 {
   for ( int i = 0; i < width * height; i++ )
   {
-    gaussianPtr tmp = pixelGaussianBuffer[i].pixelCompoListHead;
-    while ( tmp != NULL )
-    {
-      gaussianPtr toDel = tmp;
-      tmp = tmp->next;
-      delete toDel;
-    }
+    delete pixelGaussianBuffer[i].arr;
   }
   delete pixelGaussianBuffer;
 }
@@ -148,21 +56,14 @@ int main( int argc, char *argv[] )
     inputPtr = inputImg.ptr( i );
     for ( int j = 0; j < inputImg.cols; j++ )
     {
-      pixelGaussianBuffer[i * inputImg.cols + j] = Create_Node( *inputPtr, *( inputPtr + 1 ), *( inputPtr + 2 ), defaultCovariance, alpha );
-      pixelGaussianBuffer[i * inputImg.cols + j].pixelCompoListHead->weight = 1.0;
+      pixelGaussianBuffer[i * inputImg.cols + j] = Create_Node();
+      pixelGaussianBuffer[i * inputImg.cols + j].arr[0] = Create_gaussian( *inputPtr, *( inputPtr + 1 ), *( inputPtr + 2 ), defaultVariance, 1.0 );
     }
   }
   capture.read( inputImg );
   outputImg = cv::Mat( inputImg.rows, inputImg.cols, CV_8UC1, cv::Scalar( 0 ) );
   while ( true )
   {
-    double MahalDis;
-    // Mahalanobis distance
-    double sum = 0.0;
-    bool close = false;
-    int background;
-    double tmpCovariance = 0.0;
-    double var = 0.0;
     if ( !capture.read( inputImg ) )
     {
       break;
@@ -172,34 +73,33 @@ int main( int argc, char *argv[] )
     outputPtr = outputImg.ptr( 0 );
     for ( int j = 0; j < width * height; j ++ )
     {
-      sum = 0.0;
-      close = false;
-      background = 0;
+      double MahalDis;
+      double newVariance = 0.0;
+      double var = 0.0;
+      double totalWeight = 0.0;
+      double close = false;
       double rVal = *( inputPtr++ );
       double gVal = *( inputPtr++ );
       double bVal = *( inputPtr++ );
-      gaussianPtr head = pixelPtr->pixelCompoListHead;
-      gaussianPtr tail = pixelPtr->pixelCompoListTail;
-      gaussianPtr ptr = pixelPtr->pixelCompoListHead;
-      gaussianPtr temp_ptr = NULL;
+      int tmpIndex;
+      int background = 0;
       if ( pixelPtr->numComponents > 4 )
       {
-        popBack( &head, &tail, tail );
         pixelPtr->numComponents--;
       }
       for ( int k = 0; k < pixelPtr->numComponents; k++ )
       {
-        double weight = ptr->weight;
+        double weight = pixelPtr->arr[k].weight;
         double mult = alpha / weight;
         weight = weight * alpha_bar + prune;
         if ( close == false )
         {
-          double dR = rVal - ptr->mean[0];
-          double dG = gVal - ptr->mean[1];
-          double dB = bVal - ptr->mean[2];
-          var = ptr->covariance;
+          double dR = rVal - pixelPtr->arr[k].mean[0];
+          double dG = gVal - pixelPtr->arr[k].mean[1];
+          double dB = bVal - pixelPtr->arr[k].mean[2];
+          var = pixelPtr->arr[k].variance;
           MahalDis = ( dR * dR + dG * dG + dB * dB );
-          if ( ( sum < cfbar ) && ( MahalDis < 16.0 * var * var ) )
+          if ( ( totalWeight < cfbar ) && ( MahalDis < 16.0 * var * var ) )
           {
             background = 255;
           }
@@ -207,54 +107,45 @@ int main( int argc, char *argv[] )
           {
             weight += alpha;
             close = true;
-            ptr->mean[0] += mult * dR;
-            ptr->mean[1] += mult * dG;
-            ptr->mean[2] += mult * dB;
-            tmpCovariance = var + mult * ( MahalDis - var );
-            ptr->covariance = tmpCovariance < 5.0 ? 5.0 : ( tmpCovariance > 20.0 ? 20.0 : tmpCovariance );
-            temp_ptr = ptr;
+            pixelPtr->arr[k].mean[0] += mult * dR;
+            pixelPtr->arr[k].mean[1] += mult * dG;
+            pixelPtr->arr[k].mean[2] += mult * dB;
+            newVariance = var + mult * ( MahalDis - var );
+            pixelPtr->arr[k].variance = newVariance < 5.0 ? 5.0 : ( newVariance > 20.0 ? 20.0 : newVariance );
+            tmpIndex = k;
           }
         }
         if ( weight < -prune )
         {
-          ptr = popBack( &head, &tail, ptr );
           weight = 0;
           pixelPtr->numComponents--;
         }
         else
         {
-          sum += weight;
-          ptr->weight = weight;
+          totalWeight += weight;
+          pixelPtr->arr[k].weight = weight;
         }
-        ptr = ptr->next;
       }
       if ( close == false )
       {
-        ptr = Create_gaussian( rVal, gVal, bVal, defaultCovariance, alpha );
-        insertBack( &head, &tail, ptr );
-        temp_ptr = ptr;
-        pixelPtr->numComponents++;
+        tmpIndex = pixelPtr->numComponents;
+        pixelPtr->arr[pixelPtr->numComponents++] = Create_gaussian( rVal, gVal, bVal, defaultVariance, alpha );
       }
-      ptr = head;
-      while ( ptr != NULL )
+      for ( int i = 0; i < pixelPtr->numComponents; i++ )
       {
-        ptr->weight /= sum;
-        ptr = ptr->next;
+        pixelPtr->arr[i].weight /= totalWeight;
       }
-      while ( temp_ptr != NULL && temp_ptr->prev != NULL )
+      for ( int i = tmpIndex; i > 0; i-- )
       {
-        if ( temp_ptr->weight <= temp_ptr->prev->weight )
+        if ( pixelPtr->arr[i].weight <= pixelPtr->arr[i - 1].weight )
         {
           break;
         }
         else
         {
-          swapNode( &head, &tail, temp_ptr->prev, temp_ptr );
+          swap( pixelPtr->arr[i], pixelPtr->arr[i - 1] );
         }
-        temp_ptr = temp_ptr->prev;
       }
-      pixelPtr->pixelCompoListHead = head;
-      pixelPtr->pixelCompoListTail = tail;
       *outputPtr++ = background;
       pixelPtr++;
     }
