@@ -11,7 +11,6 @@ NODE Create_Node()
 {
   NODE tmp;
   tmp.numComponents = 1;
-  tmp.arr = new gaussian[5];
   return tmp;
 }
 
@@ -28,10 +27,6 @@ gaussian Create_gaussian( double r, double g, double b, double variance, double 
 
 void freeMem()
 {
-  for ( int i = 0; i < width * height; i++ )
-  {
-    delete[] pixelGaussianBuffer[i].arr;
-  }
   delete[] pixelGaussianBuffer;
 }
 

@@ -18,7 +18,7 @@ typedef struct
 } gaussian, *gaussianPtr;
 typedef struct
 {
-  gaussianPtr arr;
+  gaussian arr[5];
   int numComponents;
 } NODE, *NODEPTR;
 NODE Create_Node();
