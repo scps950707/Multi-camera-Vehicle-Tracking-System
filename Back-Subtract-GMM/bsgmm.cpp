@@ -30,9 +30,9 @@ void freeMem()
 {
   for ( int i = 0; i < width * height; i++ )
   {
-    delete pixelGaussianBuffer[i].arr;
+    delete[] pixelGaussianBuffer[i].arr;
   }
-  delete pixelGaussianBuffer;
+  delete[] pixelGaussianBuffer;
 }
 
 int main( int argc, char *argv[] )
