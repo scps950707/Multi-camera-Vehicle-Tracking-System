@@ -5,12 +5,12 @@
 #include <iostream>
 #include "bsgmm.hpp"
 using namespace std;
-NODEPTR pixelGaussianBuffer, pixelPtr;
+NODEPTR pixelGMMBuffer, pixelPtr;
 static int height, width;
 NODE Create_Node()
 {
   NODE tmp;
-  tmp.numComponents = 1;
+  tmp.GMMCount = 1;
   return tmp;
 }
 
@@ -27,7 +27,7 @@ gaussian Create_gaussian( double r, double g, double b, double variance, double 
 
 void freeMem()
 {
-  delete[] pixelGaussianBuffer;
+  delete[] pixelGMMBuffer;
 }
 
 int main( int argc, char *argv[] )
@@ -45,14 +45,14 @@ int main( int argc, char *argv[] )
   height = inputImg.cols;
   uchar *inputPtr;
   uchar *outputPtr;
-  pixelGaussianBuffer = new NODE[inputImg.rows * inputImg.cols];
+  pixelGMMBuffer = new NODE[inputImg.rows * inputImg.cols];
   for ( int i = 0; i < inputImg.rows; i++ )
   {
     inputPtr = inputImg.ptr( i );
     for ( int j = 0; j < inputImg.cols; j++ )
     {
-      pixelGaussianBuffer[i * inputImg.cols + j] = Create_Node();
-      pixelGaussianBuffer[i * inputImg.cols + j].arr[0] = Create_gaussian( *inputPtr, *( inputPtr + 1 ), *( inputPtr + 2 ), defaultVariance, 1.0 );
+      pixelGMMBuffer[i * inputImg.cols + j] = Create_Node();
+      pixelGMMBuffer[i * inputImg.cols + j].arr[0] = Create_gaussian( *inputPtr, *( inputPtr + 1 ), *( inputPtr + 2 ), defaultVariance, 1.0 );
     }
   }
   capture.read( inputImg );
@@ -63,7 +63,7 @@ int main( int argc, char *argv[] )
     {
       break;
     }
-    pixelPtr = pixelGaussianBuffer;
+    pixelPtr = pixelGMMBuffer;
     inputPtr = inputImg.ptr( 0 );
     outputPtr = outputImg.ptr( 0 );
     for ( int j = 0; j < width * height; j ++ )
@@ -78,11 +78,11 @@ int main( int argc, char *argv[] )
       double bVal = *( inputPtr++ );
       int tmpIndex;
       int background = 0;
-      if ( pixelPtr->numComponents > 4 )
+      if ( pixelPtr->GMMCount > defaultGMMCount )
       {
-        pixelPtr->numComponents--;
+        pixelPtr->GMMCount--;
       }
-      for ( int k = 0; k < pixelPtr->numComponents; k++ )
+      for ( int k = 0; k < pixelPtr->GMMCount; k++ )
       {
         double weight = pixelPtr->arr[k].weight;
         weight = weight * alpha_bar + prune;
@@ -113,17 +113,17 @@ int main( int argc, char *argv[] )
         if ( weight < -prune )
         {
           weight = 0;
-          pixelPtr->numComponents--;
+          pixelPtr->GMMCount--;
         }
         totalWeight += weight;
         pixelPtr->arr[k].weight = weight;
       }
       if ( close == false )
       {
-        tmpIndex = pixelPtr->numComponents;
-        pixelPtr->arr[pixelPtr->numComponents++] = Create_gaussian( rVal, gVal, bVal, defaultVariance, alpha );
+        tmpIndex = pixelPtr->GMMCount;
+        pixelPtr->arr[pixelPtr->GMMCount++] = Create_gaussian( rVal, gVal, bVal, defaultVariance, alpha );
       }
-      for ( int i = 0; i < pixelPtr->numComponents; i++ )
+      for ( int i = 0; i < pixelPtr->GMMCount; i++ )
       {
         pixelPtr->arr[i].weight /= totalWeight;
       }
