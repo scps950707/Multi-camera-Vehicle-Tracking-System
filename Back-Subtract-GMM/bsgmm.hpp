@@ -1,6 +1,7 @@
 #ifndef BSGMM_HPP
 #define BSGMM_HPP
 
+#include <opencv2/core/core.hpp>
 const double alpha = 0.002;
 const double cT = 0.05;
 const double defaultVariance = 11.0;
@@ -33,8 +34,19 @@ typedef struct
   int GMMCount;
 } NODE, *NODEPTR;
 
-NODE Create_Node();
-gaussian Create_gaussian( double r, double g, double b, double variance, double weight );
-void freeMem();
+class BackgroundSubtractorGMM
+{
+public:
+  BackgroundSubtractorGMM( int frameHeight, int frameWidth );
+  void initFirstFrame( uchar *inputPtr );
+  void updateFrame( uchar *inputPtr, uchar *outputPtr );
+  void freeMem();
+
+private:
+  NODE Create_Node();
+  gaussian Create_gaussian( double r, double g, double b, double variance, double weight );
+  NODEPTR pixelGMMBuffer, currentPixel;
+  int frameHeight, frameWidth;
+};
 
 #endif

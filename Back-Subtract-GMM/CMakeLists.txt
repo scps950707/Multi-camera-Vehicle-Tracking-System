@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 project( BSGMM )
 find_package( OpenCV REQUIRED )
-add_executable( BSGMM bsgmm.cpp )
+add_executable( BSGMM main.cpp bsgmm.cpp )
 target_link_libraries( BSGMM ${OpenCV_LIBS} )
 SET(CMAKE_CXX_FLAGS "-Wall")
