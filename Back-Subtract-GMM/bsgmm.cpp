@@ -5,8 +5,9 @@
 #include <iostream>
 #include "bsgmm.hpp"
 using namespace std;
-NODEPTR pixelGMMBuffer, pixelPtr;
-static int height, width;
+NODEPTR pixelGMMBuffer, currentPixel;
+static int frameHeight, frameWidth;
+
 NODE Create_Node()
 {
   NODE tmp;
@@ -36,13 +37,13 @@ int main( int argc, char *argv[] )
   cv::VideoCapture capture( argv[1] );
   if ( !capture.read( inputImg ) )
   {
-    std::cout << " Can't recieve input from source ";
+    cout << " Can't recieve input from source " << endl;
     exit( EXIT_FAILURE );
   }
   cv::cvtColor( inputImg, inputImg, CV_BGR2YCrCb );
   outputImg = cv::Mat( inputImg.rows, inputImg.cols, CV_8U, cv::Scalar( 0 ) );
-  width = inputImg.rows;
-  height = inputImg.cols;
+  frameWidth = inputImg.rows;
+  frameHeight = inputImg.cols;
   uchar *inputPtr;
   uchar *outputPtr;
   pixelGMMBuffer = new NODE[inputImg.rows * inputImg.cols];
@@ -52,96 +53,94 @@ int main( int argc, char *argv[] )
     for ( int j = 0; j < inputImg.cols; j++ )
     {
       pixelGMMBuffer[i * inputImg.cols + j] = Create_Node();
-      pixelGMMBuffer[i * inputImg.cols + j].arr[0] = Create_gaussian( *inputPtr, *( inputPtr + 1 ), *( inputPtr + 2 ), defaultVariance, 1.0 );
+      pixelGMMBuffer[i * inputImg.cols + j].arr[0] =
+        Create_gaussian( *inputPtr, *( inputPtr + 1 ), *( inputPtr + 2 ), defaultVariance, 1.0 );
     }
   }
   capture.read( inputImg );
   outputImg = cv::Mat( inputImg.rows, inputImg.cols, CV_8UC1, cv::Scalar( 0 ) );
-  while ( true )
+  while ( capture.read( inputImg ) )
   {
-    if ( !capture.read( inputImg ) )
-    {
-      break;
-    }
-    pixelPtr = pixelGMMBuffer;
+    currentPixel = pixelGMMBuffer;
     inputPtr = inputImg.ptr( 0 );
     outputPtr = outputImg.ptr( 0 );
-    for ( int j = 0; j < width * height; j ++ )
+    for ( int i = 0; i < frameWidth * frameHeight; i++ )
     {
       double MahalDis;
       double newVariance = 0.0;
       double var = 0.0;
       double totalWeight = 0.0;
-      double close = false;
       double rVal = *( inputPtr++ );
       double gVal = *( inputPtr++ );
       double bVal = *( inputPtr++ );
-      int tmpIndex;
-      int background = 0;
-      if ( pixelPtr->GMMCount > defaultGMMCount )
+      bool hitGMM = false;
+      int sortIndex;
+      int background = BLACK;
+      if ( currentPixel->GMMCount > defaultGMMCount )
       {
-        pixelPtr->GMMCount--;
+        currentPixel->GMMCount--;
       }
-      for ( int k = 0; k < pixelPtr->GMMCount; k++ )
+      for ( int GMMIndex = 0; GMMIndex < currentPixel->GMMCount; GMMIndex++ )
       {
-        double weight = pixelPtr->arr[k].weight;
+        double weight = currentPixel->arr[GMMIndex].weight;
         weight = weight * alpha_bar + prune;
-        if ( close == false )
+        if ( hitGMM == false )
         {
-          double dR = rVal - pixelPtr->arr[k].mean[0];
-          double dG = gVal - pixelPtr->arr[k].mean[1];
-          double dB = bVal - pixelPtr->arr[k].mean[2];
-          var = pixelPtr->arr[k].variance;
+          double dR = rVal - currentPixel->arr[GMMIndex].mean[0];
+          double dG = gVal - currentPixel->arr[GMMIndex].mean[1];
+          double dB = bVal - currentPixel->arr[GMMIndex].mean[2];
+          var = currentPixel->arr[GMMIndex].variance;
           MahalDis = ( dR * dR + dG * dG + dB * dB );
-          if ( ( totalWeight < cfbar ) && ( MahalDis < 16.0 * var * var ) )
+          if ( ( totalWeight < cfbar ) && ( MahalDis < BGSigma * var * var ) )
           {
-            background = 255;
+            background = WHITE;
           }
-          if ( MahalDis < 9.0 * var * var )
+          if ( MahalDis < closeSigma * var * var )
           {
             weight += alpha;
-            close = true;
+            hitGMM = true;
             double mult = alpha / weight;
-            pixelPtr->arr[k].mean[0] += mult * dR;
-            pixelPtr->arr[k].mean[1] += mult * dG;
-            pixelPtr->arr[k].mean[2] += mult * dB;
+            currentPixel->arr[GMMIndex].mean[0] += mult * dR;
+            currentPixel->arr[GMMIndex].mean[1] += mult * dG;
+            currentPixel->arr[GMMIndex].mean[2] += mult * dB;
             newVariance = var + mult * ( MahalDis - var );
-            pixelPtr->arr[k].variance = newVariance < 5.0 ? 5.0 : ( newVariance > 20.0 ? 20.0 : newVariance );
-            tmpIndex = k;
+            currentPixel->arr[GMMIndex].variance = newVariance < minVariance ? minVariance
+                                                   : ( newVariance > maxVariance ? maxVariance : newVariance );
+            sortIndex = GMMIndex;
           }
         }
         if ( weight < -prune )
         {
-          pixelPtr->GMMCount--;
+          currentPixel->GMMCount--;
         }
         else
         {
           totalWeight += weight;
-          pixelPtr->arr[k].weight = weight;
+          currentPixel->arr[GMMIndex].weight = weight;
         }
       }
-      if ( close == false )
+      if ( hitGMM == false )
       {
-        tmpIndex = pixelPtr->GMMCount;
-        pixelPtr->arr[pixelPtr->GMMCount++] = Create_gaussian( rVal, gVal, bVal, defaultVariance, alpha );
+        sortIndex = currentPixel->GMMCount;
+        currentPixel->arr[currentPixel->GMMCount++] = Create_gaussian( rVal, gVal, bVal, defaultVariance, alpha );
       }
-      for ( int i = 0; i < pixelPtr->GMMCount; i++ )
+      for ( int GMMIndex = 0; GMMIndex < currentPixel->GMMCount; GMMIndex++ )
       {
-        pixelPtr->arr[i].weight /= totalWeight;
+        currentPixel->arr[GMMIndex].weight /= totalWeight;
       }
-      for ( int i = tmpIndex; i > 0; i-- )
+      for ( int GMMIndex = sortIndex; GMMIndex > 0; GMMIndex-- )
       {
-        if ( pixelPtr->arr[i].weight <= pixelPtr->arr[i - 1].weight )
+        if ( currentPixel->arr[GMMIndex].weight <= currentPixel->arr[GMMIndex - 1].weight )
         {
           break;
         }
         else
         {
-          swap( pixelPtr->arr[i], pixelPtr->arr[i - 1] );
+          swap( currentPixel->arr[GMMIndex], currentPixel->arr[GMMIndex - 1] );
         }
       }
       *outputPtr++ = background;
-      pixelPtr++;
+      currentPixel++;
     }
     cv::imshow( "video", inputImg );
     cv::imshow( "GMM", outputImg );
