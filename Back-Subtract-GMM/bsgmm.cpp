@@ -112,11 +112,13 @@ int main( int argc, char *argv[] )
         }
         if ( weight < -prune )
         {
-          weight = 0;
           pixelPtr->GMMCount--;
         }
-        totalWeight += weight;
-        pixelPtr->arr[k].weight = weight;
+        else
+        {
+          totalWeight += weight;
+          pixelPtr->arr[k].weight = weight;
+        }
       }
       if ( close == false )
       {
