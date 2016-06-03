@@ -85,7 +85,6 @@ int main( int argc, char *argv[] )
       for ( int k = 0; k < pixelPtr->numComponents; k++ )
       {
         double weight = pixelPtr->arr[k].weight;
-        double mult = alpha / weight;
         weight = weight * alpha_bar + prune;
         if ( close == false )
         {
@@ -102,6 +101,7 @@ int main( int argc, char *argv[] )
           {
             weight += alpha;
             close = true;
+            double mult = alpha / weight;
             pixelPtr->arr[k].mean[0] += mult * dR;
             pixelPtr->arr[k].mean[1] += mult * dG;
             pixelPtr->arr[k].mean[2] += mult * dB;
@@ -115,11 +115,8 @@ int main( int argc, char *argv[] )
           weight = 0;
           pixelPtr->numComponents--;
         }
-        else
-        {
-          totalWeight += weight;
-          pixelPtr->arr[k].weight = weight;
-        }
+        totalWeight += weight;
+        pixelPtr->arr[k].weight = weight;
       }
       if ( close == false )
       {
