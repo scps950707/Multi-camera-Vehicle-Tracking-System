@@ -3,6 +3,14 @@
 
 #include <opencv2/core/core.hpp>
 
+/*
+ * Author:scps950707
+ * Email:scps950707@gmail.com
+ * Date:2016-06-04
+ * Filename:bsgmm.hpp
+ * Purpose:Background Subtraction using Gaussian Mixture Models
+ */
+
 /**
  *\file bsgmm.hpp
  *\brief Background Subtraction using Gaussian Mixture Models

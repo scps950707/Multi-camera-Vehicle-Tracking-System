@@ -5,6 +5,14 @@
 #include "bsgmm.hpp"
 using namespace std;
 
+/*
+ * Author:scps950707
+ * Email:scps950707@gmail.com
+ * Date:2016-06-04
+ * Filename:main.cpp
+ * Purpose:An example to use Background Subtraction using Gaussian Mixture Models
+ */
+
 /**
  *\file main.cpp
  *\brief An example to use Background Subtraction using Gaussian Mixture Models
