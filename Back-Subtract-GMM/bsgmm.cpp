@@ -2,6 +2,12 @@
 #include "bsgmm.hpp"
 using namespace std;
 
+/**
+ *\file bsgmm.cpp
+ *\brief Implementation of Background Subtraction using Gaussian Mixture Models
+ *
+ */
+
 BackgroundSubtractorGMM::BackgroundSubtractorGMM( int frameHeight, int frameWidth ) : frameHeight( frameHeight ), frameWidth( frameWidth )
 {
   pixelGMMBuffer = new NODE[frameHeight * frameWidth];

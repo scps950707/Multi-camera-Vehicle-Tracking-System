@@ -5,6 +5,12 @@
 #include "bsgmm.hpp"
 using namespace std;
 
+/**
+ *\file main.cpp
+ *\brief An example to use Background Subtraction using Gaussian Mixture Models
+ *
+ */
+
 int main( int argc, char *argv[] )
 {
   cv::Mat inputImg, outputImg;
