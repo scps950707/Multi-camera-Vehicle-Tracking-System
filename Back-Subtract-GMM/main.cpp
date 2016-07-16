@@ -11,11 +11,13 @@ int main( int argc, char *argv[] )
     if ( argc != 3 )
     {
         cout << "usage: ./excute [input] [output]" << endl;
+        exit( EXIT_FAILURE );
     }
 #else
     if ( argc != 2 )
     {
         cout << "usage: ./excute [input]" << endl;
+        exit( EXIT_FAILURE );
     }
 #endif
     cv::Mat inputImg, outputImg;
@@ -26,7 +28,7 @@ int main( int argc, char *argv[] )
         exit( EXIT_FAILURE );
     }
     cv::cvtColor( inputImg, inputImg, CV_BGR2YCrCb );
-    outputImg = cv::Mat( inputImg.rows, inputImg.cols, CV_8U, cv::Scalar( 0 ) );
+    outputImg = cv::Mat( inputImg.rows, inputImg.cols, CV_8UC1, cv::Scalar( 0 ) );
 #ifdef AVIOUTPUT
     cv::VideoWriter writer;
     writer.open( argv[2], CV_FOURCC( 'D', 'I', 'V', 'X' ), 30,
