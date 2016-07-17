@@ -42,6 +42,9 @@ int main( int argc, char *argv[] )
         bsgmm.updateFrame( inputImg.ptr(), outputImg.ptr() );
         findRect rect;
         rect.findBoundingRect( inputImg, outputImg );
+        char str[20];
+        sprintf( str, "Frame:%d", ( int )capture.get( CV_CAP_PROP_POS_FRAMES ) );
+        putText( inputImg, str, cv::Point( 450, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  cv::Scalar( 0, 0, 255 ), 2 );
         cv::imshow( "video", inputImg );
         cv::imshow( "GMM", outputImg );
 #ifdef AVI
