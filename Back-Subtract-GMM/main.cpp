@@ -28,7 +28,6 @@ int main( int argc, char *argv[] )
         cout << " Can't recieve input from source " << endl;
         exit( EXIT_FAILURE );
     }
-    cv::cvtColor( inputImg, inputImg, CV_BGR2YCrCb );
     outputImg = cv::Mat( inputImg.rows, inputImg.cols, CV_8UC1, cv::Scalar( 0 ) );
 #ifdef AVI
     cv::VideoWriter writer;
