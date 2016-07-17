@@ -3,6 +3,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <iostream>
 #include "bsgmm.hpp"
+#include "rect.hpp"
 using namespace std;
 
 int main( int argc, char *argv[] )
@@ -39,6 +40,8 @@ int main( int argc, char *argv[] )
     while ( capture.read( inputImg ) )
     {
         bsgmm.updateFrame( inputImg.ptr(), outputImg.ptr() );
+        findRect rect;
+        rect.findBoundingRect( inputImg, outputImg );
         cv::imshow( "video", inputImg );
         cv::imshow( "GMM", outputImg );
 #ifdef AVI
