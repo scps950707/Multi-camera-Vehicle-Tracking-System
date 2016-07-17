@@ -34,7 +34,7 @@ void BackgroundSubtractorGMM::updateFrame( uchar *inputPtr, uchar *outputPtr )
         double bVal = *( inputPtr++ );
         bool hitGMM = false;
         int sortIndex;
-        int background = BLACK;
+        int background = WHITE;
         if ( currentPixel->GMMCount > defaultGMMCount )
         {
             currentPixel->GMMCount--;
@@ -52,7 +52,7 @@ void BackgroundSubtractorGMM::updateFrame( uchar *inputPtr, uchar *outputPtr )
                 MahalDis = ( dR * dR + dG * dG + dB * dB );
                 if ( ( totalWeight < cfbar ) && ( MahalDis < BGSigma * var * var ) )
                 {
-                    background = WHITE;
+                    background = BLACK;
                 }
                 if ( MahalDis < closeSigma * var * var )
                 {
