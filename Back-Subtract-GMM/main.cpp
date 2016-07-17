@@ -7,7 +7,7 @@ using namespace std;
 
 int main( int argc, char *argv[] )
 {
-#ifdef AVIOUTPUT
+#ifdef AVI
     if ( argc != 3 )
     {
         cout << "usage: ./excute [input] [output]" << endl;
@@ -29,7 +29,7 @@ int main( int argc, char *argv[] )
     }
     cv::cvtColor( inputImg, inputImg, CV_BGR2YCrCb );
     outputImg = cv::Mat( inputImg.rows, inputImg.cols, CV_8UC1, cv::Scalar( 0 ) );
-#ifdef AVIOUTPUT
+#ifdef AVI
     cv::VideoWriter writer;
     writer.open( argv[2], CV_FOURCC( 'D', 'I', 'V', 'X' ), 30,
                  cv::Size( capture.get( CV_CAP_PROP_FRAME_WIDTH ), capture.get( CV_CAP_PROP_FRAME_HEIGHT ) ) );
@@ -39,13 +39,15 @@ int main( int argc, char *argv[] )
     while ( capture.read( inputImg ) )
     {
         bsgmm.updateFrame( inputImg.ptr(), outputImg.ptr() );
-#ifdef AVIOUTPUT
-        cv::Mat frame;
-        cv::cvtColor( outputImg, frame, CV_GRAY2RGB );
-        writer << frame;
-#else
         cv::imshow( "video", inputImg );
         cv::imshow( "GMM", outputImg );
+#ifdef AVI
+        writer << inputImg;
+
+        /* these codes outputs GMM mask result */
+        /* cv::Mat maskForAvi; */
+        /* cv::cvtColor(outputImg,maskForAvi,CV_GRAY2RGB); */
+        /* writer<<maskForAvi; */
 #endif
         if ( cv::waitKey( 1 ) > 0 )
         {
