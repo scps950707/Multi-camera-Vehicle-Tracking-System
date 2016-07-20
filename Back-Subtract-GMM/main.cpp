@@ -35,7 +35,7 @@ int main( int argc, char *argv[] )
                  cv::Size( capture.get( CV_CAP_PROP_FRAME_WIDTH ), capture.get( CV_CAP_PROP_FRAME_HEIGHT ) ) );
 #endif
     BackgroundSubtractorGMM bsgmm(  inputImg.rows, inputImg.cols );
-    bsgmm.initFirstFrame( inputImg.ptr() );
+    bsgmm.shadowBeBackground = true;
     while ( capture.read( inputImg ) )
     {
         bsgmm.updateFrame( inputImg.ptr(), outputImg.ptr() );

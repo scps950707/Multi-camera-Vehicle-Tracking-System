@@ -4,124 +4,213 @@ using namespace std;
 
 BackgroundSubtractorGMM::BackgroundSubtractorGMM( int frameHeight, int frameWidth ) : frameHeight( frameHeight ), frameWidth( frameWidth )
 {
-    pixelGMMBuffer = new NODE[frameHeight * frameWidth];
-}
-
-void BackgroundSubtractorGMM::initFirstFrame( uchar *inputPtr )
-{
-    for ( int i = 0; i < frameHeight; i++ )
+    this->alpha = 0.003;
+    this->alpha_bar = 1 - alpha;
+    this->defaultVariance = 11;
+    this->cT = 0.05;
+    this->minVariance = 4;
+    this->maxVariance = 55;
+    this->cf = 0.1;
+    this->cfbar = 1 - this->cf;
+    this->BGSigma = 4 * 4;
+    this->closeSigma = 3 * 3;
+    this->prune = this->alpha * this->cT;
+    this->defaultGMMCount = 4;
+    this->shadowDetection = true;
+    this->tau = 0.5;
+    this->removeForeground = false;
+    this->shadowBeBackground = false;
+    pixelGMMBuffer = new PIXELGMM[frameHeight * frameWidth];
+    for ( int i = 0; i < frameHeight * frameHeight; i++ )
     {
-        for ( int j = 0; j < frameWidth; j++ )
-        {
-            pixelGMMBuffer[i * frameWidth + j] = Create_Node();
-            pixelGMMBuffer[i * frameWidth + j].arr[0] =
-                Create_gaussian( *inputPtr, *( inputPtr + 1 ), *( inputPtr + 2 ), defaultVariance, 1.0 );
-        }
+        pixelGMMBuffer[i].GMMCount = 0;
     }
 }
 
 void BackgroundSubtractorGMM::updateFrame( uchar *inputPtr, uchar *outputPtr )
 {
-    currentPixel = pixelGMMBuffer;
-    for ( int i = 0; i < frameWidth * frameHeight; i++ )
+    PIXELGMM *curPixelGMM = this->pixelGMMBuffer;
+    for ( int i = 0; i < this->frameWidth * this->frameHeight; i++ )
     {
-        double MahalDis;
-        double newVariance = 0.0;
-        double var = 0.0;
-        double totalWeight = 0.0;
-        double rVal = *( inputPtr++ );
-        double gVal = *( inputPtr++ );
-        double bVal = *( inputPtr++ );
-        bool hitGMM = false;
-        int sortIndex;
-        int background = WHITE;
-        if ( currentPixel->GMMCount > defaultGMMCount )
+        double red = *inputPtr++;
+        double green = *inputPtr++;
+        double blue = *inputPtr++;
+        bool isShdw = false;
+        bool isBG = isBackGround( red, green, blue, curPixelGMM );
+        if ( this->shadowDetection && isBG == false )
         {
-            currentPixel->GMMCount--;
+            isShdw = this->isShadow( red, green, blue, curPixelGMM );
         }
-        for ( int GMMIndex = 0; GMMIndex < currentPixel->GMMCount; GMMIndex++ )
+        if ( isBG )
         {
-            double weight = currentPixel->arr[GMMIndex].weight;
-            weight = weight * alpha_bar + prune;
-            if ( hitGMM == false )
+            *outputPtr = BLACK;
+        }
+        else
+        {
+            *outputPtr = isShdw ? ( this->shadowBeBackground ? BLACK : GRAY ) : WHITE;
+            if ( this->removeForeground )
             {
-                double dR = rVal - currentPixel->arr[GMMIndex].mean[0];
-                double dG = gVal - currentPixel->arr[GMMIndex].mean[1];
-                double dB = bVal - currentPixel->arr[GMMIndex].mean[2];
-                var = currentPixel->arr[GMMIndex].variance;
-                MahalDis = ( dR * dR + dG * dG + dB * dB );
-                if ( ( totalWeight < cfbar ) && ( MahalDis < BGSigma * var * var ) )
-                {
-                    background = BLACK;
-                }
-                if ( MahalDis < closeSigma * var * var )
-                {
-                    weight += alpha;
-                    hitGMM = true;
-                    double mult = alpha / weight;
-                    currentPixel->arr[GMMIndex].mean[0] += mult * dR;
-                    currentPixel->arr[GMMIndex].mean[1] += mult * dG;
-                    currentPixel->arr[GMMIndex].mean[2] += mult * dB;
-                    newVariance = var + mult * ( MahalDis - var );
-                    currentPixel->arr[GMMIndex].variance = newVariance < minVariance ? minVariance
-                                                           : ( newVariance > maxVariance ? maxVariance : newVariance );
-                    sortIndex = GMMIndex;
-                }
+                *( inputPtr - 3 ) = curPixelGMM->arr[0].R;
+                *( inputPtr - 2 ) = curPixelGMM->arr[0].G;
+                *( inputPtr - 1 ) = curPixelGMM->arr[0].B;
             }
-            if ( weight < -prune )
+        }
+        curPixelGMM++;
+        outputPtr++;
+    }
+}
+
+bool BackgroundSubtractorGMM::isShadow( double red, double green, double blue, PIXELGMM *curPixelGMM )
+{
+    double totalWeight = 0;
+    double numerator = 0, denominator = 0;
+    for ( int GMMIndex = 0; GMMIndex < curPixelGMM->GMMCount; GMMIndex++ )
+    {
+        double var = curPixelGMM->arr[GMMIndex].variance;
+        double R = curPixelGMM->arr[GMMIndex].R;
+        double G = curPixelGMM->arr[GMMIndex].G;
+        double B = curPixelGMM->arr[GMMIndex].B;
+        totalWeight += curPixelGMM->arr[GMMIndex].weight;
+        numerator = red * R + green * G + blue * B;
+        denominator = R * R + G * G + B * B;
+        if ( denominator == 0 )
+        {
+            break;
+        }
+        double a = numerator / denominator;
+        if ( ( a <= 1 ) && ( a >= this->tau ) )
+        {
+            double dR = a * R - red;
+            double dG = a * G - green;
+            double dB = a * B - blue;
+            double dist = ( dR * dR + dG * dG + dB * dB );
+            if ( dist < this->BGSigma * var * a * a )
             {
-                currentPixel->GMMCount--;
+                return true;
+            }
+        }
+        if ( totalWeight > this->cfbar )
+        {
+            break;
+        }
+    }
+    return false;
+}
+
+bool BackgroundSubtractorGMM::isBackGround( double red, double green, double blue, PIXELGMM *curPixelGMM )
+{
+    bool hitGMM = false;
+    bool isBackGround = false;
+    double totalWeight = 0;
+    for ( int GMMIndex = 0; GMMIndex < curPixelGMM->GMMCount; GMMIndex++ )
+    {
+        double weight = curPixelGMM->arr[GMMIndex].weight;
+        if ( hitGMM == false )
+        {
+            double var = curPixelGMM->arr[GMMIndex].variance;
+            double R = curPixelGMM->arr[GMMIndex].R;
+            double G = curPixelGMM->arr[GMMIndex].G;
+            double B = curPixelGMM->arr[GMMIndex].B;
+            double dR = R - red;
+            double dG = G - green;
+            double dB = B - blue;
+            double dist = ( dR * dR + dG * dG + dB * dB );
+            if ( ( totalWeight < this->cfbar ) && ( dist < this->BGSigma * var ) )
+            {
+                isBackGround = true;
+            }
+            if ( dist < this->closeSigma * var )
+            {
+                hitGMM = true;
+                double mul = this->alpha / weight;
+                weight = this->alpha_bar * weight + this->prune;
+                weight += this->alpha;
+                curPixelGMM->arr[GMMIndex].R -= mul * ( dR );
+                curPixelGMM->arr[GMMIndex].G -= mul * ( dG );
+                curPixelGMM->arr[GMMIndex].B -= mul * ( dB );
+                double newVar = var + mul * ( dist - var );
+                curPixelGMM->arr[GMMIndex].variance = newVar<4 ? 4 : newVar>5 * this->defaultVariance ? 5 * this->defaultVariance : newVar;
+                for ( int sortIndex = GMMIndex; sortIndex > 0; sortIndex-- )
+                {
+                    if ( weight < ( curPixelGMM->arr[sortIndex - 1].weight ) )
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        swap( curPixelGMM->arr[sortIndex], curPixelGMM->arr[sortIndex - 1] );
+                    }
+                }
             }
             else
             {
-                totalWeight += weight;
-                currentPixel->arr[GMMIndex].weight = weight;
+                weight = this->alpha_bar * weight + this->prune;
+                if ( weight < -this->prune )
+                {
+                    weight = 0;
+                    curPixelGMM->GMMCount--;
+                }
             }
         }
-        if ( hitGMM == false )
+        else
         {
-            sortIndex = currentPixel->GMMCount;
-            currentPixel->arr[currentPixel->GMMCount++] = Create_gaussian( rVal, gVal, bVal, defaultVariance, alpha );
+            weight = this->alpha_bar * weight + this->prune;
+            if ( weight < -this->prune )
+            {
+                weight = 0;
+                curPixelGMM->GMMCount--;
+            }
         }
-        for ( int GMMIndex = 0; GMMIndex < currentPixel->GMMCount; GMMIndex++ )
+        totalWeight += weight;
+        curPixelGMM->arr[GMMIndex].weight = weight;
+    }
+    for ( int index = 0; index < curPixelGMM->GMMCount; index++ )
+    {
+        curPixelGMM->arr[index].weight = curPixelGMM->arr[index].weight / totalWeight;
+    }
+    if ( hitGMM == false )
+    {
+        if ( curPixelGMM->GMMCount < this->defaultGMMCount )
         {
-            currentPixel->arr[GMMIndex].weight /= totalWeight;
+            curPixelGMM->GMMCount++;
         }
-        for ( int GMMIndex = sortIndex; GMMIndex > 0; GMMIndex-- )
+        if ( curPixelGMM->GMMCount == 1 )
         {
-            if ( currentPixel->arr[GMMIndex].weight <= currentPixel->arr[GMMIndex - 1].weight )
+            curPixelGMM->arr[curPixelGMM->GMMCount - 1].weight = 1;
+        }
+        else
+        {
+            curPixelGMM->arr[curPixelGMM->GMMCount - 1].weight = this->alpha;
+        }
+        double tmpTotal = 0;
+        for ( int index = 0; index < curPixelGMM->GMMCount - 1; index++ )
+        {
+            tmpTotal += curPixelGMM->arr[index].weight;
+        }
+        for ( int index = 0; index < curPixelGMM->GMMCount - 1; index++ )
+        {
+            curPixelGMM->arr[index].weight /= tmpTotal;
+        }
+        curPixelGMM->arr[curPixelGMM->GMMCount - 1].R = red;
+        curPixelGMM->arr[curPixelGMM->GMMCount - 1].G = green;
+        curPixelGMM->arr[curPixelGMM->GMMCount - 1].B = blue;
+        curPixelGMM->arr[curPixelGMM->GMMCount - 1].variance = this->defaultVariance;
+        for ( int sortIndex = curPixelGMM->GMMCount - 1; sortIndex > 0; sortIndex-- )
+        {
+            if ( this->alpha < ( curPixelGMM->arr[sortIndex - 1].weight ) )
             {
                 break;
             }
             else
             {
-                swap( currentPixel->arr[GMMIndex], currentPixel->arr[GMMIndex - 1] );
+                swap( curPixelGMM->arr[sortIndex], curPixelGMM->arr[sortIndex - 1] );
             }
         }
-        *outputPtr++ = background;
-        currentPixel++;
     }
+    return isBackGround;
 }
 
 void BackgroundSubtractorGMM::freeMem()
 {
     delete[] pixelGMMBuffer;
-}
-
-NODE BackgroundSubtractorGMM::Create_Node()
-{
-    NODE tmp;
-    tmp.GMMCount = 1;
-    return tmp;
-}
-
-gaussian BackgroundSubtractorGMM::Create_gaussian( double r, double g, double b, double variance, double weight )
-{
-    gaussian tmp;
-    tmp.mean[0] = r;
-    tmp.mean[1] = g;
-    tmp.mean[2] = b;
-    tmp.variance = variance;
-    tmp.weight = weight;
-    return tmp;
 }
