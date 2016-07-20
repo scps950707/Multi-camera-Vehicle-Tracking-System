@@ -30,7 +30,7 @@ void findRect::findBoundingRect( cv::Mat &rectTarget, cv::Mat &mask )
     {
         approxPolyDP( cv::Mat( contours[i] ), contours_poly[i], 3, true );
         cv::Rect newRect = boundingRect( cv::Mat( contours_poly[i] ) );
-        if ( newRect.width < 15 || newRect.height < 50 )
+        if ( newRect.width < ( int )( rectTarget.cols / 40 ) || newRect.height < ( int )( rectTarget.rows / 10 ) )
         {
             continue;
         }
@@ -41,7 +41,7 @@ void findRect::findBoundingRect( cv::Mat &rectTarget, cv::Mat &mask )
         bool addRect = true;
         for ( unsigned int j = 0; j < boundRect.size(); j++ )
         {
-            if ( containTargetPerCent( boundRect[j], newRect ) >= 60 )
+            if ( containTargetPerCent( boundRect[j], newRect ) >= 80 )
             {
                 boundRect[j] = ( boundRect[j] | newRect );
                 addRect = false;
@@ -62,6 +62,13 @@ void findRect::findBoundingRect( cv::Mat &rectTarget, cv::Mat &mask )
     putText( rectTarget, str, cv::Point( 300, rectTarget.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  cv::Scalar( 0, 0, 255 ), 2 );
     for ( unsigned int i = 0; i < boundRect.size(); i++ )
     {
+        if ( ( int )( boundRect[i].width / boundRect[i].height ) >= 4 || ( int )( boundRect[i].height / boundRect[i].width ) >= 4 )
+        {
+            continue;
+        }
+        char box[20];
+        sprintf( box, "%dx%d=%d", boundRect[i].width, boundRect[i].height, boundRect[i].area() );
+        putText( rectTarget, box, boundRect[i].br(), cv::FONT_HERSHEY_PLAIN, 1,  cv::Scalar( 0, 0, 255 ), 2 );
         rectangle( rectTarget, boundRect[i].tl(), boundRect[i].br(), cv::Scalar( 0, 0, 255 ), 2, 8, 0 );
     }
 }
