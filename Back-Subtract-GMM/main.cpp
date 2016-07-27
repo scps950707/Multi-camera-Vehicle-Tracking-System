@@ -28,6 +28,10 @@ int main( int argc, char *argv[] )
         cout << " Can't recieve input from source " << endl;
         exit( EXIT_FAILURE );
     }
+    if ( inputImg.cols > 1800 && inputImg.rows > 900 )
+    {
+        cv::resize( inputImg, inputImg, cv::Size( inputImg.cols / 2, inputImg.rows / 2 ) );
+    }
     outputImg = cv::Mat( inputImg.rows, inputImg.cols, CV_8UC1, cv::Scalar( 0 ) );
 #ifdef AVI
     cv::VideoWriter writer;
@@ -38,6 +42,10 @@ int main( int argc, char *argv[] )
     bsgmm.shadowBeBackground = true;
     while ( capture.read( inputImg ) )
     {
+        if ( inputImg.cols > 1800 && inputImg.rows > 900 )
+        {
+            cv::resize( inputImg, inputImg, cv::Size( inputImg.cols / 2, inputImg.rows / 2 ) );
+        }
         bsgmm.updateFrame( inputImg.ptr(), outputImg.ptr() );
         findRect rect;
         rect.findBoundingRect( inputImg, outputImg );
