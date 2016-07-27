@@ -1,6 +1,8 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/video/background_segm.hpp>
+#include <opencv2/opencv.hpp>
 #include <iostream>
 #include "bsgmm.hpp"
 #include "rect.hpp"
@@ -38,6 +40,7 @@ int main( int argc, char *argv[] )
     writer.open( argv[2], CV_FOURCC( 'D', 'I', 'V', 'X' ), 30,
                  cv::Size( capture.get( CV_CAP_PROP_FRAME_WIDTH ), capture.get( CV_CAP_PROP_FRAME_HEIGHT ) ) );
 #endif
+    cv::Mat element = getStructuringElement( cv::MORPH_RECT, cv::Size( 5, 5 ), cv::Point( 3, 3 ) );
     BackgroundSubtractorGMM bsgmm(  inputImg.rows, inputImg.cols );
     bsgmm.shadowBeBackground = true;
     while ( capture.read( inputImg ) )
@@ -46,14 +49,20 @@ int main( int argc, char *argv[] )
         {
             cv::resize( inputImg, inputImg, cv::Size( inputImg.cols / 2, inputImg.rows / 2 ) );
         }
-        bsgmm.updateFrame( inputImg.ptr(), outputImg.ptr() );
+        cv::Mat inputBlur;
+        cv::blur( inputImg, inputBlur, cv::Size( 4, 4 ) );
+        bsgmm.updateFrame( inputBlur.ptr(), outputImg.ptr() );
+        cv::Mat outputMorp;
+        cv::morphologyEx( outputImg, outputMorp, CV_MOP_CLOSE, element );
         findRect rect;
-        rect.findBoundingRect( inputImg, outputImg );
+        rect.findBoundingRect( inputImg, outputMorp );
         char str[20];
         sprintf( str, "Frame:%d", ( int )capture.get( CV_CAP_PROP_POS_FRAMES ) );
         putText( inputImg, str, cv::Point( 450, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  cv::Scalar( 0, 0, 255 ), 2 );
         cv::imshow( "video", inputImg );
         cv::imshow( "GMM", outputImg );
+        cv::imshow( "inputBlur", inputBlur );
+        cv::imshow( "outputMorp", outputMorp );
 #ifdef AVI
         writer << inputImg;
 

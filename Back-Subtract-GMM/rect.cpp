@@ -2,60 +2,22 @@
 #include<stdio.h>
 #include<cmath>
 
-int findRect::containTargetPerCent( cv::Rect container, cv::Rect target )
-{
-    int interSectionArea = ( container & target ).area();
-    if ( interSectionArea == 0 )
-    {
-        return 0;
-    }
-    else if ( interSectionArea == target.area() )
-    {
-        return 100;
-    }
-    else
-    {
-        return int( ( interSectionArea / target.area() ) * 100 );
-    }
-}
-
 void findRect::findBoundingRect( cv::Mat &rectTarget, cv::Mat &mask )
 {
     cv::Mat tmp;
     mask.copyTo( tmp );
-    findContours( tmp, contours, hierarchy, CV_RETR_CCOMP, CV_CHAIN_APPROX_SIMPLE, cv::Point( 0, 0 ) );
+    findContours( tmp, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE );
     vector<vector<cv::Point>> contours_poly( contours.size() );
     vector<cv::Rect> boundRect;
     for ( unsigned int i = 0; i < contours.size(); i++ )
     {
         approxPolyDP( cv::Mat( contours[i] ), contours_poly[i], 3, true );
         cv::Rect newRect = boundingRect( cv::Mat( contours_poly[i] ) );
-        if ( newRect.width < ( int )( rectTarget.cols / 40 ) || newRect.height < ( int )( rectTarget.rows / 10 ) )
+        if ( newRect.area() < 1500 )
         {
             continue;
         }
-        else if ( abs( newRect.width - rectTarget.cols ) < 20 && abs( newRect.height - rectTarget.rows ) < 20 )
-        {
-            continue;
-        }
-        bool addRect = true;
-        for ( unsigned int j = 0; j < boundRect.size(); j++ )
-        {
-            if ( containTargetPerCent( boundRect[j], newRect ) >= 80 )
-            {
-                boundRect[j] = ( boundRect[j] | newRect );
-                addRect = false;
-            }
-            if ( containTargetPerCent( newRect , boundRect[j] ) == 100 )
-            {
-                boundRect[j] = newRect;
-                addRect = false;
-            }
-        }
-        if ( addRect )
-        {
-            boundRect.push_back( newRect );
-        }
+        boundRect.push_back( newRect );
     }
     char str[20];
     sprintf( str, "Count:%lu", boundRect.size() );
