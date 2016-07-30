@@ -9,11 +9,9 @@ using namespace std;
 class findRect
 {
 public:
-    void findBoundingRect( cv::Mat &target, cv::Mat &mask );
+    void findBoundingRect( cv::Mat target, cv::Mat mask );
 private:
     int containTargetPerCent( cv::Rect container, cv::Rect target );
-    vector<vector<cv::Point>> contours;
-    vector<cv::Vec4i> hierarchy;
 };
 
 #endif
