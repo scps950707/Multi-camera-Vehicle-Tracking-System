@@ -106,11 +106,21 @@ int main( int argc, char *argv[] )
         cv::morphologyEx( outputImg, outputMorp, CV_MOP_CLOSE, getStructuringElement( cv::MORPH_RECT, cv::Size( 5, 5 ), cv::Point( 3, 3 ) ) );
 
         // draw rect
-        findRect rect;
-        rect.findBoundingRect( inputImg, outputMorp );
+        findRect rect( inputImg, outputMorp );
+        vector<cv::Rect> boundRect =  rect.findBoundingRect();
+
+        char str[20];
+        sprintf( str, "Count:%lu", boundRect.size() );
+        putText( inputImg, str, cv::Point( 300, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  cv::Scalar( 0, 0, 255 ), 2 );
+        for ( unsigned int i = 0; i < boundRect.size(); i++ )
+        {
+            char box[20];
+            sprintf( box, "%dx%d=%d", boundRect[i].width, boundRect[i].height, boundRect[i].area() );
+            putText( inputImg, box, boundRect[i].br(), cv::FONT_HERSHEY_PLAIN, 1,  cv::Scalar( 0, 0, 255 ), 2 );
+            rectangle( inputImg, boundRect[i].tl(), boundRect[i].br(), cv::Scalar( 0, 0, 255 ), 2, 8, 0 );
+        }
 
         // print words on img for debug
-        char str[20];
         sprintf( str, "Frame:%d", ( int )capture.get( CV_CAP_PROP_POS_FRAMES ) );
         putText( inputImg, str, cv::Point( 450, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  cv::Scalar( 0, 0, 255 ), 2 );
 

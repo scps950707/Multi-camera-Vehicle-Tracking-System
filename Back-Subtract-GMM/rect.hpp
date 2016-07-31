@@ -9,9 +9,11 @@ using namespace std;
 class findRect
 {
 public:
-    void findBoundingRect( cv::Mat target, cv::Mat mask );
+    findRect( cv::Mat inputImg, cv::Mat mask );
+    vector<cv::Rect> findBoundingRect();
 private:
-    int containTargetPerCent( cv::Rect container, cv::Rect target );
+    cv::Mat inputImg, mask;
+    cv::Rect removeShadowRect ( cv::Rect rect );
 };
 
 #endif

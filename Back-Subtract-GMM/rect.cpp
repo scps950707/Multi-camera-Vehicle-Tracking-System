@@ -1,8 +1,9 @@
 #include "rect.hpp"
-#include<stdio.h>
-#include<cmath>
 
-cv::Rect removeShadowRect ( cv::Mat inputImg, cv::Mat mask, cv::Rect rect )
+findRect::findRect( cv::Mat inputImg, cv::Mat mask ) : inputImg( inputImg ), mask( mask )
+{}
+
+cv::Rect findRect::removeShadowRect ( cv::Rect rect )
 {
     int w = 0, h = 0;
     if ( rect.width > rect.height * 2 )
@@ -54,7 +55,7 @@ cv::Rect removeShadowRect ( cv::Mat inputImg, cv::Mat mask, cv::Rect rect )
     return cv::Rect( tlx, tly, rw, rh );
 }
 
-void findRect::findBoundingRect( cv::Mat inputImg, cv::Mat mask )
+vector<cv::Rect> findRect::findBoundingRect()
 {
     vector<vector<cv::Point>> contours;
     vector<cv::Vec4i> hierarchy;
@@ -70,17 +71,8 @@ void findRect::findBoundingRect( cv::Mat inputImg, cv::Mat mask )
         {
             /* cv::drawContours( inputImg, contours_poly, i, cv::Scalar( 0, 255, 0 ), 2 ); */
             cv::Rect newRect = boundingRect( cv::Mat( contours_poly[i] ) );
-            boundRect.push_back( removeShadowRect( inputImg, mask, newRect ) );
+            boundRect.push_back( this->removeShadowRect( newRect ) );
         }
     }
-    char str[20];
-    sprintf( str, "Count:%lu", boundRect.size() );
-    putText( inputImg, str, cv::Point( 300, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  cv::Scalar( 0, 0, 255 ), 2 );
-    for ( unsigned int i = 0; i < boundRect.size(); i++ )
-    {
-        char box[20];
-        sprintf( box, "%dx%d=%d", boundRect[i].width, boundRect[i].height, boundRect[i].area() );
-        putText( inputImg, box, boundRect[i].br(), cv::FONT_HERSHEY_PLAIN, 1,  cv::Scalar( 0, 0, 255 ), 2 );
-        rectangle( inputImg, boundRect[i].tl(), boundRect[i].br(), cv::Scalar( 0, 0, 255 ), 2, 8, 0 );
-    }
+    return boundRect;
 }
