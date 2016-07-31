@@ -8,16 +8,19 @@
 #include "bsgmm.hpp"
 #include "rect.hpp"
 using namespace std;
+#define FPS 30
 
 int main( int argc, char *argv[] )
 {
 
-    // codes for control command line options
+    // codes for control command line options {{{
 
     bool aviOutput = false;
     bool maskOutput = false;
+    int fastforward = 0;
     int  options;
     string videoOutPath, maskOutPath, inputPath;
+
     if ( argc == 1 )
     {
         cout << "usage: ./excute -i [input] -v [output] -m [mask_output]" << endl;
@@ -28,6 +31,7 @@ int main( int argc, char *argv[] )
         {"input", required_argument, NULL, 'i'},
         {"mask", required_argument, NULL, 'm'},
         {"video", required_argument, NULL, 'v'},
+        {"time", required_argument, NULL, 't'},
         {NULL, 0, NULL, 0}
     };
     while ( ( options = getopt_long( argc, argv, "i:m:v:", long_opt, NULL ) ) != -1 )
@@ -45,13 +49,19 @@ int main( int argc, char *argv[] )
             aviOutput = true;
             videoOutPath = string( optarg );
             break;
+        case 't':
+            fastforward = atoi( optarg );
+            break;
         }
     }
 
+    // }}}
     // declare mat for input and mask
 
     cv::Mat inputImg, outputImg;
     cv::VideoCapture capture( inputPath );
+    // perform fast foward
+    capture.set( CV_CAP_PROP_POS_FRAMES, fastforward * FPS );
     if ( !capture.read( inputImg ) )
     {
         cout << " Can't recieve input from source " << endl;
@@ -68,12 +78,12 @@ int main( int argc, char *argv[] )
     cv::VideoWriter writer, writer2;
     if ( aviOutput )
     {
-        writer.open( videoOutPath, CV_FOURCC( 'D', 'I', 'V', 'X' ), 30,
+        writer.open( videoOutPath, CV_FOURCC( 'D', 'I', 'V', 'X' ), FPS,
                      cv::Size( capture.get( CV_CAP_PROP_FRAME_WIDTH ), capture.get( CV_CAP_PROP_FRAME_HEIGHT ) ) );
     }
     if ( maskOutput )
     {
-        writer2.open( maskOutPath, CV_FOURCC( 'D', 'I', 'V', 'X' ), 30,
+        writer2.open( maskOutPath, CV_FOURCC( 'D', 'I', 'V', 'X' ), FPS,
                       cv::Size( capture.get( CV_CAP_PROP_FRAME_WIDTH ), capture.get( CV_CAP_PROP_FRAME_HEIGHT ) ) );
     }
 
