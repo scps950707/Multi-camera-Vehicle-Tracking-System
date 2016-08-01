@@ -1,6 +1,6 @@
 #include "rect.hpp"
 
-findRect::findRect( cv::Mat inputImg, cv::Mat mask ) : inputImg( inputImg ), mask( mask )
+findRect::findRect( cv::Mat &inputImg, cv::Mat &mask ) : inputImg( inputImg ), mask( mask )
 {}
 
 cv::Rect findRect::removeShadowRect ( cv::Rect rect )
@@ -64,12 +64,14 @@ vector<cv::Rect> findRect::findBoundingRect()
     findContours( tmp, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE );
     vector<vector<cv::Point>> contours_poly( contours.size() );
     vector<cv::Rect> boundRect;
+    mask.setTo( cv::Scalar( 0 ) );
     for ( unsigned int i = 0; i < contours.size(); i++ )
     {
         approxPolyDP( cv::Mat( contours[i] ), contours_poly[i], 3, true );
         if ( cv::contourArea( contours_poly[i] ) > 500 )
         {
             /* cv::drawContours( inputImg, contours_poly, i, cv::Scalar( 0, 255, 0 ), 2 ); */
+            cv::drawContours( mask, contours_poly, i, cv::Scalar( 255 ), CV_FILLED );
             cv::Rect newRect = boundingRect( cv::Mat( contours_poly[i] ) );
             boundRect.push_back( this->removeShadowRect( newRect ) );
         }

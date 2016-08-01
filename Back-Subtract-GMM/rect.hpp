@@ -9,7 +9,7 @@ using namespace std;
 class findRect
 {
 public:
-    findRect( cv::Mat inputImg, cv::Mat mask );
+    findRect( cv::Mat &inputImg, cv::Mat &mask );
     vector<cv::Rect> findBoundingRect();
 private:
     cv::Mat inputImg, mask;
