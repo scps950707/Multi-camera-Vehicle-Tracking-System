@@ -104,7 +104,7 @@ int main( int argc, char *argv[] )
         cv::blur( inputImg, inputBlur, cv::Size( 4, 4 ) );
         bsgmm.updateFrame( inputBlur.ptr(), outputImg.ptr() );
         cv::Mat outputMorp;
-        cv::morphologyEx( outputImg, outputMorp, CV_MOP_CLOSE, getStructuringElement( cv::MORPH_RECT, cv::Size( 5, 5 ), cv::Point( 3, 3 ) ) );
+        cv::morphologyEx( outputImg, outputMorp, CV_MOP_CLOSE, getStructuringElement( cv::MORPH_RECT, cv::Size( 5, 5 ) ) );
 
         // draw rect print words on img for debug {{{
         findRect rect( inputImg, outputMorp );
