@@ -1,14 +1,6 @@
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/video/background_segm.hpp>
-#include <opencv2/opencv.hpp>
-#include <iostream>
-#include <getopt.h>
+#include "header.hpp"
 #include "bsgmm.hpp"
 #include "rect.hpp"
-using namespace std;
-#define FPS 30
 
 int main( int argc, char *argv[] )
 {

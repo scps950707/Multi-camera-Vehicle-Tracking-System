@@ -1,6 +1,4 @@
-#include <opencv2/core/core.hpp>
 #include "bsgmm.hpp"
-using namespace std;
 
 BackgroundSubtractorGMM::BackgroundSubtractorGMM( int frameHeight, int frameWidth ) : frameHeight( frameHeight ), frameWidth( frameWidth )
 {

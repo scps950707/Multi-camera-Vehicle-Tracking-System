@@ -1,10 +1,7 @@
 #ifndef __RECT_H__
 #define __RECT_H__
 
-#include <vector>
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-using namespace std;
+#include "header.hpp"
 
 class findRect
 {

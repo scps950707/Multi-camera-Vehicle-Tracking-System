@@ -1,8 +1,7 @@
 #ifndef BSGMM_HPP
 #define BSGMM_HPP
 
-#include <opencv2/core/core.hpp>
-
+#include "header.hpp"
 
 /*
  * Usage:
