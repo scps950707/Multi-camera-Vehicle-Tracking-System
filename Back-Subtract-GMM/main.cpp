@@ -73,7 +73,7 @@ int main( int argc, char *argv[] )
     }
     outputImg = cv::Mat( inputImg.rows, inputImg.cols, CV_8UC1, cv::Scalar( 0 ) );
 
-    //declare output stream
+    //declare output stream{{{
 
     cv::VideoWriter writer, writer2;
     if ( aviOutput )
@@ -86,6 +86,7 @@ int main( int argc, char *argv[] )
         writer2.open( maskOutPath, CV_FOURCC( 'D', 'I', 'V', 'X' ), FPS,
                       cv::Size( capture.get( CV_CAP_PROP_FRAME_WIDTH ), capture.get( CV_CAP_PROP_FRAME_HEIGHT ) ) );
     }
+    //}}}
 
     //creat GMM Class object
 
@@ -105,7 +106,7 @@ int main( int argc, char *argv[] )
         cv::Mat outputMorp;
         cv::morphologyEx( outputImg, outputMorp, CV_MOP_CLOSE, getStructuringElement( cv::MORPH_RECT, cv::Size( 5, 5 ), cv::Point( 3, 3 ) ) );
 
-        // draw rect
+        // draw rect print words on img for debug {{{
         findRect rect( inputImg, outputMorp );
         vector<cv::Rect> boundRect =  rect.findBoundingRect();
 
@@ -120,16 +121,16 @@ int main( int argc, char *argv[] )
             rectangle( inputImg, boundRect[i].tl(), boundRect[i].br(), cv::Scalar( 0, 0, 255 ), 2, 8, 0 );
         }
 
-        // print words on img for debug
         sprintf( str, "Frame:%d", ( int )capture.get( CV_CAP_PROP_POS_FRAMES ) );
         putText( inputImg, str, cv::Point( 450, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  cv::Scalar( 0, 0, 255 ), 2 );
+        //}}}
 
         cv::imshow( "video", inputImg );
         cv::imshow( "GMM", outputImg );
         cv::imshow( "inputBlur", inputBlur );
         cv::imshow( "outputMorp", outputMorp );
 
-        // write to avi
+        // write to avi{{{
         if ( aviOutput )
         {
             writer << inputImg;
@@ -143,12 +144,14 @@ int main( int argc, char *argv[] )
             putText( maskForAvi , str, cv::Point( 450, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  cv::Scalar( 0, 0, 255 ), 2 );
             writer2 << maskForAvi;
         }
+        //}}}
 
-        // monitor keys to stop
+        // monitor keys to stop{{{
         if ( cv::waitKey( 1 ) > 0 )
         {
             break;
         }
+        //}}}
     }
     bsgmm.freeMem();
     return EXIT_SUCCESS;
