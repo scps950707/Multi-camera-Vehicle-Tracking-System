@@ -34,11 +34,11 @@ cv::Rect findRect::removeShadowRect ( cv::Rect rect )
         {
             if ( ( uint )mask.at<uchar>( ybase + j * ( rect.height / h ), xbase + i * ( rect.width / w ) ) == 255 )
             {
-                /* cv::circle( inputImg, cv::Point( xbase + i * ( rect.width / w ),  ybase + j * ( rect.height / h ) ), 1, cv::Scalar( 255, 255, 255 ), 2 ); */
+                /* cv::circle( inputImg, cv::Point( xbase + i * ( rect.width / w ),  ybase + j * ( rect.height / h ) ), 1, BLACK_C3, 2 ); */
             }
             else
             {
-                /* cv::circle( inputImg, cv::Point( xbase + i * ( rect.width / w ),  ybase + j * ( rect.height / h ) ), 1, cv::Scalar( 0, 0, 0 ), 2 ); */
+                /* cv::circle( inputImg, cv::Point( xbase + i * ( rect.width / w ),  ybase + j * ( rect.height / h ) ), 1, WHITE_C3, 2 ); */
                 numOfBGSquare++;
             }
         }
@@ -64,14 +64,14 @@ vector<cv::Rect> findRect::findBoundingRect()
     findContours( tmp, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE );
     vector<vector<cv::Point>> contours_poly( contours.size() );
     vector<cv::Rect> boundRect;
-    mask.setTo( cv::Scalar( 0 ) );
+    mask.setTo( BLACK_C1 );
     for ( unsigned int i = 0; i < contours.size(); i++ )
     {
         approxPolyDP( cv::Mat( contours[i] ), contours_poly[i], 3, true );
         if ( cv::contourArea( contours_poly[i] ) > 500 )
         {
-            /* cv::drawContours( inputImg, contours_poly, i, cv::Scalar( 0, 255, 0 ), 2 ); */
-            cv::drawContours( mask, contours_poly, i, cv::Scalar( 255 ), CV_FILLED );
+            /* cv::drawContours( inputImg, contours_poly, i, GREEN_C3, 2 ); */
+            cv::drawContours( mask, contours_poly, i, WHITE_C1, CV_FILLED );
             cv::Rect newRect = boundingRect( cv::Mat( contours_poly[i] ) );
             boundRect.push_back( this->removeShadowRect( newRect ) );
         }

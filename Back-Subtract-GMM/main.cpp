@@ -63,7 +63,7 @@ int main( int argc, char *argv[] )
     {
         cv::resize( inputImg, inputImg, cv::Size( inputImg.cols / 2, inputImg.rows / 2 ) );
     }
-    outputMask = cv::Mat( inputImg.rows, inputImg.cols, CV_8UC1, cv::Scalar( 0 ) );
+    outputMask = cv::Mat( inputImg.rows, inputImg.cols, CV_8UC1, BLACK_C1 );
 
     //declare output stream{{{
 
@@ -104,17 +104,17 @@ int main( int argc, char *argv[] )
 
         char str[20];
         sprintf( str, "Count:%lu", boundRect.size() );
-        putText( inputImg, str, cv::Point( 300, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  cv::Scalar( 0, 0, 255 ), 2 );
+        putText( inputImg, str, cv::Point( 300, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
         for ( unsigned int i = 0; i < boundRect.size(); i++ )
         {
             char box[20];
             sprintf( box, "%dx%d=%d", boundRect[i].width, boundRect[i].height, boundRect[i].area() );
-            putText( inputImg, box, boundRect[i].br(), cv::FONT_HERSHEY_PLAIN, 1,  cv::Scalar( 0, 0, 255 ), 2 );
-            rectangle( inputImg, boundRect[i].tl(), boundRect[i].br(), cv::Scalar( 0, 0, 255 ), 2, 8, 0 );
+            putText( inputImg, box, boundRect[i].br(), cv::FONT_HERSHEY_PLAIN, 1,  RED_C3, 2 );
+            rectangle( inputImg, boundRect[i].tl(), boundRect[i].br(), RED_C3, 2, 8, 0 );
         }
 
         sprintf( str, "Frame:%d time:%ds", ( int )capture.get( CV_CAP_PROP_POS_FRAMES ), ( int )( capture.get( CV_CAP_PROP_POS_FRAMES ) / FPS ) );
-        putText( inputImg, str, cv::Point( 450, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  cv::Scalar( 0, 0, 255 ), 2 );
+        putText( inputImg, str, cv::Point( 450, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
         //}}}
 
         cv::imshow( "video", inputImg );
@@ -133,7 +133,7 @@ int main( int argc, char *argv[] )
             cv::cvtColor( outputMorp, maskForAvi, CV_GRAY2RGB );
             //because our mask is single channel, we need to convert it to three channel to output avi
             sprintf( str, "Frame:%d", ( int )capture.get( CV_CAP_PROP_POS_FRAMES ) );
-            putText( maskForAvi , str, cv::Point( 450, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  cv::Scalar( 0, 0, 255 ), 2 );
+            putText( maskForAvi , str, cv::Point( 450, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
             writer2 << maskForAvi;
         }
         //}}}
