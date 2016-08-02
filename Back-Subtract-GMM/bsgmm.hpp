@@ -65,6 +65,8 @@ public:
      * alpha = 0.001 the result is 105 frames
      * alpha = 0.002 the result is 52 frames
      * alpha = 0.003 the result is 35 frames
+     * alpha = 0.004 the result is 26 frames
+     * alpha = 0.003 the result is 21 frames
      * which value of alpha depends on the fps of the video
      */
     double alpha_bar;
@@ -112,7 +114,7 @@ public:
      * The shadow is detected if the pixel is a darker version of the background.
      * Tau is a threshold defining how much darker the shadow can be.
      * Tau= 0.5 means that if a pixel is more than twice darker then it is not shadow.
-	 */
+     */
 
 
 private:

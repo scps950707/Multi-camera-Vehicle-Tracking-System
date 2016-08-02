@@ -2,7 +2,7 @@
 
 BackgroundSubtractorGMM::BackgroundSubtractorGMM( int frameHeight, int frameWidth ) : frameHeight( frameHeight ), frameWidth( frameWidth )
 {
-    this->alpha = 0.003;
+    this->alpha = 0.005;
     this->alpha_bar = 1 - alpha;
     this->defaultVariance = 11;
     this->cT = 0.05;
