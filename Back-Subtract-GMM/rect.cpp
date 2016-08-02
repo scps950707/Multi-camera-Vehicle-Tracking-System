@@ -68,11 +68,20 @@ vector<cv::Rect> findRect::findBoundingRect()
     for ( unsigned int i = 0; i < contours.size(); i++ )
     {
         approxPolyDP( cv::Mat( contours[i] ), contours_poly[i], 3, true );
-        if ( cv::contourArea( contours_poly[i] ) > 500 )
+        if ( cv::contourArea( contours_poly[i] ) > 500 && ( int )contours_poly[i].size() < 200 )
         {
-            /* cv::drawContours( inputImg, contours_poly, i, GREEN_C3, 2 ); */
-            cv::drawContours( mask, contours_poly, i, WHITE_C1, CV_FILLED );
             cv::Rect newRect = boundingRect( cv::Mat( contours_poly[i] ) );
+            if ( ( int )contours_poly[i].size() > 0.5 * newRect.width || ( int )contours_poly[i].size() > 0.5 * newRect.width )
+            {
+                continue;
+            }
+            /* cv::drawContours( inputImg, contours_poly, i, GREEN_C3, 2 ); */
+            /* cv::Moments mo = moments( contours_poly[i] ); */
+            /* cv::Point center = cv::Point( mo.m10 / mo.m00 , mo.m01 / mo.m00 ); */
+            /* char contoursSizeText[20]; */
+            /* sprintf( contoursSizeText, "%d", ( int )contours_poly[i].size() ); */
+            /* putText( inputImg, contoursSizeText, center, cv::FONT_HERSHEY_PLAIN, 1,  RED_C3, 2 ); */
+            cv::drawContours( mask, contours_poly, i, WHITE_C1, CV_FILLED );
             boundRect.push_back( this->removeShadowRect( newRect ) );
         }
     }
