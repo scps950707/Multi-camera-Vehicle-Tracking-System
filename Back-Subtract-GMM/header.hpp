@@ -12,6 +12,7 @@
 #include <iostream>
 #include <getopt.h>
 #include <vector>
+#include <algorithm>
 using namespace std;
 #define FPS 30
 #define BLACK_C1 cv::Scalar(0)
