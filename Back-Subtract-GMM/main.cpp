@@ -15,7 +15,12 @@ int main( int argc, char *argv[] )
 
     if ( argc == 1 )
     {
-        cout << "usage: ./excute -i [input] -v [output] -m [mask_output]" << endl;
+        cout << "usage: ./BSGMM [options]" << endl;
+        cout << "options:" << endl;
+        cout << "-i [input video path]  (required)" << endl;
+        cout << "-v [output video path]" << endl;
+        cout << "-m [mask video output path]" << endl;
+        cout << "-t [video start time (secs)]" << endl;
         exit( EXIT_FAILURE );
     }
     struct option  long_opt[] =
@@ -102,19 +107,16 @@ int main( int argc, char *argv[] )
         findRect rect( inputImg, outputMorp );
         vector<cv::Rect> boundRect =  rect.findBoundingRect();
 
-        char str[20];
-        sprintf( str, "Count:%lu", boundRect.size() );
-        putText( inputImg, str, cv::Point( 300, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
         for ( unsigned int i = 0; i < boundRect.size(); i++ )
         {
             char box[20];
             sprintf( box, "%dx%d=%d", boundRect[i].width, boundRect[i].height, boundRect[i].area() );
             putText( inputImg, box, boundRect[i].br(), cv::FONT_HERSHEY_PLAIN, 1,  RED_C3, 2 );
-            rectangle( inputImg, boundRect[i].tl(), boundRect[i].br(), RED_C3, 2, 8, 0 );
+            rectangle( inputImg, boundRect[i].tl(), boundRect[i].br(), RED_C3, 2 );
         }
 
-        sprintf( str, "Frame:%d time:%ds", ( int )capture.get( CV_CAP_PROP_POS_FRAMES ), ( int )( capture.get( CV_CAP_PROP_POS_FRAMES ) / FPS ) );
-        putText( inputImg, str, cv::Point( 450, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
+        string str = "Count:" + to_string( boundRect.size() ) + " Frame:" + to_string( ( int )capture.get( CV_CAP_PROP_POS_FRAMES ) ) + "time:" + to_string( ( int )( capture.get( CV_CAP_PROP_POS_FRAMES ) / FPS ) );
+        putText( inputImg, str, cv::Point( 300, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
         //}}}
 
         cv::imshow( "video", inputImg );
@@ -132,8 +134,7 @@ int main( int argc, char *argv[] )
             cv::Mat maskForAvi;
             cv::cvtColor( outputMorp, maskForAvi, CV_GRAY2RGB );
             //because our mask is single channel, we need to convert it to three channel to output avi
-            sprintf( str, "Frame:%d", ( int )capture.get( CV_CAP_PROP_POS_FRAMES ) );
-            putText( maskForAvi , str, cv::Point( 450, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
+            putText( maskForAvi , str, cv::Point( 300, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
             writer2 << maskForAvi;
         }
         //}}}
