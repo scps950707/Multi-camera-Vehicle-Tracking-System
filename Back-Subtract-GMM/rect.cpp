@@ -61,7 +61,7 @@ vector<cv::Rect> findRect::findBoundingRect()
     vector<cv::Vec4i> hierarchy;
     cv::Mat tmp;
     mask.copyTo( tmp );
-    findContours( tmp, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_NONE );
+    findContours( tmp, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE );
     vector<vector<cv::Point>> contours_poly( contours.size() );
     vector<cv::Rect> boundRect;
     mask.setTo( BLACK_C1 );
