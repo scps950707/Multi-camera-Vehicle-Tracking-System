@@ -1,4 +1,5 @@
 #include "header.hpp"
+#include "standard.hpp"
 
 bool sortByX( cv::RotatedRect i, cv::RotatedRect j )
 {
@@ -26,41 +27,6 @@ double findTanget( vector<cv::Point> pts )
     }
     /* denominator = sqrt( tmpDenX ) * sqrt( tmpDenY ); */
     return numerator / denominator;
-}
-
-template <typename X>
-void normalizeUsingStandardDeviation( vector<X> &target , vector<cv::Point> pts, int xRange, int yRange )
-{
-    double xAvg = 0;
-    double xSigma = 0;
-    double yAver = 0;
-    double ySigma = 0;
-    for ( unsigned int i = 0; i < pts.size(); i++ )
-    {
-        xAvg += pts[i].x;
-        yAver += pts[i].y;
-    }
-    xAvg /= pts.size();
-    yAver /= pts.size();
-    for ( unsigned int i = 0; i < pts.size(); i++ )
-    {
-        xSigma += pow( pts[i].x - xAvg, 2 );
-        ySigma += pow( pts[i].y - yAver, 2 );
-    }
-    xSigma /= pts.size();
-    xSigma = sqrt( xSigma );
-    ySigma /= pts.size();
-    ySigma = sqrt( ySigma );
-    /* cout << "xAvg:" << xAvg << "xSigma:" << xSigma << endl; */
-    /* cout << "yAver:" << yAver << "ySigma:" << ySigma << endl; */
-    for ( unsigned int i = 0; i < pts.size(); i++ )
-    {
-        if ( pts[i].x < ( xAvg - ( xRange * xSigma ) ) || pts[i].x > ( xAvg + ( xRange * xSigma ) )
-                || pts[i].y < ( yAver - ( yRange * ySigma ) ) || pts[i].y > ( yAver + ( yRange * ySigma ) ) )
-        {
-            target.erase( target.begin() + i );
-        }
-    }
 }
 
 void findZebra( cv::Mat &src, string name )
@@ -109,7 +75,8 @@ void findZebra( cv::Mat &src, string name )
             rectCenterPts.push_back( boundingRectAll[i].center );
         }
 
-        normalizeUsingStandardDeviation( boundingRectAll, rectCenterPts, 2, 2 );
+        StandardDeviation<cv::RotatedRect> sd( rectCenterPts );
+        boundingRectAll = sd.normalize( boundingRectAll, 2, 2 );
 
         for ( unsigned int i = 0; i < boundingRectAll.size(); i++ )
         {
@@ -141,8 +108,10 @@ void findZebra( cv::Mat &src, string name )
             boundingContoursTopPts.push_back( boundingContours[i][maxIdx] );
         }
 
-        normalizeUsingStandardDeviation( boundingContours, boundingContoursTopPts, 2, 2 );
-        normalizeUsingStandardDeviation( boundingContoursTopPts, boundingContoursTopPts, 2, 2 );
+        StandardDeviation<vector<cv::Point>> sd( boundingContoursTopPts );
+        boundingContours = sd.normalize( boundingContours, 2, 2 );
+        StandardDeviation<cv::Point> sd2( boundingContoursTopPts );
+        boundingContoursTopPts = sd2.normalize( boundingContoursTopPts, 2, 2 );
 
         for ( unsigned int i = 0; i < boundingContoursTopPts.size(); i++ )
         {
