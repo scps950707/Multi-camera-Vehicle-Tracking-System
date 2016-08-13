@@ -137,6 +137,7 @@ void findZebra( cv::Mat &src, string name )
         cv::circle( src, cv::Point( getInfo.getxAvg(), getInfo.getyAvg() ), 3, GREEN_C3, 3 );
     }
     imshow( "origin:" + name, src );
+    imwrite( "origin:" + name, src );
 }
 
 int main( int argc, char *argv[] )
