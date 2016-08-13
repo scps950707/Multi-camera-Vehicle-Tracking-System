@@ -15,10 +15,10 @@ public:
     double getySigma();
 private:
     vector<cv::Point> pts;
-    double xAvg;
-    double xSigma;
-    double yAvg;
-    double ySigma;
+    double xAvg = 0;
+    double xSigma = 0;
+    double yAvg = 0;
+    double ySigma = 0;
 };
 
 template<typename T>

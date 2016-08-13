@@ -77,6 +77,8 @@ void findZebra( cv::Mat &src, string name )
 
         StandardDeviation<cv::RotatedRect> sd( rectCenterPts );
         boundingRectAll = sd.normalize( boundingRectAll, 2, 2 );
+        StandardDeviation<cv::Point> sd2( rectCenterPts );
+        rectCenterPts = sd2.normalize( rectCenterPts, 2, 2 );
 
         for ( unsigned int i = 0; i < boundingRectAll.size(); i++ )
         {
@@ -90,7 +92,9 @@ void findZebra( cv::Mat &src, string name )
             /*     cv::line( src, vertice[j], vertice[( j + 1 ) % 4], BLUE_C3 , 2 ); */
             /* } */
         }
-        cout << "blue angle:" << atan( -( findTanget( rectCenterPts ) ) ) * ( 180 / CV_PI ) << endl;
+        double blueTanget = findTanget( rectCenterPts );
+        double blueAngle = atan( -blueTanget );
+        cout << "blue angle:" << blueAngle * ( 180 / CV_PI ) << endl;
     }
     if ( !boundingContours.empty() )
     {
@@ -120,7 +124,17 @@ void findZebra( cv::Mat &src, string name )
             putText( src, info, cv::Point( boundingContoursTopPts[i].x - 20, boundingContoursTopPts[i].y - 10 ), cv::FONT_HERSHEY_PLAIN, 1,  RED_C3, 2 );
             /* cv::drawContours( src, boundingContours, i, GREEN_C3, 2 ); */
         }
-        cout << "red angle:" << atan( -( findTanget( boundingContoursTopPts ) ) ) * ( 180 / CV_PI ) << endl;
+        double redTanget = findTanget( boundingContoursTopPts );
+        double redAngle = atan( -redTanget );
+        cout << "red angle:" << redAngle * ( 180 / CV_PI ) << endl;
+
+        StandardDeviation<cv::Point> getInfo( boundingContoursTopPts );
+        double b = getInfo.getyAvg() - getInfo.getxAvg() * redTanget;
+
+        cv::Point left( 0, b ), bottom( ( src.rows - b ) / redTanget, src.rows );
+        cv::line( src, left, bottom, GREEN_C3, 2 );
+
+        cv::circle( src, cv::Point( getInfo.getxAvg(), getInfo.getyAvg() ), 3, GREEN_C3, 3 );
     }
     imshow( "origin:" + name, src );
 }
