@@ -123,13 +123,14 @@ void findZebraAngle( cv::Mat &src, cv::Mat thresholdImg )
     }
 }
 
-void travelPts( cv::Mat &src, cv::Mat threshold, int direcX, int direcY )
+vector<cv::Point> travelPts( cv::Mat &src, cv::Mat threshold, int direcX, int direcY )
 {
     cv::Point startpt( ( int )( src.cols * 0.6 ), ( int )( src.rows * 0.7 ) );
     cv::circle( src, startpt, 3, BLUE_C3, 2 );
     int xgap = 12 * direcX, ygap = 6 * direcY;
     int prevRoadCnt = 0;
     vector<cv::Point> buffer;
+    vector<cv::Point> collect;
     for ( int i = 1; i <= 22; i++ )
     {
         buffer.clear();
@@ -144,30 +145,55 @@ void travelPts( cv::Mat &src, cv::Mat threshold, int direcX, int direcY )
                 {
                     break;
                 }
-                /* cv::circle( src, pts, 2, RED_C3, 2 ); */
+                /* cv::circle( src, pts, 1, RED_C3, 2 ); */
                 buffer.push_back( pts );
                 curRoadCnt++;
                 prevFindIdx = j;
+            }
+        }
+        int gapCnt = 0;
+        for ( unsigned int i = 0; i < buffer.size(); i++ )
+        {
+            if ( i != buffer.size() - 1 )
+            {
+                if ( abs( buffer[i].x - buffer[i + 1].x ) != abs( xgap ) )
+                {
+                    gapCnt++;
+                }
+            }
+        }
+        if ( gapCnt <= 1 && buffer.size() > 3 )
+        {
+            for ( unsigned int i = 0; i < buffer.size(); i++ )
+            {
+                /* cv::circle( src, buffer[i], 2, RED_C3, 2 ); */
+                collect.push_back( buffer[i] );
             }
         }
         if ( curRoadCnt <= 10 && prevRoadCnt > curRoadCnt  )
         {
             break;
         }
-        for ( unsigned int i = 0; i < buffer.size(); i++ )
-        {
-            cv::circle( src, buffer[i], 2, RED_C3, 2 );
-        }
         prevRoadCnt = curRoadCnt;
     }
+    return collect;
 }
 
 void findRoadPts( cv::Mat &src, cv::Mat threshold )
 {
-    travelPts( src, threshold, -1, -1 );
-    travelPts( src, threshold, -1, 1 );
-    travelPts( src, threshold, 1, -1 );
-    travelPts( src, threshold, 1, 1 );
+    vector<cv::Point> collect;
+    vector<cv::Point> tlPts = travelPts( src, threshold, -1, -1 );
+    vector<cv::Point> trPts = travelPts( src, threshold, -1, 1 );
+    vector<cv::Point> blPts = travelPts( src, threshold, 1, -1 );
+    vector<cv::Point> brPts = travelPts( src, threshold, 1, 1 );
+    collect.insert( collect.end(), tlPts.begin(), tlPts.end() );
+    collect.insert( collect.end(), trPts.begin(), trPts.end() );
+    collect.insert( collect.end(), blPts.begin(), blPts.end() );
+    collect.insert( collect.end(), brPts.begin(), brPts.end() );
+    for ( unsigned int i = 0; i < collect.size(); i++ )
+    {
+        cv::circle( src, collect[i], 1, RED_C3, 2 );
+    }
 }
 
 
@@ -192,10 +218,10 @@ int main( int argc, char *argv[] )
         }
         /* imshow( "thres:" + name, thres ); */
         /* imwrite("thres-"+name,thres); */
-        findZebraAngle( input, thres );
+        /* findZebraAngle( input, thres ); */
         findRoadPts( input, thres );
-        imshow( "origin:" + string( argv[i] ), input );
-        /* imwrite( "origin-" + string( argv[i] ), input ); */
+        /* imshow( "origin:" + string( argv[i] ), input ); */
+        imwrite( "origin-" + string( argv[i] ), input );
     }
     cv::waitKey( 0 );
 
