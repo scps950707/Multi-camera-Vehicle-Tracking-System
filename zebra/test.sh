@@ -1,5 +1,5 @@
 #!/bin/sh
 cd build
-make
+make || exit
 cd ..
 ./build/execute 2.jpg 4-2.png
