@@ -1,11 +1,14 @@
 #include "header.hpp"
 #include "standard.hpp"
 
+//{{{sortByX
 bool sortByX( cv::RotatedRect i, cv::RotatedRect j )
 {
     return i.center.x < j.center.x;
 }
+//}}}
 
+//{{{findTanget
 double findTanget( vector<cv::Point> pts )
 {
     double x_aver = 0, y_aver = 0;
@@ -17,38 +20,21 @@ double findTanget( vector<cv::Point> pts )
     x_aver /= pts.size();
     y_aver /= pts.size();
     double numerator = 0, denominator = 0;
-    /* double tmpDenX = 0, tmpDenY = 0; */
     for ( unsigned int i = 0; i < pts.size(); i++ )
     {
         numerator += ( ( pts[i].x - x_aver ) * ( pts[i].y - y_aver ) );
         denominator += pow( pts[i].x - x_aver, 2 );
-        /* tmpDenX += pow( pts[i.x - x_aver, 2 ); */
-        /* tmpDenY += pow( pts[i.y - y_aver, 2 ); */
     }
-    /* denominator = sqrt( tmpDenX ) * sqrt( tmpDenY ); */
     return numerator / denominator;
 }
+//}}}
 
-void findZebra( cv::Mat &src, string name )
+//{{{ findZebraAngle
+void findZebraAngle( cv::Mat &src, cv::Mat thresholdImg )
 {
-    cv::Mat src_gray;
-
-    cvtColor( src, src_gray, CV_BGR2GRAY );
-    /* imshow( "gray:" + name, src_gray ); */
-    cv::Mat thres;
-    cv::threshold( src_gray, thres, 140, 255, cv::THRESH_BINARY );
-    for ( int i = 0; i < ( int )( thres.rows * 0.4 ); i++ )
-    {
-        for ( int j = 0; j < thres.cols; j++ )
-        {
-            thres.at<uchar>( i, j ) = ( uchar )0;
-        }
-    }
-    /* imshow( "thres:" + name, thres ); */
-
     vector<vector<cv::Point>> contours;
     vector<cv::Vec4i> hierarchy;
-    findContours( thres, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE );
+    findContours( thresholdImg, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE );
     vector<vector<cv::Point>> contours_poly( contours.size() );
     vector<cv::RotatedRect> boundingRectAll;
     vector<vector<cv::Point>> boundingContours;
@@ -93,8 +79,14 @@ void findZebra( cv::Mat &src, string name )
             /* } */
         }
         double blueTanget = findTanget( rectCenterPts );
-        double blueAngle = atan( -blueTanget );
-        cout << "blue angle:" << blueAngle * ( 180 / CV_PI ) << endl;
+        double blueAngle = abs( atan( -blueTanget ) ) * ( 180 / CV_PI );
+        cout << "blue tanget:" << blueTanget << endl;
+        cout << "blue angle:" << blueAngle << endl;
+        StandardDeviation<cv::Point> getInfo( rectCenterPts );
+        double b = getInfo.getyAvg() - getInfo.getxAvg() * blueTanget;
+        cv::Point left( 0, b ), bottom( ( src.rows - b ) / blueTanget, src.rows );
+        cv::line( src, left, bottom, GREEN_C3, 2 );
+        cv::circle( src, cv::Point( getInfo.getxAvg(), getInfo.getyAvg() ), 3, GREEN_C3, 3 );
     }
     if ( !boundingContours.empty() )
     {
@@ -125,20 +117,17 @@ void findZebra( cv::Mat &src, string name )
             /* cv::drawContours( src, boundingContours, i, GREEN_C3, 2 ); */
         }
         double redTanget = findTanget( boundingContoursTopPts );
-        double redAngle = atan( -redTanget );
-        cout << "red angle:" << redAngle * ( 180 / CV_PI ) << endl;
-
+        double redAngle = abs( atan( -redTanget ) ) * ( 180 / CV_PI );
+        cout << "red tanget:" << redTanget << endl;
+        cout << "red angle:" << redAngle << endl;
         StandardDeviation<cv::Point> getInfo( boundingContoursTopPts );
         double b = getInfo.getyAvg() - getInfo.getxAvg() * redTanget;
-
         cv::Point left( 0, b ), bottom( ( src.rows - b ) / redTanget, src.rows );
         cv::line( src, left, bottom, GREEN_C3, 2 );
-
         cv::circle( src, cv::Point( getInfo.getxAvg(), getInfo.getyAvg() ), 3, GREEN_C3, 3 );
     }
-    imshow( "origin:" + name, src );
-    imwrite( "origin:" + name, src );
 }
+//}}}
 
 int main( int argc, char *argv[] )
 {
@@ -147,7 +136,23 @@ int main( int argc, char *argv[] )
     {
         cout << "processing:" << argv[i] << endl;
         input = cv::imread( argv[i] );
-        findZebra( input, string( argv[i] ) );
+        cv::Mat src_gray;
+        cvtColor( input, src_gray, CV_BGR2GRAY );
+        /* imshow( "gray:" + name, src_gray ); */
+        cv::Mat thres;
+        cv::threshold( src_gray, thres, 140, 255, cv::THRESH_BINARY );
+        for ( int i = 0; i < ( int )( thres.rows * 0.4 ); i++ )
+        {
+            for ( int j = 0; j < thres.cols; j++ )
+            {
+                thres.at<uchar>( i, j ) = ( uchar )0;
+            }
+        }
+        /* imshow( "thres:" + name, thres ); */
+        /* imwrite("thres-"+name,thres); */
+        findZebraAngle( input, thres );
+        imshow( "origin:" + string( argv[i] ), input );
+        /* imwrite( "origin-" + name, src ); */
     }
     cv::waitKey( 0 );
 
