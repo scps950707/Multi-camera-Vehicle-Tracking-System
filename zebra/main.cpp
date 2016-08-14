@@ -1,14 +1,11 @@
 #include "header.hpp"
 #include "standard.hpp"
 
-//{{{sortByX
 bool sortByX( cv::RotatedRect i, cv::RotatedRect j )
 {
     return i.center.x < j.center.x;
 }
-//}}}
 
-//{{{findTanget
 double findTanget( vector<cv::Point> pts )
 {
     double x_aver = 0, y_aver = 0;
@@ -27,9 +24,7 @@ double findTanget( vector<cv::Point> pts )
     }
     return numerator / denominator;
 }
-//}}}
 
-//{{{ findZebraAngle
 void findZebraAngle( cv::Mat &src, cv::Mat thresholdImg )
 {
     vector<vector<cv::Point>> contours;
@@ -127,7 +122,54 @@ void findZebraAngle( cv::Mat &src, cv::Mat thresholdImg )
         cv::circle( src, cv::Point( getInfo.getxAvg(), getInfo.getyAvg() ), 3, GREEN_C3, 3 );
     }
 }
-//}}}
+
+void travelPts( cv::Mat &src, cv::Mat threshold, int direcX, int direcY )
+{
+    cv::Point startpt( ( int )( src.cols * 0.6 ), ( int )( src.rows * 0.7 ) );
+    cv::circle( src, startpt, 3, BLUE_C3, 2 );
+    int xgap = 12 * direcX, ygap = 6 * direcY;
+    int prevRoadCnt = 0;
+    vector<cv::Point> buffer;
+    for ( int i = 1; i <= 22; i++ )
+    {
+        buffer.clear();
+        int prevFindIdx = 1;
+        int curRoadCnt = 0;
+        for ( int j = 1; j <= 36; j++ )
+        {
+            cv::Point pts( startpt.x + j * xgap, startpt.y + i * ygap );
+            if ( threshold.at<uchar>( pts ) == 0 )
+            {
+                if ( abs( j - prevFindIdx ) > 1 && prevRoadCnt - curRoadCnt < 10 )
+                {
+                    break;
+                }
+                /* cv::circle( src, pts, 2, RED_C3, 2 ); */
+                buffer.push_back( pts );
+                curRoadCnt++;
+                prevFindIdx = j;
+            }
+        }
+        if ( curRoadCnt <= 10 && prevRoadCnt > curRoadCnt  )
+        {
+            break;
+        }
+        for ( unsigned int i = 0; i < buffer.size(); i++ )
+        {
+            cv::circle( src, buffer[i], 2, RED_C3, 2 );
+        }
+        prevRoadCnt = curRoadCnt;
+    }
+}
+
+void findRoadPts( cv::Mat &src, cv::Mat threshold )
+{
+    travelPts( src, threshold, -1, -1 );
+    travelPts( src, threshold, -1, 1 );
+    travelPts( src, threshold, 1, -1 );
+    travelPts( src, threshold, 1, 1 );
+}
+
 
 int main( int argc, char *argv[] )
 {
@@ -151,8 +193,9 @@ int main( int argc, char *argv[] )
         /* imshow( "thres:" + name, thres ); */
         /* imwrite("thres-"+name,thres); */
         findZebraAngle( input, thres );
+        findRoadPts( input, thres );
         imshow( "origin:" + string( argv[i] ), input );
-        /* imwrite( "origin-" + name, src ); */
+        /* imwrite( "origin-" + string( argv[i] ), input ); */
     }
     cv::waitKey( 0 );
 
