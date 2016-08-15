@@ -123,9 +123,10 @@ void findZebraAngle( cv::Mat &src, cv::Mat thresholdImg )
     }
 }
 
-bool checkBlack( cv::Mat threshold, cv::Point checkPt )
+bool checkBlack( cv::Mat thresholdImg, cv::Point checkPt, int xChkRange, int yChkRange, int threshold )
 {
-    /* int x[25] = */
+    int cnt = 0;
+    /*  x[25] = */
     /* { */
     /*     2, 2, 2, 2, 2, */
     /*     1, 1, 1, 1, 1, */
@@ -133,7 +134,7 @@ bool checkBlack( cv::Mat threshold, cv::Point checkPt )
     /*     -1, -1, -1, -1, -1, */
     /*     -2, -2, -2, -2, -2 */
     /* }; */
-    /* int y[25] = */
+    /*  y[25] = */
     /* { */
     /*     2, 1, 0, -1, -2, */
     /*     2, 1, 0, -1, -2, */
@@ -141,18 +142,17 @@ bool checkBlack( cv::Mat threshold, cv::Point checkPt )
     /*     2, 1, 0, -1, -2, */
     /*     2, 1, 0, -1, -2 */
     /* }; */
-    /* for ( int i = 0; i < 25; i++ ) */
+    /* for (  i = 0; i < 25; i++ ) */
     int x[9] = {1, 1, 1, 0, 0, 0, -1, -1, -1};
     int y[9] = {1, 0, -1, 1, 0, -1, 1, 0, -1};
-    int cnt = 0;
     for ( int i = 0; i < 9; i++ )
     {
-        if ( threshold.at<uchar>( cv::Point( checkPt.x + x[i] * 6, checkPt.y + y[i] * 3 ) ) == ( uchar )0 )
+        if ( thresholdImg.at<uchar>( cv::Point( checkPt.x + x[i] * xChkRange , checkPt.y + y[i] * yChkRange ) ) == ( uchar )0 )
         {
             cnt++;
         }
     }
-    return cnt >= 7 ? true : false;
+    return cnt >= threshold ? true : false;
 }
 
 vector<cv::Point> travelPts( cv::Mat &src, cv::Mat threshold, int direcX, int direcY )
@@ -172,13 +172,14 @@ vector<cv::Point> travelPts( cv::Mat &src, cv::Mat threshold, int direcX, int di
         xRange = ( int )( startpt.x / abs( xgap ) );
     }
 
+    int prevCnt = -1;
     for ( int i = 1; i <= 22; i++ )
     {
         buffer.clear();
         for ( int j = 1; j <= xRange; j++ )
         {
             cv::Point pts( startpt.x + j * xgap, startpt.y + i * ygap );
-            if ( checkBlack( threshold, pts ) )
+            if ( checkBlack( threshold, pts , 12 , 6, 8 ) )
             {
                 /* cv::circle( src, pts, 1, RED_C3, 2 ); */
                 buffer.push_back( pts );
@@ -188,10 +189,19 @@ vector<cv::Point> travelPts( cv::Mat &src, cv::Mat threshold, int direcX, int di
                 break;
             }
         }
-        if ( buffer.size() <= 2 )
+        if ( prevCnt >= 0 && buffer.size() / 2 >= ( unsigned int )prevCnt )
         {
             break;
         }
+        int differ = ( int )( buffer.size() - prevCnt );
+        if ( prevCnt >= 0 && differ >= 5 )
+        {
+            for ( int i = 0; i < differ; i++ )
+            {
+                buffer.pop_back();
+            }
+        }
+        prevCnt = buffer.size();
         collect.insert( collect.end(), buffer.begin(), buffer.end() );
     }
     return collect;
@@ -217,6 +227,8 @@ void findRoadPts( cv::Mat &src, cv::Mat threshold )
     for ( unsigned int i = 0; i < hull.size(); i++ )
     {
         cv::circle( src, hull[i], 3, RED_C3, 2 );
+        string info = to_string( ( int ) hull[i].x ) + "," + to_string( ( int ) hull[i].y );
+        putText( src, info, cv::Point( hull[i].x - 20, hull[i].y - 10 ), cv::FONT_HERSHEY_PLAIN, 1,  RED_C3, 2 );
         cv::line( src, hull[i], hull[( i + 1 ) % hull.size()], BLUE_C3 , 2 );
     }
 }
