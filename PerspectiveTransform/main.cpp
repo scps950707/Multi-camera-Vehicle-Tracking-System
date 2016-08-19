@@ -23,15 +23,25 @@ int main( int argc, char *argv[] )
         return -1;
     }
     // 設定變換[之前]與[之後]的坐標 (左上,左下,右下,右上)
-    pts1[0] = {cv::Point2f( 447, 256 )};
-    pts1[1] = {cv::Point2f( 119, 280 )};
-    pts1[2] = {cv::Point2f( 750, 560 )};
-    pts1[3] = {cv::Point2f( 822, 314 )};
+//    pts1[0] = {cv::Point2f( 447, 256 )};
+//    pts1[1] = {cv::Point2f( 119, 280 )};
+//    pts1[2] = {cv::Point2f( 750, 560 )};
+//    pts1[3] = {cv::Point2f( 822, 314 )};
+//
+//    pts2[0] = {cv::Point2f( 375, 225 )};
+//    pts2[1] = {cv::Point2f( 305, 470 )};
+//    pts2[2] = {cv::Point2f( 810, 465 )};
+//    pts2[3] = {cv::Point2f( 810, 220 )};
 
-    pts2[0] = {cv::Point2f( 375, 225 )};
-    pts2[1] = {cv::Point2f( 305, 470 )};
-    pts2[2] = {cv::Point2f( 810, 465 )};
-    pts2[3] = {cv::Point2f( 810, 220 )};
+    pts1[0] = {cv::Point2f( 347, 246 )};
+    pts1[1] = {cv::Point2f( 21, 335 )};
+    pts1[2] = {cv::Point2f( 854, 430 )};
+    pts1[3] = {cv::Point2f( 754, 239 )};
+
+    pts2[0] = {cv::Point2f( 152, 185 )};
+    pts2[1] = {cv::Point2f( 80, 465 )};
+    pts2[2] = {cv::Point2f( 824, 452 )};
+    pts2[3] = {cv::Point2f( 775, 185 )};
 
     // 透視變換行列計算
     cv::Mat perspective_matrix = cv::getPerspectiveTransform( pts1, pts2 );
