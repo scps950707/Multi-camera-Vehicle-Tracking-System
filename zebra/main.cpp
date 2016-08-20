@@ -257,8 +257,8 @@ int main( int argc, char *argv[] )
         /* imwrite("thres-"+string( argv[i] ),thres); */
         /* findZebraAngle( input, thres ); */
         findRoadPts( input, thres );
-        /* imshow( "origin:" + string( argv[i] ), input ); */
-        imwrite( "origin-" + string( argv[i] ), input );
+        imshow( "output-" + string( argv[i] ), input );
+        imwrite( "output-" + string( argv[i] ), input );
     }
     cv::waitKey( 0 );
 
