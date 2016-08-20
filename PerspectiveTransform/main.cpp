@@ -1,18 +1,4 @@
-/**
-    Theme: Perspective Transform
-    compiler: Visual C++ 2010 with OpenCV 2.4.3
-    Date: 102/03/22
-    Author: HappyMan
-    Blog: https://cg2010studio.wordpress.com/
-*/
-#include <iostream>
-#include <stdio.h>
-#include <opencv2/core/core.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <opencv2/highgui/highgui.hpp>
-
-using namespace std;
-const int nOffset = 180; // 設定位移幅度
+#include "header.hpp"
 
 int main( int argc, char *argv[] )
 {
@@ -20,30 +6,29 @@ int main( int argc, char *argv[] )
     cv::Mat src_img = cv::imread( argv[1], 1 );
     if ( src_img.empty() )
     {
-        return -1;
+        return EXIT_FAILURE;
     }
     // 設定變換[之前]與[之後]的坐標 (左上,左下,右下,右上)
-    //4.png
-//    pts1[0] = {cv::Point2f( 447, 256 )};
-//    pts1[1] = {cv::Point2f( 119, 280 )};
-//    pts1[2] = {cv::Point2f( 750, 560 )};
-//    pts1[3] = {cv::Point2f( 822, 314 )};
-//
-//    pts2[0] = {cv::Point2f( 375, 225 )};
-//    pts2[1] = {cv::Point2f( 305, 470 )};
-//    pts2[2] = {cv::Point2f( 810, 465 )};
-//    pts2[3] = {cv::Point2f( 810, 220 )};
+    //kmyco.jpg
+    pts1[0] = cv::Point2f( 447, 256 );
+    pts1[1] = cv::Point2f( 119, 280 );
+    pts1[2] = cv::Point2f( 750, 560 );
+    pts1[3] = cv::Point2f( 822, 314 );
 
-    //2.jpg
-    pts1[0] = {cv::Point2f( 347, 246 )};
-    pts1[1] = {cv::Point2f( 21, 335 )};
-    pts1[2] = {cv::Point2f( 854, 430 )};
-    pts1[3] = {cv::Point2f( 754, 239 )};
+    pts2[0] = cv::Point2f( 375, 225 );
+    pts2[1] = cv::Point2f( 305, 470 );
+    pts2[2] = cv::Point2f( 810, 465 );
+    pts2[3] = cv::Point2f( 810, 220 );
+    //7-11.jpg
+    /* pts1[0] = cv::Point2f( 347, 246 ); */
+    /* pts1[1] = cv::Point2f( 21, 335 ); */
+    /* pts1[2] = cv::Point2f( 854, 430 ); */
+    /* pts1[3] = cv::Point2f( 754, 239 ); */
 
-    pts2[0] = {cv::Point2f( 152, 185 )};
-    pts2[1] = {cv::Point2f( 80, 465 )};
-    pts2[2] = {cv::Point2f( 824, 452 )};
-    pts2[3] = {cv::Point2f( 775, 185 )};
+    /* pts2[0] = cv::Point2f( 152, 185 ); */
+    /* pts2[1] = cv::Point2f( 80, 465 ); */
+    /* pts2[2] = cv::Point2f( 824, 452 ); */
+    /* pts2[3] = cv::Point2f( 775, 185 ); */
 
     // 透視變換行列計算
     cv::Mat perspective_matrix = cv::getPerspectiveTransform( pts1, pts2 );
@@ -59,10 +44,30 @@ int main( int argc, char *argv[] )
     cv::line( src_img, pts2[1], pts2[2], cv::Scalar( 255, 0, 255 ), 2, CV_AA );
     cv::line( src_img, pts2[2], pts2[3], cv::Scalar( 255, 0, 255 ), 2, CV_AA );
     cv::line( src_img, pts2[3], pts2[0], cv::Scalar( 255, 0, 255 ), 2, CV_AA );
+    cv::line( dst_img, pts2[0], pts2[1], cv::Scalar( 255, 0, 255 ), 2, CV_AA );
+    cv::line( dst_img, pts2[1], pts2[2], cv::Scalar( 255, 0, 255 ), 2, CV_AA );
+    cv::line( dst_img, pts2[2], pts2[3], cv::Scalar( 255, 0, 255 ), 2, CV_AA );
+    cv::line( dst_img, pts2[3], pts2[0], cv::Scalar( 255, 0, 255 ), 2, CV_AA );
 
-    cv::imwrite( "origin.jpg", dst_img );
-    cv::namedWindow( "src", CV_WINDOW_AUTOSIZE | CV_WINDOW_FREERATIO );
-    cv::namedWindow( "dst", CV_WINDOW_AUTOSIZE | CV_WINDOW_FREERATIO );
+    vector<cv::Point2f> ori;
+    for ( int i = 50; i <= 800; i += 50 )
+    {
+        for ( int j = 250; j <= 430; j += 15 )
+        {
+            ori.push_back( cv::Point2f( i, j ) );
+        }
+    }
+    for ( unsigned int i = 0; i < ori.size(); i++ )
+    {
+        cv::circle( src_img, ori[i], 2, RED_C3, 2 );
+    }
+    vector<cv::Point2f> dst;
+    cv::perspectiveTransform( ori, dst, perspective_matrix );
+    for ( unsigned int i = 0; i < dst.size(); i++ )
+    {
+        cv::circle( dst_img, dst[i], 2, RED_C3, 2 );
+    }
+
     cv::imshow( "src", src_img );
     cv::imshow( "dst", dst_img );
 
