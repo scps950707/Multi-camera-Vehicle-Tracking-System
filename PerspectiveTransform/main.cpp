@@ -57,15 +57,14 @@ int main( int argc, char *argv[] )
             ori.push_back( cv::Point2f( i, j ) );
         }
     }
-    for ( unsigned int i = 0; i < ori.size(); i++ )
-    {
-        cv::circle( src_img, ori[i], 2, RED_C3, 2 );
-    }
     vector<cv::Point2f> dst;
     cv::perspectiveTransform( ori, dst, perspective_matrix );
+    cv::RNG rng( 12345 );
     for ( unsigned int i = 0; i < dst.size(); i++ )
     {
-        cv::circle( dst_img, dst[i], 2, RED_C3, 2 );
+        cv::Scalar randColor( rng.uniform( 0, 255 ), rng.uniform( 0, 255 ), rng.uniform( 0, 255 ) );
+        cv::circle( src_img, ori[i], 2, randColor, 2 );
+        cv::circle( dst_img, dst[i], 2, randColor, 2 );
     }
 
     cv::imshow( "src", src_img );
