@@ -8,6 +8,10 @@ int main( int argc, char *argv[] )
     {
         return EXIT_FAILURE;
     }
+    if ( src_img.cols > 1800 && src_img.rows > 900 )
+    {
+        cv::resize( src_img, src_img, cv::Size( src_img.cols / 2, src_img.rows / 2 ) );
+    }
     // 設定變換[之前]與[之後]的坐標 (左上,左下,右下,右上)
     //kmyco.jpg
 //    pts1[0] = cv::Point2f( 447, 256 );
@@ -31,15 +35,15 @@ int main( int argc, char *argv[] )
     /* pts2[3] = cv::Point2f( 775, 185 ); */
 
     //DLSR.jpg
-    pts1[0] = cv::Point2f( 841, 333 );
-    pts1[1] = cv::Point2f( 0, 417 );
-    pts1[2] = cv::Point2f( 1482, 915 );
-    pts1[3] = cv::Point2f( 1840, 460 );
+    pts1[0] = cv::Point2f( 420, 167 );
+    pts1[1] = cv::Point2f( 0, 208 );
+    pts1[2] = cv::Point2f( 741, 457 );
+    pts1[3] = cv::Point2f( 920, 230 );
 
-    pts2[0] = cv::Point2f( 688, 320 );
-    pts2[1] = cv::Point2f( 688, 1080 );
-    pts2[2] = cv::Point2f( 1920, 1080 );
-    pts2[3] = cv::Point2f( 1920, 320 );
+    pts2[0] = cv::Point2f( 340, 100 );
+    pts2[1] = cv::Point2f( 340, 520 );
+    pts2[2] = cv::Point2f( 760, 520 );
+    pts2[3] = cv::Point2f( 760, 100 );
     // 透視變換行列計算
     cv::Mat perspective_matrix = cv::getPerspectiveTransform( pts1, pts2 );
     cv::Mat dst_img;
@@ -62,7 +66,7 @@ int main( int argc, char *argv[] )
     vector<cv::Point2f> ori;
     for ( int i = 50; i <= src_img.cols; i += ( src_img.cols - 50 ) / 20 )
     {
-        for ( int j = 250; j <= src_img.rows; j += ( src_img.cols - 50 ) / 20 )
+        for ( int j = 100; j <= src_img.rows; j += ( src_img.cols - 50 ) / 20 )
         {
             ori.push_back( cv::Point2f( i, j ) );
         }
