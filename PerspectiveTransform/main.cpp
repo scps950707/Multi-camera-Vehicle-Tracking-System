@@ -10,15 +10,15 @@ int main( int argc, char *argv[] )
     }
     // 設定變換[之前]與[之後]的坐標 (左上,左下,右下,右上)
     //kmyco.jpg
-    pts1[0] = cv::Point2f( 447, 256 );
-    pts1[1] = cv::Point2f( 119, 280 );
-    pts1[2] = cv::Point2f( 750, 560 );
-    pts1[3] = cv::Point2f( 822, 314 );
-
-    pts2[0] = cv::Point2f( 375, 225 );
-    pts2[1] = cv::Point2f( 305, 470 );
-    pts2[2] = cv::Point2f( 810, 465 );
-    pts2[3] = cv::Point2f( 810, 220 );
+//    pts1[0] = cv::Point2f( 447, 256 );
+//    pts1[1] = cv::Point2f( 119, 280 );
+//    pts1[2] = cv::Point2f( 750, 560 );
+//    pts1[3] = cv::Point2f( 822, 314 );
+//
+//    pts2[0] = cv::Point2f( 375, 225 );
+//    pts2[1] = cv::Point2f( 305, 470 );
+//    pts2[2] = cv::Point2f( 810, 465 );
+//    pts2[3] = cv::Point2f( 810, 220 );
     //7-11.jpg
     /* pts1[0] = cv::Point2f( 347, 246 ); */
     /* pts1[1] = cv::Point2f( 21, 335 ); */
@@ -30,6 +30,16 @@ int main( int argc, char *argv[] )
     /* pts2[2] = cv::Point2f( 824, 452 ); */
     /* pts2[3] = cv::Point2f( 775, 185 ); */
 
+    //DLSR.jpg
+    pts1[0] = cv::Point2f( 841, 333 );
+    pts1[1] = cv::Point2f( 0, 417 );
+    pts1[2] = cv::Point2f( 1482, 915 );
+    pts1[3] = cv::Point2f( 1840, 460 );
+
+    pts2[0] = cv::Point2f( 688, 320 );
+    pts2[1] = cv::Point2f( 688, 1080 );
+    pts2[2] = cv::Point2f( 1920, 1080 );
+    pts2[3] = cv::Point2f( 1920, 320 );
     // 透視變換行列計算
     cv::Mat perspective_matrix = cv::getPerspectiveTransform( pts1, pts2 );
     cv::Mat dst_img;
@@ -50,9 +60,9 @@ int main( int argc, char *argv[] )
     cv::line( dst_img, pts2[3], pts2[0], cv::Scalar( 255, 0, 255 ), 2, CV_AA );
 
     vector<cv::Point2f> ori;
-    for ( int i = 50; i <= 800; i += 50 )
+    for ( int i = 50; i <= src_img.cols; i += ( src_img.cols - 50 ) / 20 )
     {
-        for ( int j = 250; j <= 430; j += 15 )
+        for ( int j = 250; j <= src_img.rows; j += ( src_img.cols - 50 ) / 20 )
         {
             ori.push_back( cv::Point2f( i, j ) );
         }
