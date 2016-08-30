@@ -2,4 +2,4 @@
 cd build
 make || exit
 cd ..
-./build/PerspectiveTransform kymco.jpg
+./build/PerspectiveTransform -k kymco.jpg

@@ -2,4 +2,4 @@
 cd build
 make || exit
 cd ..
-./build/PerspectiveTransform 7-11.jpg
+./build/PerspectiveTransform -s 7-11.jpg
