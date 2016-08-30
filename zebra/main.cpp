@@ -157,7 +157,7 @@ bool checkBlack( cv::Mat thresholdImg, cv::Point checkPt, int xChkRange, int yCh
 
 vector<cv::Point> travelPts( cv::Mat &src, cv::Mat threshold, int direcX, int direcY )
 {
-    cv::Point startpt( ( int )( src.cols * 0.6 ), ( int )( src.rows * 0.7 ) );
+    cv::Point startpt( ( int )( src.cols * 0.5 ), ( int )( src.rows * 0.5 ) );
     cv::circle( src, startpt, 3, GREEN_C3, 2 );
     int xgap = 12 * direcX, ygap = 6 * direcY;
     vector<cv::Point> buffer;
@@ -241,19 +241,13 @@ int main( int argc, char *argv[] )
     {
         cout << "processing:" << argv[i] << endl;
         input = cv::imread( argv[i] );
+        cv::resize( input, input, cv::Size( 800, 450 ) );
         cv::Mat src_gray;
         cvtColor( input, src_gray, CV_BGR2GRAY );
         /* imshow( "gray:" + name, src_gray ); */
         cv::Mat thres;
-        cv::threshold( src_gray, thres, 140, 255, cv::THRESH_BINARY );
-        for ( int i = 0; i < ( int )( thres.rows * 0.4 ); i++ )
-        {
-            for ( int j = 0; j < thres.cols; j++ )
-            {
-                thres.at<uchar>( i, j ) = ( uchar )0;
-            }
-        }
-        /* imshow( "thres:" + string( argv[i] ), thres ); */
+        cv::threshold( src_gray, thres, 180, 255, cv::THRESH_BINARY );
+        imshow( "thres:" + string( argv[i] ), thres );
         /* imwrite("thres-"+string( argv[i] ),thres); */
         /* findZebraAngle( input, thres ); */
         findRoadPts( input, thres );
