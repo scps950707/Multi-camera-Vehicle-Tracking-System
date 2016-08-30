@@ -53,9 +53,11 @@ int main( int argc, char *argv[] )
     }
 
     // }}}
-    // declare mat for input and mask
+
+    // {{{ declare mat for input and mask
 
     cv::Mat inputImg, outputMask;
+    cv::Size newSize( 800, 450 );
     cv::VideoCapture capture( inputPath );
     // perform fast foward
     capture.set( CV_CAP_PROP_POS_FRAMES, fastforward * FPS );
@@ -64,11 +66,9 @@ int main( int argc, char *argv[] )
         cout << " Can't recieve input from source " << endl;
         exit( EXIT_FAILURE );
     }
-    if ( inputImg.cols > 1800 && inputImg.rows > 900 )
-    {
-        cv::resize( inputImg, inputImg, cv::Size( inputImg.cols / 2, inputImg.rows / 2 ) );
-    }
-    outputMask = cv::Mat( inputImg.rows, inputImg.cols, CV_8UC1, BLACK_C1 );
+    cv::resize( inputImg, inputImg, newSize );
+    outputMask = cv::Mat( inputImg.size(), CV_8UC1, BLACK_C1 );
+    // }}}
 
     //declare output stream{{{
 
@@ -85,21 +85,20 @@ int main( int argc, char *argv[] )
     }
     //}}}
 
-    //creat GMM Class object
+    // {{{creat GMM Class object
 
     BackgroundSubtractorGMM bsgmm(  inputImg.rows, inputImg.cols );
     bsgmm.shadowBeBackground = true;
 
+    // }}}
 
     while ( capture.read( inputImg ) )
     {
-        if ( inputImg.cols > 1800 && inputImg.rows > 900 )
-        {
-            cv::resize( inputImg, inputImg, cv::Size( inputImg.cols / 2, inputImg.rows / 2 ) );
-        }
-        cv::Mat inputBlur;
-        cv::GaussianBlur( inputImg, inputBlur, cv::Size( 5, 5 ), 0, 0 );
-        bsgmm.updateFrame( inputBlur.ptr(), outputMask.ptr() );
+        cv::resize( inputImg, inputImg, newSize );
+        /* cv::Mat inputBlur; */
+        /* cv::GaussianBlur( inputImg, inputBlur, cv::Size( 5, 5 ), 0, 0 ); */
+        /* bsgmm.updateFrame( inputBlur.ptr(), outputMask.ptr() ); */
+        bsgmm.updateFrame( inputImg.ptr(), outputMask.ptr() );
         cv::Mat outputMorp;
         cv::morphologyEx( outputMask, outputMorp, CV_MOP_CLOSE, getStructuringElement( cv::MORPH_RECT, cv::Size( 5, 5 ) ) );
 
@@ -109,9 +108,6 @@ int main( int argc, char *argv[] )
 
         for ( unsigned int i = 0; i < boundRect.size(); i++ )
         {
-            char box[20];
-            sprintf( box, "%dx%d=%d", boundRect[i].width, boundRect[i].height, boundRect[i].area() );
-            putText( inputImg, box, boundRect[i].br(), cv::FONT_HERSHEY_PLAIN, 1,  RED_C3, 2 );
             rectangle( inputImg, boundRect[i].tl(), boundRect[i].br(), RED_C3, 2 );
         }
 
@@ -121,7 +117,7 @@ int main( int argc, char *argv[] )
 
         cv::imshow( "video", inputImg );
         cv::imshow( "GMM", outputMask );
-        cv::imshow( "inputBlur", inputBlur );
+        /* cv::imshow( "inputBlur", inputBlur ); */
         cv::imshow( "outputMorp", outputMorp );
 
         // write to avi{{{
