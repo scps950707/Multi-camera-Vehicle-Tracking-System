@@ -168,7 +168,7 @@ vector<cv::Point> travelPts( cv::Mat &src, cv::Mat threshold, int direcX, int di
 {
     cv::Point startpt( ( int )( src.cols * 0.5 ), ( int )( src.rows * 0.5 ) );
     cv::circle( src, startpt, 3, GREEN_C3, 2 );
-    int xgap = 12 * direcX, ygap = 6 * direcY;
+    int xgap = 6 * direcX, ygap = 6 * direcY;
     vector<cv::Point> buffer;
     vector<cv::Point> collect;
     int xRange = 0;
@@ -182,7 +182,7 @@ vector<cv::Point> travelPts( cv::Mat &src, cv::Mat threshold, int direcX, int di
     }
 
     int prevCnt = -1;
-    for ( int i = 1; i <= 22; i++ )
+    for ( int i = 1; i <= 30; i++ )
     {
         buffer.clear();
         for ( int j = 1; j <= xRange; j++ )
@@ -231,7 +231,7 @@ void findRoadPts( cv::Mat &src, cv::Mat threshold )
     collect.insert( collect.end(), brPts.begin(), brPts.end() );
     for ( unsigned int i = 0; i < collect.size(); i++ )
     {
-        cv::circle( src, collect[i], 1, GREEN_C3, 2 );
+        cv::circle( src, collect[i], 1, GREEN_C3, CV_FILLED );
     }
     vector<cv::Point> hull;
     cv::convexHull( collect, hull, false );
@@ -259,8 +259,10 @@ int main( int argc, char *argv[] )
         /* imshow( "gray:" + name, src_gray ); */
         cv::Mat thres;
         cv::threshold( src_gray, thres, 180, 255, cv::THRESH_BINARY );
+        cv::GaussianBlur( thres, thres, cv::Size( 3, 3 ), 0, 0 );
+        cv::threshold( thres, thres, 140, 255, cv::THRESH_BINARY );
         imshow( "thres:" + string( argv[i] ), thres );
-        /* imwrite("thres-"+string( argv[i] ),thres); */
+        imwrite( "thres-" + string( argv[i] ), thres );
         /* findZebraAngle( input, thres ); */
         findRoadPts( input, thres );
         imshow( "output-" + string( argv[i] ), input );
