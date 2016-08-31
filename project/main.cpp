@@ -54,9 +54,11 @@ int main( int argc, char *argv[] )
     }
 
     // }}}
-    // declare mat for input and mask
+
+    // {{{ declare mat for input and mask
 
     cv::Mat inputImg, outputMask;
+    cv::Size newSize( 800, 450 );
     cv::VideoCapture capture( inputPath );
     // perform fast foward
     capture.set( CV_CAP_PROP_POS_FRAMES, fastforward * FPS );
@@ -65,11 +67,9 @@ int main( int argc, char *argv[] )
         cout << " Can't recieve input from source " << endl;
         exit( EXIT_FAILURE );
     }
-    if ( inputImg.cols > 1800 && inputImg.rows > 900 )
-    {
-        cv::resize( inputImg, inputImg, cv::Size( inputImg.cols / 2, inputImg.rows / 2 ) );
-    }
-    outputMask = cv::Mat( inputImg.rows, inputImg.cols, CV_8UC1, BLACK_C1 );
+    cv::resize( inputImg, inputImg, newSize );
+    outputMask = cv::Mat( inputImg.size(), CV_8UC1, BLACK_C1 );
+    // }}}
 
     //declare output stream{{{
 
@@ -86,28 +86,32 @@ int main( int argc, char *argv[] )
     }
     //}}}
 
-    //creat rotation matrix
+    // {{{creat rotation matrix
 
     perspectiveTransform ptrans;
-    ptrans.setSrcPts( cv::Point2f( 420, 167 ), cv::Point2f( 0, 208 ), cv::Point2f( 741, 457 ), cv::Point2f( 920, 230 ) );
-    ptrans.setDstPts( cv::Point2f( 340, 100 ), cv::Point2f( 340, 520 ), cv::Point2f( 760, 520 ), cv::Point2f( 760, 100 ) );
-    cv::Mat perspective_matrix = ptrans.getMatrix() ;
+    /* kymco */
+    /* ptrans.setSrcPts( cv::Point2f( 370, 190 ), cv::Point2f( 0, 230 ), cv::Point2f( 650, 410 ), cv::Point2f( 780, 225 ) ); */
+    /* 711 */
+    ptrans.setSrcPts( cv::Point2f( 330, 100 ), cv::Point2f( 0, 180 ), cv::Point2f( 730, 390 ), cv::Point2f( 660, 145 ) );
+    ptrans.setDstPts( cv::Point2f( 300, 20 ), cv::Point2f( 300, 420 ), cv::Point2f( 700, 420 ), cv::Point2f( 700, 20 ) );
+    cv::Mat perspective_matrix = ptrans.getMatrix();
 
-    //creat GMM Class object
+    // }}}
+
+    // {{{creat GMM Class object
 
     BackgroundSubtractorGMM bsgmm(  inputImg.rows, inputImg.cols );
     bsgmm.shadowBeBackground = true;
 
+    // }}}
 
     while ( capture.read( inputImg ) )
     {
-        if ( inputImg.cols > 1800 && inputImg.rows > 900 )
-        {
-            cv::resize( inputImg, inputImg, cv::Size( inputImg.cols / 2, inputImg.rows / 2 ) );
-        }
-        cv::Mat inputBlur;
-        cv::GaussianBlur( inputImg, inputBlur, cv::Size( 5, 5 ), 0, 0 );
-        bsgmm.updateFrame( inputBlur.ptr(), outputMask.ptr() );
+        cv::resize( inputImg, inputImg, newSize );
+        /* cv::Mat inputBlur; */
+        /* cv::GaussianBlur( inputImg, inputBlur, cv::Size( 5, 5 ), 0, 0 ); */
+        /* bsgmm.updateFrame( inputBlur.ptr(), outputMask.ptr() ); */
+        bsgmm.updateFrame( inputImg.ptr(), outputMask.ptr() );
         cv::Mat outputMorp;
         cv::morphologyEx( outputMask, outputMorp, CV_MOP_CLOSE, getStructuringElement( cv::MORPH_RECT, cv::Size( 5, 5 ) ) );
 
@@ -118,9 +122,6 @@ int main( int argc, char *argv[] )
 
         for ( unsigned int i = 0; i < boundRect.size(); i++ )
         {
-            char box[20];
-            sprintf( box, "%dx%d=%d", boundRect[i].width, boundRect[i].height, boundRect[i].area() );
-            putText( inputImg, box, boundRect[i].br(), cv::FONT_HERSHEY_PLAIN, 1,  RED_C3, 2 );
             rectangle( inputImg, boundRect[i].tl(), boundRect[i].br(), RED_C3, 2 );
             cv::Point2f mapPts( boundRect[i].x + boundRect[i].width / 2, boundRect[i].y + boundRect[i].height * 0.75 );
             cv::circle( inputImg, mapPts, 4 , BLUE_C3, CV_FILLED );
@@ -137,17 +138,17 @@ int main( int argc, char *argv[] )
         /* cv::imshow( "outputMorp", outputMorp ); */
 
         cv::Mat roadMap( cv::Size( 600, 600 ), inputImg.type(), WHITE_C3 );
-        cv::line( roadMap, cv::Point( 90, 90 ), cv::Point( 510, 90 ), BLUE_C3, 2 );
-        cv::line( roadMap, cv::Point( 510, 90 ), cv::Point( 510, 510 ), BLUE_C3, 2 );
-        cv::line( roadMap, cv::Point( 510, 510 ), cv::Point( 90, 510 ), BLUE_C3, 2 );
-        cv::line( roadMap, cv::Point( 90, 510 ), cv::Point( 90, 90 ), BLUE_C3, 2 );
+        cv::line( roadMap, cv::Point( 100, 100 ), cv::Point( 510, 100 ), BLUE_C3, 2 );
+        cv::line( roadMap, cv::Point( 510, 100 ), cv::Point( 510, 510 ), BLUE_C3, 2 );
+        cv::line( roadMap, cv::Point( 510, 510 ), cv::Point( 100, 510 ), BLUE_C3, 2 );
+        cv::line( roadMap, cv::Point( 100, 510 ), cv::Point( 100, 100 ), BLUE_C3, 2 );
         if ( boundRect.size() > 0 )
         {
             vector<cv::Point2f> dst;
             cv::perspectiveTransform( ori, dst, perspective_matrix );
             for ( unsigned int i = 0; i < dst.size(); i++ )
             {
-                cv::circle( roadMap, cv::Point( dst[i].x - ( 340 - 90 ), dst[i].y - ( 100 - 90 ) ), 10 , RED_C3, CV_FILLED );
+                cv::circle( roadMap, cv::Point( dst[i].x - 300 + 100 , dst[i].y - 20 + 100  ), 10 , RED_C3, CV_FILLED );
             }
         }
         cv::imshow( "roadMap", roadMap );
