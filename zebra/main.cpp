@@ -1,11 +1,14 @@
 #include "header.hpp"
 #include "standard.hpp"
 
+// {{{sortByX
 bool sortByX( cv::RotatedRect i, cv::RotatedRect j )
 {
     return i.center.x < j.center.x;
 }
+// }}}
 
+/// {{{findTanget
 double findTanget( vector<cv::Point> pts )
 {
     double x_aver = 0, y_aver = 0;
@@ -24,7 +27,9 @@ double findTanget( vector<cv::Point> pts )
     }
     return numerator / denominator;
 }
+// }}}
 
+//{{{findZebraAngle
 void findZebraAngle( cv::Mat &src, cv::Mat thresholdImg )
 {
     vector<vector<cv::Point>> contours;
@@ -122,7 +127,9 @@ void findZebraAngle( cv::Mat &src, cv::Mat thresholdImg )
         cv::circle( src, cv::Point( getInfo.getxAvg(), getInfo.getyAvg() ), 3, GREEN_C3, 3 );
     }
 }
+// }}}
 
+// {{{checkBlack
 bool checkBlack( cv::Mat thresholdImg, cv::Point checkPt, int xChkRange, int yChkRange, int threshold )
 {
     int cnt = 0;
@@ -154,7 +161,9 @@ bool checkBlack( cv::Mat thresholdImg, cv::Point checkPt, int xChkRange, int yCh
     }
     return cnt >= threshold ? true : false;
 }
+// }}}
 
+// {{{ travelPts
 vector<cv::Point> travelPts( cv::Mat &src, cv::Mat threshold, int direcX, int direcY )
 {
     cv::Point startpt( ( int )( src.cols * 0.5 ), ( int )( src.rows * 0.5 ) );
@@ -206,7 +215,9 @@ vector<cv::Point> travelPts( cv::Mat &src, cv::Mat threshold, int direcX, int di
     }
     return collect;
 }
+// }}}
 
+// {{{findRoadPts
 void findRoadPts( cv::Mat &src, cv::Mat threshold )
 {
     vector<cv::Point> collect;
@@ -232,6 +243,7 @@ void findRoadPts( cv::Mat &src, cv::Mat threshold )
         cv::line( src, hull[i], hull[( i + 1 ) % hull.size()], BLUE_C3 , 2 );
     }
 }
+// }}}
 
 
 int main( int argc, char *argv[] )

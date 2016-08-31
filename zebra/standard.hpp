@@ -3,6 +3,7 @@
 
 #include "header.hpp"
 
+// {{{ template<typename T> class StandardDeviation
 template<typename T>
 class StandardDeviation
 {
@@ -20,7 +21,9 @@ private:
     double yAvg = 0;
     double ySigma = 0;
 };
+// }}}
 
+// {{{ template<typename T> StandardDeviation<T>::StandardDeviation
 template<typename T>
 StandardDeviation<T>::StandardDeviation( vector<cv::Point> pts )
 {
@@ -42,7 +45,9 @@ StandardDeviation<T>::StandardDeviation( vector<cv::Point> pts )
     ySigma /= pts.size();
     ySigma = sqrt( ySigma );
 }
+// }}}
 
+// {{{ template<typename T> vector<T> StandardDeviation<T>::normalize
 template<typename T>
 vector<T> StandardDeviation<T>::normalize( vector<T> target, int xRange, int yRange )
 {
@@ -59,29 +64,38 @@ vector<T> StandardDeviation<T>::normalize( vector<T> target, int xRange, int yRa
     }
     return res;
 }
+// }}}
 
+// {{{template<typename T> double StandardDeviation<T>::getxAvg
 template<typename T>
 double StandardDeviation<T>::getxAvg()
 {
     return this->xAvg;
 }
+//}}}
 
+// {{{template<typename T> double StandardDeviation<T>::getyAvg
 template<typename T>
 double StandardDeviation<T>::getyAvg()
 {
     return this->yAvg;
 }
+// }}}
 
+// {{{template<typename T> double StandardDeviation<T>::getxSigma()
 template<typename T>
 double StandardDeviation<T>::getxSigma()
 {
     return this->xSigma;
 }
+//}}}
 
+// {{{template<typename T> double StandardDeviation<T>::getySigma()
 template<typename T>
 double StandardDeviation<T>::getySigma()
 {
     return this->ySigma;
 }
+/// }}}
 
 #endif
