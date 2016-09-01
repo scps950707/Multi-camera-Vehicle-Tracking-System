@@ -76,13 +76,11 @@ int main( int argc, char *argv[] )
     cv::VideoWriter writer, writer2;
     if ( aviOutput )
     {
-        writer.open( videoOutPath, CV_FOURCC( 'D', 'I', 'V', 'X' ), FPS,
-                     cv::Size( capture.get( CV_CAP_PROP_FRAME_WIDTH ), capture.get( CV_CAP_PROP_FRAME_HEIGHT ) ) );
+        writer.open( videoOutPath, CV_FOURCC( 'D', 'I', 'V', 'X' ), FPS, newSize );
     }
     if ( maskOutput )
     {
-        writer2.open( maskOutPath, CV_FOURCC( 'D', 'I', 'V', 'X' ), FPS,
-                      cv::Size( capture.get( CV_CAP_PROP_FRAME_WIDTH ), capture.get( CV_CAP_PROP_FRAME_HEIGHT ) ) );
+        writer2.open( maskOutPath, CV_FOURCC( 'D', 'I', 'V', 'X' ), FPS, newSize );
     }
     //}}}
 
