@@ -64,24 +64,33 @@ vector<cv::Rect> findRect::findBoundingRect()
     findContours( tmp, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE );
     vector<vector<cv::Point>> contours_poly( contours.size() );
     vector<cv::Rect> boundRect;
-    mask.setTo( BLACK_C1 );
+    int whitePixelCnt = 0;
+    for ( int i = 0; i < mask.rows; i++ )
+    {
+        for ( int j = 0; j < mask.cols; j++ )
+        {
+            if ( mask.at<uchar>( i, j ) == ( uchar )255 )
+            {
+                whitePixelCnt++;
+            }
+        }
+    }
+    int percentage = ( int )( ( ( double )whitePixelCnt / ( double )( mask.cols * mask.rows ) ) * 100 );
+    if ( percentage >= 30 )
+    {
+        putText( inputImg, "Warning:burst light", cv::Point( 50, 50 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
+        return boundRect;
+    }
     for ( unsigned int i = 0; i < contours.size(); i++ )
     {
         approxPolyDP( cv::Mat( contours[i] ), contours_poly[i], 3, true );
-        if ( cv::contourArea( contours_poly[i] ) > 500 && ( int )contours_poly[i].size() < 200 )
+        if ( cv::contourArea( contours_poly[i] ) > 300 )
         {
             cv::Rect newRect = boundingRect( cv::Mat( contours_poly[i] ) );
-            if ( ( int )contours_poly[i].size() > 0.5 * newRect.width || ( int )contours_poly[i].size() > 0.5 * newRect.width )
-            {
-                continue;
-            }
             /* cv::drawContours( inputImg, contours_poly, i, GREEN_C3, 2 ); */
             /* cv::Moments mo = moments( contours_poly[i] ); */
             /* cv::Point center = cv::Point( mo.m10 / mo.m00 , mo.m01 / mo.m00 ); */
-            /* char contoursSizeText[20]; */
-            /* sprintf( contoursSizeText, "%d", ( int )contours_poly[i].size() ); */
-            /* putText( inputImg, contoursSizeText, center, cv::FONT_HERSHEY_PLAIN, 1,  RED_C3, 2 ); */
-            cv::drawContours( mask, contours_poly, i, WHITE_C1, CV_FILLED );
+            /* cv::drawContours( mask, contours_poly, i, WHITE_C1, CV_FILLED ); */
             boundRect.push_back( this->removeShadowRect( newRect ) );
         }
     }
