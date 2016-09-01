@@ -96,6 +96,20 @@ int main( int argc, char *argv[] )
 
     // }}}
 
+    /* {{{create roadMap background */
+
+    cv::Mat originRoadMap( cv::Size( 600, 600 ), inputImg.type(), GRAY_C3 );
+    cv::rectangle( originRoadMap, cv::Point( 100, 100 ), cv::Point( 500, 500 ), BLUE_C3, 2 );
+    for ( int i = 1; i <= 10; i++ )
+    {
+        cv::rectangle( originRoadMap, cv::Point( 10, 100 + 35 * i ), cv::Point( 90, 120 + 35 * i ), WHITE_C3, CV_FILLED );
+        cv::rectangle( originRoadMap, cv::Point( 510, 100 + 35 * i ), cv::Point( 590, 120 + 35 * i ), WHITE_C3, CV_FILLED );
+        cv::rectangle( originRoadMap, cv::Point( 100 + 35 * i, 10 ), cv::Point( 120 + 35 * i, 90 ), WHITE_C3, CV_FILLED );
+        cv::rectangle( originRoadMap, cv::Point( 100 + 35 * i, 510 ), cv::Point( 120 + 35 * i, 590 ), WHITE_C3, CV_FILLED );
+    }
+
+    /* }}} */
+
     // {{{creat GMM Class object
 
     BackgroundSubtractorGMM bsgmm(  inputImg.rows, inputImg.cols );
@@ -121,7 +135,7 @@ int main( int argc, char *argv[] )
         for ( unsigned int i = 0; i < boundRect.size(); i++ )
         {
             rectangle( inputImg, boundRect[i].tl(), boundRect[i].br(), RED_C3, 2 );
-            cv::Point2f mapPts( boundRect[i].x + boundRect[i].width / 2, boundRect[i].y + boundRect[i].height * 0.75 );
+            cv::Point2f mapPts( boundRect[i].x + boundRect[i].width / 2, boundRect[i].y + boundRect[i].height * 0.9 );
             cv::circle( inputImg, mapPts, 4 , BLUE_C3, CV_FILLED );
             ori.push_back( mapPts );
         }
@@ -130,16 +144,8 @@ int main( int argc, char *argv[] )
         putText( inputImg, str, cv::Point( 300, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
         //}}}
 
-        cv::imshow( "video", inputImg );
-        /* cv::imshow( "GMM", outputMask ); */
-        /* cv::imshow( "inputBlur", inputBlur ); */
-        /* cv::imshow( "outputMorp", outputMorp ); */
+        cv::Mat roadMap = originRoadMap.clone();
 
-        cv::Mat roadMap( cv::Size( 600, 600 ), inputImg.type(), WHITE_C3 );
-        cv::line( roadMap, cv::Point( 100, 100 ), cv::Point( 510, 100 ), BLUE_C3, 2 );
-        cv::line( roadMap, cv::Point( 510, 100 ), cv::Point( 510, 510 ), BLUE_C3, 2 );
-        cv::line( roadMap, cv::Point( 510, 510 ), cv::Point( 100, 510 ), BLUE_C3, 2 );
-        cv::line( roadMap, cv::Point( 100, 510 ), cv::Point( 100, 100 ), BLUE_C3, 2 );
         if ( boundRect.size() > 0 )
         {
             vector<cv::Point2f> dst;
@@ -149,6 +155,10 @@ int main( int argc, char *argv[] )
                 cv::circle( roadMap, cv::Point( dst[i].x - 300 + 100 , dst[i].y - 20 + 100  ), 10 , RED_C3, CV_FILLED );
             }
         }
+        cv::imshow( "video", inputImg );
+        /* cv::imshow( "GMM", outputMask ); */
+        /* cv::imshow( "inputBlur", inputBlur ); */
+        /* cv::imshow( "outputMorp", outputMorp ); */
         cv::imshow( "roadMap", roadMap );
 
 
