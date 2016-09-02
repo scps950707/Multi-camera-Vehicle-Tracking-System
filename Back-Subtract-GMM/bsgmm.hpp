@@ -2,6 +2,7 @@
 #define BSGMM_HPP
 
 #include "header.hpp"
+#include "gnuplot-iostream.h"
 
 /*
  * Usage:
@@ -118,10 +119,11 @@ public:
 
 
 private:
-    bool isBackGround( double red, double green, double blue, PIXELGMM *currentPixel );
+    bool isBackGround( double red, double green, double blue, PIXELGMM *currentPixel, int x, int y );
     bool isShadow( double red, double green, double blue, PIXELGMM *currentPixel );
     PIXELGMM *pixelGMMBuffer;
     int frameHeight, frameWidth;
+    Gnuplot gp;
 };
 
 #endif

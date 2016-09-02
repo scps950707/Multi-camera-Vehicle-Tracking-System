@@ -116,7 +116,7 @@ int main( int argc, char *argv[] )
         cv::imshow( "video", inputImg );
         cv::imshow( "GMM", outputMask );
         /* cv::imshow( "inputBlur", inputBlur ); */
-        cv::imshow( "outputMorp", outputMorp );
+        /* cv::imshow( "outputMorp", outputMorp ); */
 
         // write to avi{{{
         if ( aviOutput )

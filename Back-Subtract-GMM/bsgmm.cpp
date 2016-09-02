@@ -23,39 +23,50 @@ BackgroundSubtractorGMM::BackgroundSubtractorGMM( int frameHeight, int frameWidt
     {
         pixelGMMBuffer[i].GMMCount = 0;
     }
+    gp << "set title 'Gmm square distance map'" << std::endl;
+    gp << "set dgrid3d 50,50 qnorm 2" << endl;
+    gp << "set xrange [0:" + to_string( frameWidth ) + "]" << std::endl;
+    gp << "set yrange [0:" + to_string( frameHeight ) + "]" << std::endl;
+    gp << "set zrange [0:500]" << std::endl;
 }
 
 void BackgroundSubtractorGMM::updateFrame( uchar *inputPtr, uchar *outputPtr )
 {
     PIXELGMM *curPixelGMM = this->pixelGMMBuffer;
-    for ( int i = 0; i < this->frameWidth * this->frameHeight; i++ )
+    /* for ( int i = 0; i < this->frameWidth * this->frameHeight; i++ ) */
+    gp << "splot '-' u 1:2:3 with lines" << endl;
+    for ( int i = 0; i < this->frameHeight; i++ )
     {
-        double red = *inputPtr++;
-        double green = *inputPtr++;
-        double blue = *inputPtr++;
-        bool isShdw = false;
-        bool isBG = isBackGround( red, green, blue, curPixelGMM );
-        if ( this->shadowDetection && isBG == false )
+        for ( int j = 0; j < this->frameWidth; j++ )
         {
-            isShdw = this->isShadow( red, green, blue, curPixelGMM );
-        }
-        if ( isBG )
-        {
-            *outputPtr = BLACK;
-        }
-        else
-        {
-            *outputPtr = isShdw ? ( this->shadowBeBackground ? BLACK : GRAY ) : WHITE;
-            if ( this->removeForeground )
+            double red = *inputPtr++;
+            double green = *inputPtr++;
+            double blue = *inputPtr++;
+            bool isShdw = false;
+            bool isBG = isBackGround( red, green, blue, curPixelGMM, j, i );
+            if ( this->shadowDetection && isBG == false )
             {
-                *( inputPtr - 3 ) = curPixelGMM->arr[0].R;
-                *( inputPtr - 2 ) = curPixelGMM->arr[0].G;
-                *( inputPtr - 1 ) = curPixelGMM->arr[0].B;
+                isShdw = this->isShadow( red, green, blue, curPixelGMM );
             }
+            if ( isBG )
+            {
+                *outputPtr = BLACK;
+            }
+            else
+            {
+                *outputPtr = isShdw ? ( this->shadowBeBackground ? BLACK : GRAY ) : WHITE;
+                if ( this->removeForeground )
+                {
+                    *( inputPtr - 3 ) = curPixelGMM->arr[0].R;
+                    *( inputPtr - 2 ) = curPixelGMM->arr[0].G;
+                    *( inputPtr - 1 ) = curPixelGMM->arr[0].B;
+                }
+            }
+            curPixelGMM++;
+            outputPtr++;
         }
-        curPixelGMM++;
-        outputPtr++;
     }
+    gp << "e" << endl;
 }
 
 bool BackgroundSubtractorGMM::isShadow( double red, double green, double blue, PIXELGMM *curPixelGMM )
@@ -95,7 +106,7 @@ bool BackgroundSubtractorGMM::isShadow( double red, double green, double blue, P
     return false;
 }
 
-bool BackgroundSubtractorGMM::isBackGround( double red, double green, double blue, PIXELGMM *curPixelGMM )
+bool BackgroundSubtractorGMM::isBackGround( double red, double green, double blue, PIXELGMM *curPixelGMM, int x, int y )
 {
     bool hitGMM = false;
     bool isBackGround = false;
@@ -116,6 +127,10 @@ bool BackgroundSubtractorGMM::isBackGround( double red, double green, double blu
             if ( ( totalWeight < this->cfbar ) && ( dist < this->BGSigma * var ) )
             {
                 isBackGround = true;
+                if ( x % 10 == 1 && y % 10 == 1 )
+                {
+                    gp << x << " " << y << " " << to_string( ( int )dist ) << '\n';
+                }
             }
             if ( dist < this->closeSigma * var )
             {
