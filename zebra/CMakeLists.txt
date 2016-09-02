@@ -1,7 +1,0 @@
-cmake_minimum_required(VERSION 2.8)
-project( project )
-find_package( OpenCV REQUIRED )
-add_executable( execute main.cpp standard.hpp )
-target_link_libraries( execute ${OpenCV_LIBS} )
-set(CMAKE_CXX_FLAGS "-Wall -std=c++11")
-set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
