@@ -29,3 +29,47 @@ cv::Mat perspectiveTransform::getMatrix()
 {
     return cv::getPerspectiveTransform( srcPts, dstPts );
 }
+
+cv::Point2f *perspectiveTransform::getSrcPts()
+{
+    return this->srcPts;
+}
+
+cv::Point2f *perspectiveTransform::getDstPts()
+{
+    return this->dstPts;
+}
+
+cv::Point2f perspectiveTransform::getSrcTl()
+{
+    return srcPts[0];
+}
+cv::Point2f perspectiveTransform::getSrcBl()
+{
+    return srcPts[1];
+}
+cv::Point2f perspectiveTransform::getSrcBr()
+{
+    return srcPts[2];
+}
+cv::Point2f perspectiveTransform::getSrcTr()
+{
+    return srcPts[3];
+}
+
+cv::Point2f perspectiveTransform::getDstTl()
+{
+    return dstPts[0];
+}
+cv::Point2f perspectiveTransform::getDstBl()
+{
+    return dstPts[1];
+}
+cv::Point2f perspectiveTransform::getDstBr()
+{
+    return dstPts[2];
+}
+cv::Point2f perspectiveTransform::getDstTr()
+{
+    return dstPts[3];
+}

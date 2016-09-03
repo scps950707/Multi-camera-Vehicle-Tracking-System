@@ -1,4 +1,5 @@
 #include "header.hpp"
+#include "ptrans.hpp"
 
 int main( int argc, char *argv[] )
 {
@@ -31,60 +32,60 @@ int main( int argc, char *argv[] )
     }
     // }}}
 
-    cv::Point2f srcPts[4], dstPts[4];
     cv::Mat src_img = cv::imread( imPath, 1 );
     if ( src_img.empty() )
     {
         return EXIT_FAILURE;
     }
     cv::resize( src_img, src_img, cv::Size( 800, 450 ) );
+    perspectiveTransform ptrans;
     /* set coordinate for source points to target points */
     /* order:top left,bottom left,bottom right,top right */
     /* kmyco.jpg */
     if ( isKymco )
     {
-        srcPts[0] = cv::Point2f( 370, 190 );
-        srcPts[1] = cv::Point2f( 0, 230 );
-        srcPts[2] = cv::Point2f( 650, 410 );
-        srcPts[3] = cv::Point2f( 780, 225 );
+        ptrans.setSrcPts( cv::Point2f( 370, 190 ),
+                          cv::Point2f( 0, 230 ),
+                          cv::Point2f( 650, 410 ),
+                          cv::Point2f( 780, 225 ) );
 
-        dstPts[0] = cv::Point2f( 300, 20 );
-        dstPts[1] = cv::Point2f( 300, 420 );
-        dstPts[2] = cv::Point2f( 700, 420 );
-        dstPts[3] = cv::Point2f( 700, 20 );
+        ptrans.setDstPts( cv::Point2f( 300, 20 ),
+                          cv::Point2f( 300, 420 ),
+                          cv::Point2f( 700, 420 ),
+                          cv::Point2f( 700, 20 ) );
     }
     /* 7-11.jpg */
     else if ( isSeven )
     {
-        srcPts[0] = cv::Point2f( 330, 100 );
-        srcPts[1] = cv::Point2f( 0, 180 );
-        srcPts[2] = cv::Point2f( 730, 390 );
-        srcPts[3] = cv::Point2f( 660, 145 );
+        ptrans.setSrcPts( cv::Point2f( 330, 100 ),
+                          cv::Point2f( 0, 180 ),
+                          cv::Point2f( 730, 390 ),
+                          cv::Point2f( 660, 145 ) );
 
-        dstPts[0] = cv::Point2f( 300, 20 );
-        dstPts[1] = cv::Point2f( 300, 420 );
-        dstPts[2] = cv::Point2f( 700, 420 );
-        dstPts[3] = cv::Point2f( 700, 20 );
+        ptrans.setDstPts( cv::Point2f( 300, 20 ),
+                          cv::Point2f( 300, 420 ),
+                          cv::Point2f( 700, 420 ),
+                          cv::Point2f( 700, 20 ) );
     }
 
     // get perspectiveTransform matrix
-    cv::Mat perspective_matrix = cv::getPerspectiveTransform( srcPts, dstPts );
+    cv::Mat perspective_matrix = ptrans.getMatrix();
     cv::Mat dst_img;
     // do perspectiveTransform on image
     cv::warpPerspective( src_img, dst_img, perspective_matrix, src_img.size(), cv::INTER_LINEAR );
     // draw range lines
-    cv::line( src_img, srcPts[0], srcPts[1], cv::Scalar( 255, 255, 0 ), 2, CV_AA );
-    cv::line( src_img, srcPts[1], srcPts[2], cv::Scalar( 255, 255, 0 ), 2, CV_AA );
-    cv::line( src_img, srcPts[2], srcPts[3], cv::Scalar( 255, 255, 0 ), 2, CV_AA );
-    cv::line( src_img, srcPts[3], srcPts[0], cv::Scalar( 255, 255, 0 ), 2, CV_AA );
-    cv::line( src_img, dstPts[0], dstPts[1], cv::Scalar( 255, 0, 255 ), 2, CV_AA );
-    cv::line( src_img, dstPts[1], dstPts[2], cv::Scalar( 255, 0, 255 ), 2, CV_AA );
-    cv::line( src_img, dstPts[2], dstPts[3], cv::Scalar( 255, 0, 255 ), 2, CV_AA );
-    cv::line( src_img, dstPts[3], dstPts[0], cv::Scalar( 255, 0, 255 ), 2, CV_AA );
-    cv::line( dst_img, dstPts[0], dstPts[1], cv::Scalar( 255, 0, 255 ), 2, CV_AA );
-    cv::line( dst_img, dstPts[1], dstPts[2], cv::Scalar( 255, 0, 255 ), 2, CV_AA );
-    cv::line( dst_img, dstPts[2], dstPts[3], cv::Scalar( 255, 0, 255 ), 2, CV_AA );
-    cv::line( dst_img, dstPts[3], dstPts[0], cv::Scalar( 255, 0, 255 ), 2, CV_AA );
+    cv::line( src_img, ptrans.getSrcTl(), ptrans.getSrcBl(), cv::Scalar( 255, 255, 0 ), 2, CV_AA );
+    cv::line( src_img, ptrans.getSrcBl(), ptrans.getSrcBr(), cv::Scalar( 255, 255, 0 ), 2, CV_AA );
+    cv::line( src_img, ptrans.getSrcBr(), ptrans.getSrcTr(), cv::Scalar( 255, 255, 0 ), 2, CV_AA );
+    cv::line( src_img, ptrans.getSrcTr(), ptrans.getSrcTl(), cv::Scalar( 255, 255, 0 ), 2, CV_AA );
+    cv::line( src_img, ptrans.getDstTl(), ptrans.getDstBl(), cv::Scalar( 255, 0, 255 ), 2, CV_AA );
+    cv::line( src_img, ptrans.getDstBl(), ptrans.getDstBr(), cv::Scalar( 255, 0, 255 ), 2, CV_AA );
+    cv::line( src_img, ptrans.getDstBr(), ptrans.getDstTr(), cv::Scalar( 255, 0, 255 ), 2, CV_AA );
+    cv::line( src_img, ptrans.getDstTr(), ptrans.getDstTl(), cv::Scalar( 255, 0, 255 ), 2, CV_AA );
+    cv::line( dst_img, ptrans.getDstTl(), ptrans.getDstBl(), cv::Scalar( 255, 0, 255 ), 2, CV_AA );
+    cv::line( dst_img, ptrans.getDstBl(), ptrans.getDstBr(), cv::Scalar( 255, 0, 255 ), 2, CV_AA );
+    cv::line( dst_img, ptrans.getDstBr(), ptrans.getDstTr(), cv::Scalar( 255, 0, 255 ), 2, CV_AA );
+    cv::line( dst_img, ptrans.getDstTr(), ptrans.getDstTl(), cv::Scalar( 255, 0, 255 ), 2, CV_AA );
 
     vector<cv::Point2f> ori;
     for ( int i = 50; i <= src_img.cols; i += ( src_img.cols - 50 ) / 20 )
