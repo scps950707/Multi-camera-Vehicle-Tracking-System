@@ -156,7 +156,7 @@ int main( int argc, char *argv[] )
         putText( inputImgKymco, strKymco, cv::Point( 300, inputImg711.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
         //}}}
 
-        cv::Mat roadMap711 = originRoadMap.clone();
+        cv::Mat roadMap = originRoadMap.clone();
 
         if ( boundRect711.size() > 0 )
         {
@@ -164,13 +164,17 @@ int main( int argc, char *argv[] )
             cv::perspectiveTransform( ori711, dst, perspective_matrix711 );
             for ( unsigned int i = 0; i < dst.size(); i++ )
             {
-                cv::circle( roadMap711, cv::Point( dst[i].x - 300 + 100 , dst[i].y - 20 + 100  ), 10 , RED_C3, CV_FILLED );
+                int x = dst[i].x - 300 + 100;
+                int y = dst[i].y - 20 + 100;
+                if ( x + y >= 400 )
+                {
+                    cv::circle( roadMap, cv::Point( x, y ), 10 , RED_C3, CV_FILLED );
+                }
             }
         }
         cv::imshow( "video711", inputImg711 );
         /* cv::imshow( "GMM711", outputMask711 ); */
         /* cv::imshow( "outputMorp711", outputMorp711 ); */
-        cv::imshow( "roadMap711", roadMap711 );
 
         cv::Mat roadMapKymco = originRoadMap.clone();
 
@@ -181,13 +185,19 @@ int main( int argc, char *argv[] )
             for ( unsigned int i = 0; i < dst.size(); i++ )
             {
                 /* cv::circle( roadMapKymco, cv::Point( dst[i].x - 300 + 100 , dst[i].y - 20 + 100  ), 10 , RED_C3, CV_FILLED ); */
-                cv::circle( roadMapKymco, cv::Point( abs( 600 - ( dst[i].x - 300 + 100 ) ) , abs( 600 - ( dst[i].y - 20 + 100 ) )  ), 10 , RED_C3, CV_FILLED );
+                int x = abs( 600 - ( dst[i].x - 300 + 100 ) );
+                int y = abs( 600 - ( dst[i].y - 20 + 100 ) );
+                if ( x + y <= 400 )
+                {
+                    cv::circle( roadMap, cv::Point( x, y ), 10 , RED_C3, CV_FILLED );
+                }
             }
         }
         cv::imshow( "videoKymco", inputImgKymco );
         /* cv::imshow( "GMMKymco", outputMaskKymco ); */
         /* cv::imshow( "outputMorpKymco", outputMorpKymco ); */
-        cv::imshow( "roadMapKymco", roadMapKymco );
+
+        cv::imshow( "roadMap", roadMap );
 
         // monitor keys to stop{{{
         if ( cv::waitKey( 1 ) > 0 )
