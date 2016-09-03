@@ -44,9 +44,9 @@ int main( int argc, char *argv[] )
     /* kmyco.jpg */
     if ( isKymco )
     {
-        ptrans.setSrcPts( cv::Point2f( 370, 190 ),
+        ptrans.setSrcPts( cv::Point2f( 370, 180 ),
                           cv::Point2f( 0, 230 ),
-                          cv::Point2f( 650, 410 ),
+                          cv::Point2f( 650, 415 ),
                           cv::Point2f( 780, 225 ) );
 
         ptrans.setDstPts( cv::Point2f( 300, 20 ),
@@ -57,10 +57,10 @@ int main( int argc, char *argv[] )
     /* 7-11.jpg */
     else if ( isSeven )
     {
-        ptrans.setSrcPts( cv::Point2f( 330, 100 ),
+        ptrans.setSrcPts( cv::Point2f( 330, 95 ),
                           cv::Point2f( 0, 180 ),
-                          cv::Point2f( 730, 390 ),
-                          cv::Point2f( 660, 145 ) );
+                          cv::Point2f( 745, 410 ),
+                          cv::Point2f( 665, 145 ) );
 
         ptrans.setDstPts( cv::Point2f( 300, 20 ),
                           cv::Point2f( 300, 420 ),

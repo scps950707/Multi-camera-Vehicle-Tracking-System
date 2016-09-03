@@ -76,12 +76,12 @@ int main( int argc, char *argv[] )
     // {{{creat rotation matrix
 
     perspectiveTransform ptrans711;
-    ptrans711.setSrcPts( cv::Point2f( 330, 100 ), cv::Point2f( 0, 180 ), cv::Point2f( 730, 390 ), cv::Point2f( 660, 145 ) );
+    ptrans711.setSrcPts( cv::Point2f( 330, 95 ), cv::Point2f( 0, 180 ), cv::Point2f( 745, 410 ), cv::Point2f( 665, 145 ) );
     ptrans711.setDstPts( cv::Point2f( 300, 20 ), cv::Point2f( 300, 420 ), cv::Point2f( 700, 420 ), cv::Point2f( 700, 20 ) );
     cv::Mat perspective_matrix711 = ptrans711.getMatrix();
 
     perspectiveTransform ptransKymco;
-    ptransKymco.setSrcPts( cv::Point2f( 370, 190 ), cv::Point2f( 0, 230 ), cv::Point2f( 650, 410 ), cv::Point2f( 780, 225 ) );
+    ptransKymco.setSrcPts( cv::Point2f( 370, 180 ), cv::Point2f( 0, 230 ), cv::Point2f( 650, 415 ), cv::Point2f( 780, 225 ) );
     ptransKymco.setDstPts( cv::Point2f( 300, 20 ), cv::Point2f( 300, 420 ), cv::Point2f( 700, 420 ), cv::Point2f( 700, 20 ) );
     cv::Mat perspective_matrixKymco = ptransKymco.getMatrix();
     // }}}
