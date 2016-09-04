@@ -6,6 +6,7 @@
 class aviWriter
 {
 public:
+    aviWriter();
     aviWriter( string path, int fps, cv::Size vidSiz );
     void operator << ( cv::Mat mat );
 private:

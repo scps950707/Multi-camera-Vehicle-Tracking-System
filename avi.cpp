@@ -1,5 +1,10 @@
 #include "avi.hpp"
 
+aviWriter::aviWriter()
+{
+
+}
+
 aviWriter::aviWriter( string path, int fps, cv::Size vidSiz )
 {
     this->path = path;
