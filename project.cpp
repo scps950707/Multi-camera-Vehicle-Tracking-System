@@ -3,6 +3,7 @@
 #include "rect.hpp"
 #include "ptrans.hpp"
 #include "gnuplot-iostream.h"
+#include "avi.hpp"
 
 int main( int argc, char *argv[] )
 {
@@ -10,6 +11,7 @@ int main( int argc, char *argv[] )
     int fastforward = 0;
     int  options;
     string videoOutPath, maskOutPath, inputPath711, inputPathKymco, outputPath;
+    bool outputAvi = false;
     /* }}} */
 
     // codes for control command line options {{{
@@ -45,6 +47,7 @@ int main( int argc, char *argv[] )
             break;
         case 'm':
             outputPath = string( optarg );
+            outputAvi = true;
             break;
         case 't':
             fastforward = atoi( optarg );
@@ -80,6 +83,11 @@ int main( int argc, char *argv[] )
     outputMaskKymco = cv::Mat( inputImgKymco.size(), CV_8UC1, BLACK_C1 );
     cv::Mat originRoadMap( cv::Size( 600, 600 ), inputImg711.type(), GRAY_C3 );
     cv::Mat merge = cv::Mat::zeros( inputImg711.rows * 2 + 5, inputImg711.cols + originRoadMap.cols + 5, inputImg711.type() );
+    aviWriter aw;
+    if ( outputAvi )
+    {
+        aw = aviWriter( outputPath, FPS, merge.size() );
+    }
     // }}}
 
     // {{{creat rotation matrix
@@ -209,6 +217,10 @@ int main( int argc, char *argv[] )
         roadMap.copyTo( merge( cv::Range( 0, roadMap.rows ) , cv::Range( newSize.width + 5, roadMap.cols + newSize.width + 5 ) ) );
 
         cv::imshow( "merge", merge );
+        if ( outputAvi )
+        {
+            aw << merge;
+        }
 
         // monitor keys to stop{{{
         if ( cv::waitKey( 1 ) > 0 )
