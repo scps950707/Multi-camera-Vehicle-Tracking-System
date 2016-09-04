@@ -6,12 +6,14 @@
 
 int main( int argc, char *argv[] )
 {
+    /* {{{ global variable set by commad line parameters */
+    int fastforward = 0;
+    int  options;
+    string videoOutPath, maskOutPath, inputPath711, inputPathKymco, outputPath;
+    /* }}} */
 
     // codes for control command line options {{{
 
-    int fastforward = 0;
-    int  options;
-    string videoOutPath, maskOutPath, inputPath711, inputPathKymco;
 
     if ( argc == 1 )
     {
@@ -19,6 +21,7 @@ int main( int argc, char *argv[] )
         cout << "options:" << endl;
         cout << "-i [input 711 video path]  (required)" << endl;
         cout << "-j [input kymco video path]  (required)" << endl;
+        cout << "-m [output video path]  (required)" << endl;
         cout << "-t [video start time (secs)]" << endl;
         exit( EXIT_FAILURE );
     }
@@ -26,10 +29,11 @@ int main( int argc, char *argv[] )
     {
         {"input", required_argument, NULL, 'i'},
         {"input2", required_argument, NULL, 'j'},
+        {"output", required_argument, NULL, 'm'},
         {"time", required_argument, NULL, 't'},
         {NULL, 0, NULL, 0}
     };
-    while ( ( options = getopt_long( argc, argv, "i:j:t:", long_opt, NULL ) ) != -1 )
+    while ( ( options = getopt_long( argc, argv, "i:j:m:t:", long_opt, NULL ) ) != -1 )
     {
         switch  ( options )
         {
@@ -39,6 +43,9 @@ int main( int argc, char *argv[] )
         case 'j':
             inputPathKymco = string( optarg );
             break;
+        case 'm':
+            outputPath = string( optarg );
+            break;
         case 't':
             fastforward = atoi( optarg );
             break;
@@ -47,7 +54,7 @@ int main( int argc, char *argv[] )
 
     // }}}
 
-    // {{{ declare mat for input and mask
+    // {{{ global variable declaration
 
     cv::Mat inputImg711, outputMask711;
     cv::Mat inputImgKymco, outputMaskKymco;
@@ -71,6 +78,8 @@ int main( int argc, char *argv[] )
     /* cv::resize( inputImgKymco, inputImgKymco, newSize ); */
     outputMask711 = cv::Mat( inputImg711.size(), CV_8UC1, BLACK_C1 );
     outputMaskKymco = cv::Mat( inputImgKymco.size(), CV_8UC1, BLACK_C1 );
+    cv::Mat originRoadMap( cv::Size( 600, 600 ), inputImg711.type(), GRAY_C3 );
+    cv::Mat merge = cv::Mat::zeros( inputImg711.rows * 2 + 5, inputImg711.cols + originRoadMap.cols + 5, inputImg711.type() );
     // }}}
 
     // {{{creat rotation matrix
@@ -86,9 +95,8 @@ int main( int argc, char *argv[] )
     cv::Mat perspective_matrixKymco = ptransKymco.getMatrix();
     // }}}
 
-    /* {{{create roadMap711 background */
+    /* {{{create originroadMap background */
 
-    cv::Mat originRoadMap( cv::Size( 600, 600 ), inputImg711.type(), GRAY_C3 );
     cv::rectangle( originRoadMap, cv::Point( 100, 100 ), cv::Point( 500, 500 ), BLUE_C3, 2 );
     for ( int i = 1; i <= 10; i++ )
     {
@@ -154,7 +162,6 @@ int main( int argc, char *argv[] )
 
         string strKymco = "Count:" + to_string( boundRectKymco.size() ) + " Frame:" + to_string( ( int )captureKymco.get( CV_CAP_PROP_POS_FRAMES ) ) + "time:" + to_string( ( int )( capture711.get( CV_CAP_PROP_POS_FRAMES ) / FPS ) );
         putText( inputImgKymco, strKymco, cv::Point( 300, inputImg711.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
-        //}}}
 
         cv::Mat roadMap = originRoadMap.clone();
 
@@ -172,11 +179,9 @@ int main( int argc, char *argv[] )
                 }
             }
         }
-        cv::imshow( "video711", inputImg711 );
+        /* cv::imshow( "video711", inputImg711 ); */
         /* cv::imshow( "GMM711", outputMask711 ); */
         /* cv::imshow( "outputMorp711", outputMorp711 ); */
-
-        cv::Mat roadMapKymco = originRoadMap.clone();
 
         if ( boundRectKymco.size() > 0 )
         {
@@ -184,7 +189,6 @@ int main( int argc, char *argv[] )
             cv::perspectiveTransform( oriKymco, dst, perspective_matrixKymco );
             for ( unsigned int i = 0; i < dst.size(); i++ )
             {
-                /* cv::circle( roadMapKymco, cv::Point( dst[i].x - 300 + 100 , dst[i].y - 20 + 100  ), 10 , RED_C3, CV_FILLED ); */
                 int x = abs( 600 - ( dst[i].x - 300 + 100 ) );
                 int y = abs( 600 - ( dst[i].y - 20 + 100 ) );
                 if ( x + y <= 400 )
@@ -193,14 +197,13 @@ int main( int argc, char *argv[] )
                 }
             }
         }
-        cv::imshow( "videoKymco", inputImgKymco );
+        /* cv::imshow( "videoKymco", inputImgKymco ); */
         /* cv::imshow( "GMMKymco", outputMaskKymco ); */
         /* cv::imshow( "outputMorpKymco", outputMorpKymco ); */
 
-        cv::imshow( "roadMap", roadMap );
+        /* cv::imshow( "roadMap", roadMap ); */
 
-        cv::Mat merge = cv::Mat::zeros( inputImg711.rows * 2 + 5, inputImg711.cols + roadMap.cols + 5, inputImg711.type() );
-
+        merge.setTo( 0 );
         inputImg711.copyTo( merge( cv::Range( 0, newSize.height ) , cv::Range( 0, newSize.width ) ) );
         inputImgKymco.copyTo( merge( cv::Range( newSize.height + 5, newSize.height * 2 + 5 ) , cv::Range( 0, newSize.width ) ) );
         roadMap.copyTo( merge( cv::Range( 0, roadMap.rows ) , cv::Range( newSize.width + 5, roadMap.cols + newSize.width + 5 ) ) );
