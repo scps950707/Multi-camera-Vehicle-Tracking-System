@@ -199,6 +199,14 @@ int main( int argc, char *argv[] )
 
         cv::imshow( "roadMap", roadMap );
 
+        cv::Mat merge = cv::Mat::zeros( inputImg711.rows * 2 + 5, inputImg711.cols + roadMap.cols + 5, inputImg711.type() );
+
+        inputImg711.copyTo( merge( cv::Range( 0, newSize.height ) , cv::Range( 0, newSize.width ) ) );
+        inputImgKymco.copyTo( merge( cv::Range( newSize.height + 5, newSize.height * 2 + 5 ) , cv::Range( 0, newSize.width ) ) );
+        roadMap.copyTo( merge( cv::Range( 0, roadMap.rows ) , cv::Range( newSize.width + 5, roadMap.cols + newSize.width + 5 ) ) );
+
+        cv::imshow( "merge", merge );
+
         // monitor keys to stop{{{
         if ( cv::waitKey( 1 ) > 0 )
         {
