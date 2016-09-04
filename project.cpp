@@ -17,8 +17,8 @@ int main( int argc, char *argv[] )
     {
         cout << "usage: ./bsgmm711 [options]" << endl;
         cout << "options:" << endl;
-        cout << "-i [input video path]  (required)" << endl;
-        cout << "-j [input video path]  (required)" << endl;
+        cout << "-i [input 711 video path]  (required)" << endl;
+        cout << "-j [input kymco video path]  (required)" << endl;
         cout << "-t [video start time (secs)]" << endl;
         exit( EXIT_FAILURE );
     }
@@ -67,8 +67,8 @@ int main( int argc, char *argv[] )
         cout << " Can't recieve input from source " << endl;
         exit( EXIT_FAILURE );
     }
-    cv::resize( inputImg711, inputImg711, newSize );
-    cv::resize( inputImgKymco, inputImgKymco, newSize );
+    /* cv::resize( inputImg711, inputImg711, newSize ); */
+    /* cv::resize( inputImgKymco, inputImgKymco, newSize ); */
     outputMask711 = cv::Mat( inputImg711.size(), CV_8UC1, BLACK_C1 );
     outputMaskKymco = cv::Mat( inputImgKymco.size(), CV_8UC1, BLACK_C1 );
     // }}}
@@ -114,12 +114,12 @@ int main( int argc, char *argv[] )
 
     while ( capture711.read( inputImg711 ) && captureKymco.read( inputImgKymco ) )
     {
-        cv::resize( inputImg711, inputImg711, newSize );
+        /* cv::resize( inputImg711, inputImg711, newSize ); */
         bsgmm711.updateFrame( inputImg711.ptr(), outputMask711.ptr() );
         cv::Mat outputMorp711;
         cv::morphologyEx( outputMask711, outputMorp711, CV_MOP_CLOSE, getStructuringElement( cv::MORPH_RECT, cv::Size( 5, 5 ) ) );
 
-        cv::resize( inputImgKymco, inputImgKymco, newSize );
+        /* cv::resize( inputImgKymco, inputImgKymco, newSize ); */
         bsgmmKymco.updateFrame( inputImgKymco.ptr(), outputMaskKymco.ptr() );
         cv::Mat outputMorpKymco;
         cv::morphologyEx( outputMaskKymco, outputMorpKymco, CV_MOP_CLOSE, getStructuringElement( cv::MORPH_RECT, cv::Size( 5, 5 ) ) );
