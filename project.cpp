@@ -161,7 +161,7 @@ int main( int argc, char *argv[] )
             {
                 mapPts.y -= boundRect711[i].height * 0.15;
             }
-            cv::circle( inputImg711, mapPts, 4 , GREEN_C3, CV_FILLED );
+            /* cv::circle( inputImg711, mapPts, 4 , GREEN_C3, CV_FILLED ); */
             ori711.push_back( mapPts );
         }
         /* }}} */
@@ -183,7 +183,7 @@ int main( int argc, char *argv[] )
             {
                 mapPts.y -= boundRectKymco[i].height * 0.1;
             }
-            cv::circle( inputImgKymco, mapPts, 4 , GREEN_C3, CV_FILLED );
+            /* cv::circle( inputImgKymco, mapPts, 4 , GREEN_C3, CV_FILLED ); */
             oriKymco.push_back( mapPts );
         }
         /* }}} */
@@ -206,7 +206,10 @@ int main( int argc, char *argv[] )
                 if ( mappedPt.x >= 0 && mappedPt.x <= roadMap.cols && mappedPt.y >= 0 && mappedPt.y <= roadMap.rows )
                 {
                     mappedPt += roadRectTl;
-                    cv::circle( roadMap, mappedPt, 10 , RED_C3, CV_FILLED );
+                    if ( mappedPt.x + mappedPt.y >= 500 || rectKymco.isBurstOrRecovery() )
+                    {
+                        cv::circle( roadMap, mappedPt, 10 , RED_C3, CV_FILLED );
+                    }
                 }
             }
         }
@@ -226,7 +229,11 @@ int main( int argc, char *argv[] )
                     mappedPt += roadRectTl;
                     mappedPt.x = abs( originRoadMap.cols - mappedPt.x );
                     mappedPt.y = abs( originRoadMap.rows - mappedPt.y );
-                    cv::circle( roadMap, mappedPt , 10 , BLUE_C3, CV_FILLED );
+                    if ( mappedPt.x + mappedPt.y <= 500 || rect711.isBurstOrRecovery() )
+                    {
+                        /* cv::circle( roadMap, mappedPt , 10 , BLUE_C3, CV_FILLED ); */
+                        cv::circle( roadMap, mappedPt , 10 , RED_C3, CV_FILLED );
+                    }
                 }
             }
         }

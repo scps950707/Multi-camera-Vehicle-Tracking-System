@@ -130,3 +130,8 @@ vector<cv::Rect> findRect::findBoundingRect( cv::Mat &inputImg, cv::Mat &mask )
     return boundRect;
 }
 /* }}} */
+
+bool findRect::isBurstOrRecovery()
+{
+    return ( this->recovery || this->burstLight );
+}
