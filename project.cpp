@@ -129,6 +129,10 @@ int main( int argc, char *argv[] )
 
     // }}}
 
+    /* create findRect objects {{{*/
+    findRect rect711, rectKymco;
+    /* }}} */
+
     while ( capture711.read( inputImg711 ) && captureKymco.read( inputImgKymco ) )
     {
         /* 711 do GMM operation and do morphologyEx {{{ */
@@ -146,14 +150,17 @@ int main( int argc, char *argv[] )
         /* }}} */
 
         /* 711 findBoundingRect and mapping points {{{ */
-        findRect rect711( inputImg711, outputMorp711 );
-        vector<cv::Rect> boundRect711 =  rect711.findBoundingRect();
+        vector<cv::Rect> boundRect711 =  rect711.findBoundingRect( inputImg711, outputMorp711 );
         vector<cv::Point2f> ori711;
 
         for ( unsigned int i = 0; i < boundRect711.size(); i++ )
         {
             rectangle( inputImg711, boundRect711[i].tl(), boundRect711[i].br(), RED_C3, 2 );
-            cv::Point2f mapPts( boundRect711[i].x + boundRect711[i].width / 2, boundRect711[i].y + boundRect711[i].height * 0.9 );
+            cv::Point2f mapPts( boundRect711[i].x + boundRect711[i].width / 2, boundRect711[i].y + boundRect711[i].height );
+            if ( boundRect711[i].width > boundRect711[i].height )
+            {
+                mapPts.y -= boundRect711[i].height * 0.15;
+            }
             cv::circle( inputImg711, mapPts, 4 , GREEN_C3, CV_FILLED );
             ori711.push_back( mapPts );
         }
@@ -165,14 +172,17 @@ int main( int argc, char *argv[] )
         /* }}} */
 
         /* kymco findBoundingRect and mapping points {{{ */
-        findRect rectKymco( inputImgKymco, outputMorpKymco );
-        vector<cv::Rect> boundRectKymco =  rectKymco.findBoundingRect();
+        vector<cv::Rect> boundRectKymco =  rectKymco.findBoundingRect( inputImgKymco, outputMorpKymco );
         vector<cv::Point2f> oriKymco;
 
         for ( unsigned int i = 0; i < boundRectKymco.size(); i++ )
         {
             rectangle( inputImgKymco, boundRectKymco[i].tl(), boundRectKymco[i].br(), BLUE_C3, 2 );
             cv::Point2f mapPts( boundRectKymco[i].x + boundRectKymco[i].width / 2, boundRectKymco[i].y + boundRectKymco[i].height );
+            if ( boundRectKymco[i].width > boundRectKymco[i].height )
+            {
+                mapPts.y -= boundRectKymco[i].height * 0.1;
+            }
             cv::circle( inputImgKymco, mapPts, 4 , GREEN_C3, CV_FILLED );
             oriKymco.push_back( mapPts );
         }
