@@ -6,11 +6,14 @@
 class findRect
 {
 public:
-    findRect( cv::Mat &inputImg, cv::Mat &mask );
-    vector<cv::Rect> findBoundingRect();
+    findRect();
+    vector<cv::Rect> findBoundingRect( cv::Mat &inputImg, cv::Mat &mask );
 private:
     cv::Mat inputImg, mask;
     cv::Rect removeShadowRect ( cv::Rect rect );
+    bool burstLight;
+    bool recovery;
+    int frameRecoveryCnt;
 };
 
 #endif

@@ -1,8 +1,15 @@
 #include "rect.hpp"
 
-findRect::findRect( cv::Mat &inputImg, cv::Mat &mask ) : inputImg( inputImg ), mask( mask )
-{}
+/* {{{ findRect::findRect()*/
+findRect::findRect()
+{
+    this->burstLight = false;
+    this->recovery = false;
+    this->frameRecoveryCnt = 0;
+}
+/* }}} */
 
+/* removeShadowRect {{{ */
 cv::Rect findRect::removeShadowRect ( cv::Rect rect )
 {
     int w = 0, h = 0;
@@ -54,9 +61,13 @@ cv::Rect findRect::removeShadowRect ( cv::Rect rect )
     }
     return cv::Rect( tlx, tly, rw, rh );
 }
+/* }}} */
 
-vector<cv::Rect> findRect::findBoundingRect()
+/* findRect::findBoundingRect( cv::Mat &inputImg, cv::Mat &mask ) {{{ */
+vector<cv::Rect> findRect::findBoundingRect( cv::Mat &inputImg, cv::Mat &mask )
 {
+    this->inputImg = inputImg;
+    this->mask = mask;
     vector<vector<cv::Point>> contours;
     vector<cv::Vec4i> hierarchy;
     cv::Mat tmp;
@@ -78,8 +89,30 @@ vector<cv::Rect> findRect::findBoundingRect()
     int percentage = ( int )( ( ( double )whitePixelCnt / ( double )( mask.cols * mask.rows ) ) * 100 );
     if ( percentage >= 30 )
     {
-        putText( inputImg, "Warning:burst light", cv::Point( 50, 50 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
+        putText( inputImg, "Warning:burst light", cv::Point( 30, 50 ), CV_FONT_HERSHEY_SIMPLEX, 2,  RED_C3, 3 );
+        this->burstLight = true;
         return boundRect;
+    }
+    else
+    {
+        if ( this->burstLight )
+        {
+            putText( inputImg, "start burst light recovery", cv::Point( 30, 50 ), CV_FONT_HERSHEY_SIMPLEX, 2,  RED_C3, 3 );
+            this->burstLight = false;
+            this->recovery = true;
+            frameRecoveryCnt = 40;
+            return boundRect;
+        }
+        else if ( this->recovery )
+        {
+            putText( inputImg, "burst light recovery", cv::Point( 30, 50 ), CV_FONT_HERSHEY_SIMPLEX, 2,  RED_C3, 3 );
+            if ( --frameRecoveryCnt == 0 )
+            {
+                this->recovery = false;
+                this->burstLight = false;
+            }
+            return boundRect;
+        }
     }
     for ( unsigned int i = 0; i < contours.size(); i++ )
     {
@@ -96,3 +129,4 @@ vector<cv::Rect> findRect::findBoundingRect()
     }
     return boundRect;
 }
+/* }}} */

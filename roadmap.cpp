@@ -128,8 +128,8 @@ int main( int argc, char *argv[] )
         cv::morphologyEx( outputMask, outputMorp, CV_MOP_CLOSE, getStructuringElement( cv::MORPH_RECT, cv::Size( 5, 5 ) ) );
 
         // draw rect print words on img for debug {{{
-        findRect rect( inputImg, outputMorp );
-        vector<cv::Rect> boundRect =  rect.findBoundingRect();
+        findRect rect;
+        vector<cv::Rect> boundRect =  rect.findBoundingRect( inputImg, outputMorp );
         vector<cv::Point2f> ori;
 
         for ( unsigned int i = 0; i < boundRect.size(); i++ )
