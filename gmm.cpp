@@ -5,7 +5,7 @@
 int main( int argc, char *argv[] )
 {
 
-    // codes for control command line options {{{
+    /* codes for control command line options {{{ */
 
     bool aviOutput = false;
     bool maskOutput = false;
@@ -52,9 +52,9 @@ int main( int argc, char *argv[] )
         }
     }
 
-    // }}}
+    /* }}} */
 
-    // {{{ declare mat for input and mask
+    /* {{{ declare mat for input and mask */
 
     cv::Mat inputImg, outputMask;
     cv::Size newSize( 800, 450 );
@@ -68,9 +68,9 @@ int main( int argc, char *argv[] )
     }
     cv::resize( inputImg, inputImg, newSize );
     outputMask = cv::Mat( inputImg.size(), CV_8UC1, BLACK_C1 );
-    // }}}
+    /* }}} */
 
-    //declare output stream{{{
+    /* declare output stream{{{ */
 
     cv::VideoWriter writer, writer2;
     if ( aviOutput )
@@ -81,14 +81,14 @@ int main( int argc, char *argv[] )
     {
         writer2.open( maskOutPath, CV_FOURCC( 'D', 'I', 'V', 'X' ), FPS, newSize );
     }
-    //}}}
+    /* }}} */
 
-    // {{{creat GMM Class object
+    /* {{{creat GMM Class object */
 
     BackgroundSubtractorGMM bsgmm(  inputImg.rows, inputImg.cols );
     bsgmm.shadowBeBackground = true;
 
-    // }}}
+    /* }}} */
 
     while ( capture.read( inputImg ) )
     {
@@ -100,7 +100,7 @@ int main( int argc, char *argv[] )
         cv::Mat outputMorp;
         cv::morphologyEx( outputMask, outputMorp, CV_MOP_CLOSE, getStructuringElement( cv::MORPH_RECT, cv::Size( 5, 5 ) ) );
 
-        // draw rect print words on img for debug {{{
+        /* draw rect print words on img for debug {{{ */
         findRect rect;
         vector<cv::Rect> boundRect =  rect.findBoundingRect( inputImg, outputMorp );
 
@@ -111,14 +111,14 @@ int main( int argc, char *argv[] )
 
         string str = "Count:" + to_string( boundRect.size() ) + " Frame:" + to_string( ( int )capture.get( CV_CAP_PROP_POS_FRAMES ) ) + "time:" + to_string( ( int )( capture.get( CV_CAP_PROP_POS_FRAMES ) / FPS ) );
         putText( inputImg, str, cv::Point( 300, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
-        //}}}
+        /* }}} */
 
         cv::imshow( "video", inputImg );
         cv::imshow( "GMM", outputMask );
         /* cv::imshow( "inputBlur", inputBlur ); */
         cv::imshow( "outputMorp", outputMorp );
 
-        // write to avi{{{
+        /* write to avi{{{ */
         if ( aviOutput )
         {
             writer << inputImg;
@@ -131,14 +131,14 @@ int main( int argc, char *argv[] )
             putText( maskForAvi , str, cv::Point( 300, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
             writer2 << maskForAvi;
         }
-        //}}}
+        /* }}} */
 
-        // monitor keys to stop{{{
+        /* monitor keys to stop{{{ */
         if ( cv::waitKey( 1 ) > 0 )
         {
             break;
         }
-        //}}}
+        /* }}} */
     }
     bsgmm.freeMem();
     return EXIT_SUCCESS;

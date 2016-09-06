@@ -239,6 +239,7 @@ int main( int argc, char *argv[] )
         }
         /* }}} */
 
+        /* codes for imshow {{{*/
         /* cv::imshow( "video711", inputImg711 ); */
         /* cv::imshow( "GMM711", outputMask711 ); */
         /* cv::imshow( "outputMorp711", outputMorp711 ); */
@@ -247,6 +248,7 @@ int main( int argc, char *argv[] )
         /* cv::imshow( "outputMorpKymco", outputMorpKymco ); */
         /* cv::imshow( "roadMap", roadMap ); */
         cv::imshow( "merge", merge );
+        /* }}} */
 
         /* merge windows together {{{ */
         merge.setTo( 0 );

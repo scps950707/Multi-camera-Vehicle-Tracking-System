@@ -1,10 +1,13 @@
 #include "avi.hpp"
 
+/* aviWriter::aviWriter() {{{*/
 aviWriter::aviWriter()
 {
 
 }
+/* }}} */
 
+/* aviWriter::aviWriter( string path, int fps, cv::Size vidSiz ) {{{*/
 aviWriter::aviWriter( string path, int fps, cv::Size vidSiz )
 {
     this->path = path;
@@ -12,7 +15,9 @@ aviWriter::aviWriter( string path, int fps, cv::Size vidSiz )
     this->vidSiz = vidSiz;
     this->writer.open( path, CV_FOURCC( 'D', 'I', 'V', 'X' ), fps, vidSiz );
 }
+/* }}} */
 
+/* void aviWriter::operator << ( cv::Mat mat ) {{{*/
 void aviWriter::operator << ( cv::Mat mat )
 {
     CV_Assert( mat.size() == this->vidSiz );
@@ -22,3 +27,4 @@ void aviWriter::operator << ( cv::Mat mat )
     }
     this->writer << mat;
 }
+/* }}} */

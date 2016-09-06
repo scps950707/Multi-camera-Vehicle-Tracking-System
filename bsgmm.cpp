@@ -1,5 +1,6 @@
 #include "bsgmm.hpp"
 
+/* BackgroundSubtractorGMM::BackgroundSubtractorGMM( int frameHeight, int frameWidth ) {{{*/
 BackgroundSubtractorGMM::BackgroundSubtractorGMM( int frameHeight, int frameWidth ) : frameHeight( frameHeight ), frameWidth( frameWidth )
 {
     this->alpha = 0.003;
@@ -24,7 +25,9 @@ BackgroundSubtractorGMM::BackgroundSubtractorGMM( int frameHeight, int frameWidt
         pixelGMMBuffer[i].GMMCount = 0;
     }
 }
+/* }}} */
 
+/* void BackgroundSubtractorGMM::updateFrame( uchar *inputPtr, uchar *outputPtr ) {{{*/
 void BackgroundSubtractorGMM::updateFrame( uchar *inputPtr, uchar *outputPtr )
 {
     PIXELGMM *curPixelGMM = this->pixelGMMBuffer;
@@ -57,7 +60,9 @@ void BackgroundSubtractorGMM::updateFrame( uchar *inputPtr, uchar *outputPtr )
         outputPtr++;
     }
 }
+/* }}} */
 
+/* bool BackgroundSubtractorGMM::isShadow( double red, double green, double blue, PIXELGMM *curPixelGMM ) {{{*/
 bool BackgroundSubtractorGMM::isShadow( double red, double green, double blue, PIXELGMM *curPixelGMM )
 {
     double totalWeight = 0;
@@ -94,7 +99,9 @@ bool BackgroundSubtractorGMM::isShadow( double red, double green, double blue, P
     }
     return false;
 }
+/* }}} */
 
+/* bool BackgroundSubtractorGMM::isBackGround( double red, double green, double blue, PIXELGMM *curPixelGMM ) {{{*/
 bool BackgroundSubtractorGMM::isBackGround( double red, double green, double blue, PIXELGMM *curPixelGMM )
 {
     bool hitGMM = false;
@@ -207,8 +214,11 @@ bool BackgroundSubtractorGMM::isBackGround( double red, double green, double blu
     }
     return isBackGround;
 }
+/* }}} */
 
+/* void BackgroundSubtractorGMM::freeMem() {{{*/
 void BackgroundSubtractorGMM::freeMem()
 {
     delete[] pixelGMMBuffer;
 }
+/* }}} */
