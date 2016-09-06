@@ -12,6 +12,7 @@ int main( int argc, char *argv[] )
     int  options;
     string videoOutPath, maskOutPath, inputPath711, inputPathKymco, outputPath;
     bool outputAvi = false;
+    bool Imshow = true;
     /* }}} */
 
     // codes for control command line options {{{
@@ -19,23 +20,25 @@ int main( int argc, char *argv[] )
 
     if ( argc == 1 )
     {
-        cout << "usage: ./bsgmm711 [options]" << endl;
+        cout << "./usage [options]" << endl;
         cout << "options:" << endl;
-        cout << "-i [input 711 video path]  (required)" << endl;
-        cout << "-j [input kymco video path]  (required)" << endl;
-        cout << "-o [output video path]  (required)" << endl;
-        cout << "-t [video start time (secs)]" << endl;
+        cout << "-i [input 711 video path] (required)" << endl;
+        cout << "-j [input kymco video path] (required)" << endl;
+        cout << "[-n] [--noImshow] (optional)" << endl;
+        cout << "-o [output video path] (optional)" << endl;
+        cout << "-t [video start time (secs)] (optional)" << endl;
         exit( EXIT_FAILURE );
     }
     struct option  long_opt[] =
     {
         {"input", required_argument, NULL, 'i'},
         {"input2", required_argument, NULL, 'j'},
+        {"noImshow", required_argument, NULL, 'n'},
         {"output", required_argument, NULL, 'o'},
         {"time", required_argument, NULL, 't'},
         {NULL, 0, NULL, 0}
     };
-    while ( ( options = getopt_long( argc, argv, "i:j:o:t:", long_opt, NULL ) ) != -1 )
+    while ( ( options = getopt_long( argc, argv, "i:j:no:t:", long_opt, NULL ) ) != -1 )
     {
         switch  ( options )
         {
@@ -44,6 +47,9 @@ int main( int argc, char *argv[] )
             break;
         case 'j':
             inputPathKymco = string( optarg );
+            break;
+        case 'n':
+            Imshow = false;
             break;
         case 'o':
             outputPath = string( optarg );
@@ -240,14 +246,17 @@ int main( int argc, char *argv[] )
         /* }}} */
 
         /* codes for imshow {{{*/
-        /* cv::imshow( "video711", inputImg711 ); */
-        /* cv::imshow( "GMM711", outputMask711 ); */
-        /* cv::imshow( "outputMorp711", outputMorp711 ); */
-        /* cv::imshow( "videoKymco", inputImgKymco ); */
-        /* cv::imshow( "GMMKymco", outputMaskKymco ); */
-        /* cv::imshow( "outputMorpKymco", outputMorpKymco ); */
-        /* cv::imshow( "roadMap", roadMap ); */
-        cv::imshow( "merge", merge );
+        if ( Imshow )
+        {
+            /* cv::imshow( "video711", inputImg711 ); */
+            /* cv::imshow( "GMM711", outputMask711 ); */
+            /* cv::imshow( "outputMorp711", outputMorp711 ); */
+            /* cv::imshow( "videoKymco", inputImgKymco ); */
+            /* cv::imshow( "GMMKymco", outputMaskKymco ); */
+            /* cv::imshow( "outputMorpKymco", outputMorpKymco ); */
+            /* cv::imshow( "roadMap", roadMap ); */
+            cv::imshow( "merge", merge );
+        }
         /* }}} */
 
         /* merge windows together {{{ */
