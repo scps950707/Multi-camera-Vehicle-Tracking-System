@@ -4,6 +4,7 @@
 #include "ptrans.hpp"
 #include "gnuplot-iostream.h"
 #include "avi.hpp"
+#include "Ctracker.hpp"
 
 int main( int argc, char *argv[] )
 {
@@ -139,6 +140,13 @@ int main( int argc, char *argv[] )
     findRect rect711, rectKymco;
     /* }}} */
 
+    /* create tracker object and points vector {{{*/
+    CTracker tracker( 0.2, 0.5, 100, 10, 25 );
+    vector<cv::Point2d> ptsTrackingPrev;
+    vector<cv::Point2d> ptsTracking;
+    /* }}} */
+
+
     while ( capture711.read( inputImg711 ) && captureKymco.read( inputImgKymco ) )
     {
         /* 711 do GMM operation and do morphologyEx {{{ */
@@ -201,6 +209,7 @@ int main( int argc, char *argv[] )
 
         cv::Mat roadMap = originRoadMap.clone();
 
+        ptsTracking.clear();
         /* 711 map points to roadMap{{{ */
         if ( ori711.size() > 0 )
         {
@@ -215,6 +224,7 @@ int main( int argc, char *argv[] )
                     if ( mappedPt.x + mappedPt.y >= 500 || rectKymco.isBurstOrRecovery() )
                     {
                         cv::circle( roadMap, mappedPt, 10 , RED_C3, CV_FILLED );
+                        ptsTracking.push_back( mappedPt );
                     }
                 }
             }
@@ -239,8 +249,32 @@ int main( int argc, char *argv[] )
                     {
                         /* cv::circle( roadMap, mappedPt , 10 , BLUE_C3, CV_FILLED ); */
                         cv::circle( roadMap, mappedPt , 10 , RED_C3, CV_FILLED );
+                        ptsTracking.push_back( mappedPt );
                     }
                 }
+            }
+        }
+        /* }}} */
+
+        /* tracking update points and draw path {{{*/
+        if ( ptsTracking.size() > 0 )
+        {
+            ptsTrackingPrev = vector<cv::Point2d>( ptsTracking );
+            tracker.Update( ptsTracking );
+        }
+        else if ( ptsTrackingPrev.size() > 0 )
+        {
+            tracker.Update( ptsTrackingPrev );
+        }
+        for ( size_t i = 0; i < tracker.tracks.size(); i++ )
+        {
+            if ( tracker.tracks[i]->trace.size() > 2 )
+            {
+                for ( size_t j = 0; j < tracker.tracks[i]->trace.size() - 1; j++ )
+                {
+                    line( roadMap, tracker.tracks[i]->trace[j], tracker.tracks[i]->trace[j + 1], GREEN_C3, 2, CV_AA );
+                }
+                /* cv::circle( roadMap, tracker.tracks[i]->trace[tracker.tracks[i]->trace.size() - 1] , 10 , RED_C3, CV_FILLED ); */
             }
         }
         /* }}} */
