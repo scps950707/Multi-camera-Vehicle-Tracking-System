@@ -63,8 +63,8 @@ cv::Rect findRect::removeShadowRect ( cv::Rect rect )
 }
 /* }}} */
 
-/* findRect::findBoundingRect( cv::Mat &inputImg, cv::Mat &mask ) {{{ */
-vector<cv::Rect> findRect::findBoundingRect( cv::Mat &inputImg, cv::Mat &mask )
+/* findRect::update( cv::Mat &inputImg, cv::Mat &mask ) {{{ */
+void findRect::update( cv::Mat &inputImg, cv::Mat &mask )
 {
     this->inputImg = inputImg;
     this->mask = mask;
@@ -90,7 +90,7 @@ vector<cv::Rect> findRect::findBoundingRect( cv::Mat &inputImg, cv::Mat &mask )
     {
         putText( inputImg, "Warning:burst light", cv::Point( 30, 50 ), CV_FONT_HERSHEY_SIMPLEX, 2,  RED_C3, 3 );
         this->burstLight = true;
-        return vector<cv::Rect>();
+        return;
     }
     else
     {
@@ -100,7 +100,7 @@ vector<cv::Rect> findRect::findBoundingRect( cv::Mat &inputImg, cv::Mat &mask )
             this->burstLight = false;
             this->recovery = true;
             frameRecoveryCnt = 40;
-            return vector<cv::Rect>();
+            return;
         }
         else if ( this->recovery )
         {
@@ -110,26 +110,67 @@ vector<cv::Rect> findRect::findBoundingRect( cv::Mat &inputImg, cv::Mat &mask )
                 this->recovery = false;
                 this->burstLight = false;
             }
-            return vector<cv::Rect>();
+            return;
         }
     }
+
     for ( unsigned int i = 0; i < contours.size(); i++ )
     {
         approxPolyDP( cv::Mat( contours[i] ), contours_poly[i], 3, true );
     }
+
     auto removethese = std::remove_if( contours_poly.begin(), contours_poly.end(), []( vector<cv::Point> contour )
     {
         return cv::contourArea( contour ) < 300;
     } );
     contours_poly.erase( removethese, contours_poly.end() );
-    vector<cv::Rect> boundRect( contours_poly.size() );
-    std::transform( contours_poly.begin(), contours_poly.end(), boundRect.begin(),
+
+    rects.resize( contours_poly.size() );
+    std::transform( contours_poly.begin(), contours_poly.end(), rects.begin(),
                     []( vector<cv::Point> contour )
     {
         return cv::boundingRect( cv::Mat( contour ) );
     }
                   );
-    return boundRect;
+
+    rectCenters.resize( contours_poly.size() );
+    std::transform( rects.begin(), rects.end(), rectCenters.begin(),
+                    []( cv::Rect rect )
+    {
+        return cv::Point( rect.x + rect.width * 0.5, rect.y + rect.height * 0.5 );
+    }
+                  );
+
+    rectCentersFloat.resize( contours_poly.size() );
+    std::transform( rects.begin(), rects.end(), rectCentersFloat.begin(),
+                    []( cv::Rect rect )
+    {
+        return cv::Point2f( rect.x + rect.width * 0.5, rect.y + rect.height * 0.5 );
+    }
+                  );
+
+}
+/* }}} */
+
+/* vector<cv::Point> findRect::getRectCenters() {{{*/
+vector<cv::Point> findRect::getRectCenters()
+{
+    return this->rectCenters;
+}
+/* }}} */
+
+/* vector<cv::Point> findRect::getRectCentersFloat() {{{*/
+vector<cv::Point2f> findRect::getRectCentersFloat()
+{
+    return this->rectCentersFloat;
+}
+
+/* }}} */
+
+/* vector<cv::Rect> findRect::getRects() {{{*/
+vector<cv::Rect> findRect::getRects()
+{
+    return this->rects;
 }
 /* }}} */
 

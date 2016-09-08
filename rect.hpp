@@ -7,7 +7,10 @@ class findRect
 {
 public:
     findRect();
-    vector<cv::Rect> findBoundingRect( cv::Mat &inputImg, cv::Mat &mask );
+    void update( cv::Mat &inputImg, cv::Mat &mask );
+    vector<cv::Point> getRectCenters();
+    vector<cv::Point2f> getRectCentersFloat();
+    vector<cv::Rect> getRects();
     bool isBurstOrRecovery();
 private:
     cv::Mat inputImg, mask;
@@ -15,6 +18,9 @@ private:
     bool burstLight;
     bool recovery;
     int frameRecoveryCnt;
+    vector<cv::Point> rectCenters;
+    vector<cv::Point2f> rectCentersFloat;
+    vector<cv::Rect> rects;
 };
 
 #endif

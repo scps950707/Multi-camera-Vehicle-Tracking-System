@@ -165,7 +165,8 @@ int main( int argc, char *argv[] )
         /* }}} */
 
         /* 711 kymco findBoundingRect, decide points inside rects to be tracked as mapping points on road map {{{ */
-        vector<cv::Rect> boundRect711 =  rect711.findBoundingRect( inputImg711, outputMorp711 );
+        rect711.update( inputImg711, outputMorp711 );
+        vector<cv::Rect> boundRect711 = rect711.getRects();
         vector<cv::Point2f> trackingPts711;
 
         for ( unsigned int i = 0; i < boundRect711.size(); i++ )
@@ -202,7 +203,8 @@ int main( int argc, char *argv[] )
         /* }}} */
 
         /* kymco findBoundingRect, decide points inside rects to be tracked as mapping points on road map {{{ */
-        vector<cv::Rect> boundRectKymco =  rectKymco.findBoundingRect( inputImgKymco, outputMorpKymco );
+        rectKymco.update( inputImgKymco, outputMorpKymco );
+        vector<cv::Rect> boundRectKymco =  rectKymco.getRects();
         vector<cv::Point2f> trackingPtsKymco;
 
         for ( unsigned int i = 0; i < boundRectKymco.size(); i++ )

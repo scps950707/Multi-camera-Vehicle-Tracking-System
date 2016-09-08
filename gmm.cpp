@@ -102,7 +102,8 @@ int main( int argc, char *argv[] )
 
         /* draw rect print words on img for debug {{{ */
         findRect rect;
-        vector<cv::Rect> boundRect =  rect.findBoundingRect( inputImg, outputMorp );
+        rect.update( inputImg, outputMorp );
+        vector<cv::Rect> boundRect =  rect.getRects();
 
         for ( unsigned int i = 0; i < boundRect.size(); i++ )
         {
