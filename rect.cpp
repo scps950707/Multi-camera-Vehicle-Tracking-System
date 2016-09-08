@@ -74,7 +74,6 @@ vector<cv::Rect> findRect::findBoundingRect( cv::Mat &inputImg, cv::Mat &mask )
     mask.copyTo( tmp );
     findContours( tmp, contours, hierarchy, CV_RETR_EXTERNAL, CV_CHAIN_APPROX_SIMPLE );
     vector<vector<cv::Point>> contours_poly( contours.size() );
-    vector<cv::Rect> boundRect;
     int whitePixelCnt = 0;
     for ( int i = 0; i < mask.rows; i++ )
     {
@@ -91,7 +90,7 @@ vector<cv::Rect> findRect::findBoundingRect( cv::Mat &inputImg, cv::Mat &mask )
     {
         putText( inputImg, "Warning:burst light", cv::Point( 30, 50 ), CV_FONT_HERSHEY_SIMPLEX, 2,  RED_C3, 3 );
         this->burstLight = true;
-        return boundRect;
+        return vector<cv::Rect>();
     }
     else
     {
@@ -101,7 +100,7 @@ vector<cv::Rect> findRect::findBoundingRect( cv::Mat &inputImg, cv::Mat &mask )
             this->burstLight = false;
             this->recovery = true;
             frameRecoveryCnt = 40;
-            return boundRect;
+            return vector<cv::Rect>();
         }
         else if ( this->recovery )
         {
@@ -111,22 +110,25 @@ vector<cv::Rect> findRect::findBoundingRect( cv::Mat &inputImg, cv::Mat &mask )
                 this->recovery = false;
                 this->burstLight = false;
             }
-            return boundRect;
+            return vector<cv::Rect>();
         }
     }
     for ( unsigned int i = 0; i < contours.size(); i++ )
     {
         approxPolyDP( cv::Mat( contours[i] ), contours_poly[i], 3, true );
-        if ( cv::contourArea( contours_poly[i] ) > 300 )
-        {
-            cv::Rect newRect = boundingRect( cv::Mat( contours_poly[i] ) );
-            /* cv::drawContours( inputImg, contours_poly, i, GREEN_C3, 2 ); */
-            /* cv::Moments mo = moments( contours_poly[i] ); */
-            /* cv::Point center = cv::Point( mo.m10 / mo.m00 , mo.m01 / mo.m00 ); */
-            /* cv::drawContours( mask, contours_poly, i, WHITE_C1, CV_FILLED ); */
-            boundRect.push_back( this->removeShadowRect( newRect ) );
-        }
     }
+    auto removethese = std::remove_if( contours_poly.begin(), contours_poly.end(), []( vector<cv::Point> contour )
+    {
+        return cv::contourArea( contour ) < 300;
+    } );
+    contours_poly.erase( removethese, contours_poly.end() );
+    vector<cv::Rect> boundRect( contours_poly.size() );
+    std::transform( contours_poly.begin(), contours_poly.end(), boundRect.begin(),
+                    []( vector<cv::Point> contour )
+    {
+        return cv::boundingRect( cv::Mat( contour ) );
+    }
+                  );
     return boundRect;
 }
 /* }}} */
