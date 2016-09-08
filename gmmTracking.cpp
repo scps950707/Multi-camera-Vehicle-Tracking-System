@@ -117,7 +117,7 @@ int main( int argc, char *argv[] )
         }
         if ( boundRect.size() > 0 )
         {
-            vector<cv::Point2d> pts;
+            vector<cv::Point2f> pts;
             for ( unsigned int i = 0; i < boundRect.size(); i++ )
             {
                 pts.push_back( cv::Point( boundRect[i].x + boundRect[i].width / 2, boundRect[i].y + boundRect[i].height / 2 ) );
@@ -133,9 +133,13 @@ int main( int argc, char *argv[] )
             {
                 if ( tracker.tracks[i]->trace.size() > 1 )
                 {
-                    for ( size_t j = 0; j < tracker.tracks[i]->trace.size() - 1; j++ )
+                    /* for ( size_t j = 0; j < tracker.tracks[i]->trace.size() - 1; j++ ) */
+                    /* { */
+                    /*     line( inputImg, tracker.tracks[i]->trace[j], tracker.tracks[i]->trace[j + 1], colors[i], 2, CV_AA ); */
+                    /* } */
+                    for ( size_t j = 0; j < tracker.tracks[i]->trace.size(); j++ )
                     {
-                        line( inputImg, tracker.tracks[i]->trace[j], tracker.tracks[i]->trace[j + 1], colors[i], 2, CV_AA );
+                        cv::circle( inputImg, tracker.tracks[i]->trace[j], 2, colors[i], CV_FILLED );
                     }
                 }
             }

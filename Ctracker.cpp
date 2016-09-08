@@ -20,7 +20,7 @@ CTracker::CTracker( float _dt, float _Accel_noise_mag, double _dist_thres, int _
     max_trace_length = _max_trace_length;
 }
 
-void CTracker::Update( vector<cv::Point2d> &detections )
+void CTracker::Update( vector<cv::Point2f> &detections )
 {
     if ( tracks.size() == 0 )
     {
@@ -40,7 +40,7 @@ void CTracker::Update( vector<cv::Point2d> &detections )
     {
         for ( uint j = 0; j < detections.size(); j++ )
         {
-            cv::Point2d diff = ( tracks[i]->prediction - detections[j] );
+            cv::Point2f diff = ( tracks[i]->prediction - detections[j] );
             dist = sqrtf( diff.x * diff.x + diff.y * diff.y );
             Cost[i][j] = dist;
         }
