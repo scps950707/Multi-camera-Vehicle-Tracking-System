@@ -90,6 +90,9 @@ void findRect::update( cv::Mat &inputImg, cv::Mat &mask )
     {
         putText( inputImg, "Warning:burst light", cv::Point( 30, 50 ), CV_FONT_HERSHEY_SIMPLEX, 2,  RED_C3, 3 );
         this->burstLight = true;
+        this->rects.clear();
+        this->rectCenters.clear();
+        this->rectCentersFloat.clear();
         return;
     }
     else
