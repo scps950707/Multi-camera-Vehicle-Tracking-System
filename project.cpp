@@ -123,6 +123,7 @@ int main( int argc, char *argv[] )
     }
     putText( originRoadMap , "7-11", cv::Point( 20, 60 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
     putText( originRoadMap , "KYMCO", cv::Point( 490, 540 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
+    /* cv::line( originRoadMap, cv::Point( 0, 600 ), cv::Point( 600, 0 ), GREEN_C3, 2, CV_AA ); */
 
     /* }}} */
 
@@ -232,7 +233,7 @@ int main( int argc, char *argv[] )
                     if ( mappedPt.x >= 0 && mappedPt.x <= roadMap.cols && mappedPt.y >= 0 && mappedPt.y <= roadMap.rows )
                     {
                         mappedPt += roadRectTl;
-                        if ( mappedPt.x + mappedPt.y >= 500 || rectKymco.isBurstOrRecovery() )
+                        if ( mappedPt.x + mappedPt.y >= 600 || rectKymco.isBurstOrRecovery() )
                         {
                             cv::circle( roadMap, mappedPt, 3 , RED_C3, CV_FILLED );
                         }
@@ -258,6 +259,9 @@ int main( int argc, char *argv[] )
                         mappedPt += roadRectTl;
                         mappedPt.x = abs( originRoadMap.cols - mappedPt.x );
                         mappedPt.y = abs( originRoadMap.rows - mappedPt.y );
+                        /* do some fix by human */
+                        mappedPt.x -= 30;
+                        mappedPt.y -= 30;
                         if ( mappedPt.x + mappedPt.y <= 600 || rect711.isBurstOrRecovery() )
                         {
                             /* cv::circle( roadMap, mappedPt , 10 , BLUE_C3, CV_FILLED ); */
