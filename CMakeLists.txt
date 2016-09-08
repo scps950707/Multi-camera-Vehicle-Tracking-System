@@ -21,5 +21,5 @@ target_link_libraries( resizer ${OpenCV_LIBS} )
 add_executable( gmmTracking gmmTracking.cpp Kalman.cpp Ctracker.cpp HungarianAlg.cpp bsgmm.cpp rect.cpp )
 target_link_libraries( gmmTracking ${OpenCV_LIBS} )
 
-set(CMAKE_CXX_FLAGS "-Wall -std=c++11")
+set(CMAKE_CXX_FLAGS "-Wall -std=c++14")
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)

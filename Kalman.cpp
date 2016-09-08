@@ -2,7 +2,15 @@
 
 TKalmanFilter::TKalmanFilter( cv::Point2f pt, float dt, float Accel_noise_mag )
 {
+    /* time increment (lower values makes target more "massive") */
     deltatime = dt;
+    /* We don't know acceleration, so, assume it to process noise. */
+    /* But we can guess, the range of acceleration values thich can be achieved by tracked object. */
+    /* Process noise. (standard deviation of acceleration: m/s^2) */
+    /* shows, woh much target can accelerate. */
+    /* track_t Accel_noise_mag = 0.5; */
+
+    /* 4 state variables, 2 measurements */
     kalman = cv::KalmanFilter( 4, 2, 0 );
     kalman.transitionMatrix = ( cv::Mat_<float>( 4, 4 ) <<
                                 1, 0, deltatime, 0,

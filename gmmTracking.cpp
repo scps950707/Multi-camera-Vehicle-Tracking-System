@@ -118,17 +118,12 @@ int main( int argc, char *argv[] )
         }
         if ( boundRect.size() > 0 )
         {
-            vector<cv::Point2f> pts;
-            for ( unsigned int i = 0; i < boundRect.size(); i++ )
-            {
-                pts.push_back( cv::Point( boundRect[i].x + boundRect[i].width / 2, boundRect[i].y + boundRect[i].height / 2 ) );
-            }
-            tracker.Update( pts );
+            tracker.Update( rect.getRectCentersFloat(), rect.getRects(), CTracker::CentersDist );
 
-            for ( size_t i = 0; i < pts.size(); i++ )
-            {
-                circle( inputImg, pts[i], 3, GREEN_C3, 1, CV_AA );
-            }
+            /* for ( size_t i = 0; i < pts.size(); i++ ) */
+            /* { */
+            /*     circle( inputImg, pts[i], 3, GREEN_C3, 1, CV_AA ); */
+            /* } */
 
             for ( size_t i = 0; i < tracker.tracks.size(); i++ )
             {

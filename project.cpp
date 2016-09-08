@@ -144,7 +144,6 @@ int main( int argc, char *argv[] )
     /* float _dt, float _Accel_noise_mag, double _dist_thres = 60, int _maximum_allowed_skipped_frames = 10, int _max_trace_length = 10 */
     CTracker tracker711( 0.2, 0.5, 60, 10, 25 );
     CTracker trackerKymco( 0.2, 0.5, 60, 10, 25 );
-    vector<cv::Point2f> trackingPts711Prev, trackingPtsKymcoPrev;
     /* }}} */
 
 
@@ -183,18 +182,7 @@ int main( int argc, char *argv[] )
         /* }}} */
 
         /* 711 update tracker {{{ */
-        if ( trackingPts711.size() > 0 )
-        {
-            tracker711.Update( trackingPts711 );
-            trackingPts711Prev = vector<cv::Point2f>( trackingPts711 );
-        }
-        else
-        {
-            if ( trackingPts711Prev.size() > 0 )
-            {
-                tracker711.Update( trackingPts711Prev );
-            }
-        }
+        tracker711.Update( trackingPts711, rect711.getRects(), CTracker::CentersDist );
         /* }}} */
 
         /* 711 show object count, frame number and time stamp {{{ */
@@ -220,19 +208,8 @@ int main( int argc, char *argv[] )
         }
         /* }}} */
 
-        /* 711 update tracker {{{ */
-        if ( trackingPtsKymco.size() > 0 )
-        {
-            trackerKymco.Update( trackingPtsKymco );
-            trackingPtsKymcoPrev = vector<cv::Point2f>( trackingPtsKymco );
-        }
-        else
-        {
-            if ( trackingPtsKymcoPrev.size() > 0 )
-            {
-                trackerKymco.Update( trackingPtsKymcoPrev );
-            }
-        }
+        /* kymco update tracker {{{ */
+        trackerKymco.Update( trackingPtsKymco, rectKymco.getRects(), CTracker::CentersDist );
         /* }}} */
 
         /* kymco show object count, frame number and time stamp {{{ */
