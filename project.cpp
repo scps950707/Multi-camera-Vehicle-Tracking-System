@@ -141,9 +141,10 @@ int main( int argc, char *argv[] )
     /* }}} */
 
     /* create tracker object and points vector {{{*/
-    CTracker tracker( 0.2, 0.5, 100, 10, 25 );
-    vector<cv::Point2d> ptsTrackingPrev;
-    vector<cv::Point2d> ptsTracking;
+    /* float _dt, float _Accel_noise_mag, double _dist_thres = 60, int _maximum_allowed_skipped_frames = 10, int _max_trace_length = 10 */
+    CTracker tracker711( 0.2, 0.5, 60, 10, 25 );
+    CTracker trackerKymco( 0.2, 0.5, 60, 10, 25 );
+    vector<cv::Point2f> trackingPts711Prev, trackingPtsKymcoPrev;
     /* }}} */
 
 
@@ -163,9 +164,9 @@ int main( int argc, char *argv[] )
         cv::morphologyEx( outputMaskKymco, outputMorpKymco, CV_MOP_CLOSE, getStructuringElement( cv::MORPH_RECT, cv::Size( 5, 5 ) ) );
         /* }}} */
 
-        /* 711 findBoundingRect and mapping points {{{ */
+        /* 711 kymco findBoundingRect, decide points inside rects to be tracked as mapping points on road map {{{ */
         vector<cv::Rect> boundRect711 =  rect711.findBoundingRect( inputImg711, outputMorp711 );
-        vector<cv::Point2f> ori711;
+        vector<cv::Point2f> trackingPts711;
 
         for ( unsigned int i = 0; i < boundRect711.size(); i++ )
         {
@@ -176,7 +177,22 @@ int main( int argc, char *argv[] )
                 mapPts.y -= boundRect711[i].height * 0.15;
             }
             /* cv::circle( inputImg711, mapPts, 4 , GREEN_C3, CV_FILLED ); */
-            ori711.push_back( mapPts );
+            trackingPts711.push_back( mapPts );
+        }
+        /* }}} */
+
+        /* 711 update tracker {{{ */
+        if ( trackingPts711.size() > 0 )
+        {
+            tracker711.Update( trackingPts711 );
+            trackingPts711Prev = vector<cv::Point2f>( trackingPts711 );
+        }
+        else
+        {
+            if ( trackingPts711Prev.size() > 0 )
+            {
+                tracker711.Update( trackingPts711Prev );
+            }
         }
         /* }}} */
 
@@ -185,9 +201,9 @@ int main( int argc, char *argv[] )
         putText( inputImg711, str711, cv::Point( 300, inputImg711.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
         /* }}} */
 
-        /* kymco findBoundingRect and mapping points {{{ */
+        /* kymco findBoundingRect, decide points inside rects to be tracked as mapping points on road map {{{ */
         vector<cv::Rect> boundRectKymco =  rectKymco.findBoundingRect( inputImgKymco, outputMorpKymco );
-        vector<cv::Point2f> oriKymco;
+        vector<cv::Point2f> trackingPtsKymco;
 
         for ( unsigned int i = 0; i < boundRectKymco.size(); i++ )
         {
@@ -198,7 +214,22 @@ int main( int argc, char *argv[] )
                 mapPts.y -= boundRectKymco[i].height * 0.1;
             }
             /* cv::circle( inputImgKymco, mapPts, 4 , GREEN_C3, CV_FILLED ); */
-            oriKymco.push_back( mapPts );
+            trackingPtsKymco.push_back( mapPts );
+        }
+        /* }}} */
+
+        /* 711 update tracker {{{ */
+        if ( trackingPtsKymco.size() > 0 )
+        {
+            trackerKymco.Update( trackingPtsKymco );
+            trackingPtsKymcoPrev = vector<cv::Point2f>( trackingPtsKymco );
+        }
+        else
+        {
+            if ( trackingPtsKymcoPrev.size() > 0 )
+            {
+                trackerKymco.Update( trackingPtsKymcoPrev );
+            }
         }
         /* }}} */
 
@@ -209,12 +240,20 @@ int main( int argc, char *argv[] )
 
         cv::Mat roadMap = originRoadMap.clone();
 
-        ptsTracking.clear();
-        /* 711 map points to roadMap{{{ */
-        if ( ori711.size() > 0 )
+        /* 711 map tracked points to roadMap{{{ */
+        if ( tracker711.tracks.size() > 0 )
         {
+            vector<cv::Point2f> trackedPts711;
             vector<cv::Point2f> dst;
-            cv::perspectiveTransform( ori711, dst, perspective_matrix711 );
+            for ( size_t i = 0; i < tracker711.tracks.size(); i++ )
+            {
+                for ( size_t j = 0; j < tracker711.tracks[i]->trace.size(); j++ )
+                {
+                    trackedPts711.push_back( tracker711.tracks[i]->trace[j] );
+                    /* cv::circle( inputImg711, tracker711.tracks[i]->trace[j], 2 , RED_C3, CV_FILLED ); */
+                }
+            }
+            cv::perspectiveTransform( trackedPts711 , dst, perspective_matrix711 );
             for ( unsigned int i = 0; i < dst.size(); i++ )
             {
                 cv::Point mappedPt = dst[i] - ptrans711.getDstTl();
@@ -223,8 +262,7 @@ int main( int argc, char *argv[] )
                     mappedPt += roadRectTl;
                     if ( mappedPt.x + mappedPt.y >= 500 || rectKymco.isBurstOrRecovery() )
                     {
-                        cv::circle( roadMap, mappedPt, 10 , RED_C3, CV_FILLED );
-                        ptsTracking.push_back( mappedPt );
+                        cv::circle( roadMap, mappedPt, 3 , RED_C3, CV_FILLED );
                     }
                 }
             }
@@ -232,10 +270,19 @@ int main( int argc, char *argv[] )
         /* }}} */
 
         /* kymco map points to roadMap{{{ */
-        if ( oriKymco.size() > 0 )
+        if ( trackingPtsKymco.size() > 0 )
         {
+            vector<cv::Point2f> trackedPtsKymco;
             vector<cv::Point2f> dst;
-            cv::perspectiveTransform( oriKymco, dst, perspective_matrixKymco );
+            for ( size_t i = 0; i < trackerKymco.tracks.size(); i++ )
+            {
+                for ( size_t j = 0; j < trackerKymco.tracks[i]->trace.size(); j++ )
+                {
+                    trackedPtsKymco.push_back( trackerKymco.tracks[i]->trace[j] );
+                    /* cv::circle( inputImgKymco, trackerKymco.tracks[i]->trace[j], 2 , RED_C3, CV_FILLED ); */
+                }
+            }
+            cv::perspectiveTransform( trackedPtsKymco, dst, perspective_matrixKymco );
             for ( unsigned int i = 0; i < dst.size(); i++ )
             {
                 cv::Point mappedPt = dst[i] - ptransKymco.getDstTl();
@@ -245,36 +292,12 @@ int main( int argc, char *argv[] )
                     mappedPt += roadRectTl;
                     mappedPt.x = abs( originRoadMap.cols - mappedPt.x );
                     mappedPt.y = abs( originRoadMap.rows - mappedPt.y );
-                    if ( mappedPt.x + mappedPt.y <= 500 || rect711.isBurstOrRecovery() )
+                    if ( mappedPt.x + mappedPt.y <= 600 || rect711.isBurstOrRecovery() )
                     {
                         /* cv::circle( roadMap, mappedPt , 10 , BLUE_C3, CV_FILLED ); */
-                        cv::circle( roadMap, mappedPt , 10 , RED_C3, CV_FILLED );
-                        ptsTracking.push_back( mappedPt );
+                        cv::circle( roadMap, mappedPt , 3 , RED_C3, CV_FILLED );
                     }
                 }
-            }
-        }
-        /* }}} */
-
-        /* tracking update points and draw path {{{*/
-        if ( ptsTracking.size() > 0 )
-        {
-            ptsTrackingPrev = vector<cv::Point2d>( ptsTracking );
-            tracker.Update( ptsTracking );
-        }
-        else if ( ptsTrackingPrev.size() > 0 )
-        {
-            tracker.Update( ptsTrackingPrev );
-        }
-        for ( size_t i = 0; i < tracker.tracks.size(); i++ )
-        {
-            if ( tracker.tracks[i]->trace.size() > 2 )
-            {
-                for ( size_t j = 0; j < tracker.tracks[i]->trace.size() - 1; j++ )
-                {
-                    line( roadMap, tracker.tracks[i]->trace[j], tracker.tracks[i]->trace[j + 1], GREEN_C3, 2, CV_AA );
-                }
-                /* cv::circle( roadMap, tracker.tracks[i]->trace[tracker.tracks[i]->trace.size() - 1] , 10 , RED_C3, CV_FILLED ); */
             }
         }
         /* }}} */
