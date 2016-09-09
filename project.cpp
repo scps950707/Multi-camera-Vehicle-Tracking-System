@@ -227,9 +227,9 @@ int main( int argc, char *argv[] )
             {
                 vector<cv::Point2f> dst;
                 cv::perspectiveTransform( tracker711.tracks[i]->trace , dst, perspective_matrix711 );
-                for ( unsigned int i = 0; i < dst.size(); i++ )
+                for ( unsigned int j = 0; j < dst.size(); j++ )
                 {
-                    cv::Point mappedPt = dst[i] - ptrans711.getDstTl();
+                    cv::Point mappedPt = dst[j] - ptrans711.getDstTl();
                     if ( mappedPt.x >= 0 && mappedPt.x <= roadMap.cols && mappedPt.y >= 0 && mappedPt.y <= roadMap.rows )
                     {
                         mappedPt += roadRectTl;
@@ -250,9 +250,9 @@ int main( int argc, char *argv[] )
             {
                 vector<cv::Point2f> dst;
                 cv::perspectiveTransform( trackerKymco.tracks[i]->trace, dst, perspective_matrixKymco );
-                for ( unsigned int i = 0; i < dst.size(); i++ )
+                for ( unsigned int j = 0; j < dst.size(); j++ )
                 {
-                    cv::Point mappedPt = dst[i] - ptransKymco.getDstTl();
+                    cv::Point mappedPt = dst[j] - ptransKymco.getDstTl();
                     if ( mappedPt.x >= 0 && mappedPt.x <= roadMap.cols && mappedPt.y >= 0 && mappedPt.y <= roadMap.rows )
                     {
                         /* move first, then rotated 180 degree for both directions */
