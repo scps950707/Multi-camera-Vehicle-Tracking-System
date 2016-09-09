@@ -121,8 +121,8 @@ int main( int argc, char *argv[] )
         cv::rectangle( originRoadMap, cv::Point( 100 + 35 * i, 10 ), cv::Point( 120 + 35 * i, 90 ), WHITE_C3, CV_FILLED );
         cv::rectangle( originRoadMap, cv::Point( 100 + 35 * i, 510 ), cv::Point( 120 + 35 * i, 590 ), WHITE_C3, CV_FILLED );
     }
-    putText( originRoadMap , "7-11", cv::Point( 20, 60 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
-    putText( originRoadMap , "KYMCO", cv::Point( 490, 540 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
+    putText( originRoadMap , "7-11", cv::Point( 5, 25 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
+    putText( originRoadMap , "KYMCO", cv::Point( 490, 590 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
     /* cv::line( originRoadMap, cv::Point( 0, 600 ), cv::Point( 600, 0 ), GREEN_C3, 2, CV_AA ); */
 
     /* }}} */
