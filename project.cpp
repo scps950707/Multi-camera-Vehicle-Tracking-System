@@ -8,6 +8,15 @@
 
 int main( int argc, char *argv[] )
 {
+    /* random colors array for drawing {{{*/
+    cv::RNG rng( 12345 );
+    cv::Scalar colors[20];
+    for ( int i = 0; i < 20; i++ )
+    {
+        colors[i] = cv::Scalar( rng.uniform( 0, 255 ), rng.uniform( 0, 255 ), rng.uniform( 0, 255 ) );
+    }
+    /* }}} */
+
     /* {{{ global variable set by commad line parameters */
     int fastforward = 0;
     int  options;
@@ -229,6 +238,10 @@ int main( int argc, char *argv[] )
                 cv::perspectiveTransform( tracker711.tracks[i]->trace , dst, perspective_matrix711 );
                 for ( unsigned int j = 0; j < dst.size(); j++ )
                 {
+                    for ( uint k = 0; k < tracker711.tracks[i]->trace.size() - 1; k++ )
+                    {
+                        line( inputImg711, tracker711.tracks[i]->trace[k], tracker711.tracks[i]->trace[k + 1], colors[i % 20], 2, CV_AA );
+                    }
                     cv::Point mappedPt = dst[j] - ptrans711.getDstTl();
                     if ( mappedPt.x >= 0 && mappedPt.x <= roadMap.cols && mappedPt.y >= 0 && mappedPt.y <= roadMap.rows )
                     {
@@ -252,6 +265,10 @@ int main( int argc, char *argv[] )
                 cv::perspectiveTransform( trackerKymco.tracks[i]->trace, dst, perspective_matrixKymco );
                 for ( unsigned int j = 0; j < dst.size(); j++ )
                 {
+                    for ( uint k = 0; k < trackerKymco.tracks[i]->trace.size() - 1; k++ )
+                    {
+                        line( inputImgKymco, trackerKymco.tracks[i]->trace[k], trackerKymco.tracks[i]->trace[k + 1], colors[i % 20], 2, CV_AA );
+                    }
                     cv::Point mappedPt = dst[j] - ptransKymco.getDstTl();
                     if ( mappedPt.x >= 0 && mappedPt.x <= roadMap.cols && mappedPt.y >= 0 && mappedPt.y <= roadMap.rows )
                     {
