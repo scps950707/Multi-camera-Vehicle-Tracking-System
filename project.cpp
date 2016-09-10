@@ -2,7 +2,6 @@
 #include "bsgmm.hpp"
 #include "rect.hpp"
 #include "ptrans.hpp"
-#include "gnuplot-iostream.h"
 #include "avi.hpp"
 #include "Ctracker.hpp"
 
