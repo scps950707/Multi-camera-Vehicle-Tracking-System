@@ -232,24 +232,31 @@ int main( int argc, char *argv[] )
         /* 711 map tracked points to roadMap{{{ */
         for ( uint i = 0; i < tracker711.tracks.size(); i++ )
         {
-            if ( tracker711.tracks[i]->trace.size() > 0 )
+            if ( tracker711.tracks[i]->trace.size() > 5 )
             {
+                for ( uint j = 0; j < tracker711.tracks[i]->trace.size() - 1; j++ )
+                {
+                    line( inputImg711, tracker711.tracks[i]->trace[j], tracker711.tracks[i]->trace[j + 1],
+                          colors[tracker711.tracks[i]->trackId % colors.size()], 2, CV_AA );
+                }
                 vector<cv::Point2f> dst;
                 cv::perspectiveTransform( tracker711.tracks[i]->trace , dst, perspective_matrix711 );
                 for ( unsigned int j = 0; j < dst.size(); j++ )
                 {
-                    for ( uint k = 0; k < tracker711.tracks[i]->trace.size() - 1; k++ )
+                    dst[j] -= ptrans711.getDstTl();
+                    dst[j].x += roadRectTl.x;
+                    dst[j].y += roadRectTl.y;
+                }
+                dst.erase( remove_if( dst.begin(), dst.end(),
+                                      [roadMap]( cv::Point2f dst )
+                {
+                    return dst.x < 0 || dst.x > roadMap.cols || dst.y < 0 || dst.y > roadMap.rows;
+                } ) );
+                for ( unsigned int j = 0; j < dst.size(); j++ )
+                {
+                    if ( dst[j].x + dst[j].y >= 600 || rectKymco.isBurstOrRecovery() )
                     {
-                        line( inputImg711, tracker711.tracks[i]->trace[k], tracker711.tracks[i]->trace[k + 1], colors[i % 20], 2, CV_AA );
-                    }
-                    cv::Point mappedPt = dst[j] - ptrans711.getDstTl();
-                    if ( mappedPt.x >= 0 && mappedPt.x <= roadMap.cols && mappedPt.y >= 0 && mappedPt.y <= roadMap.rows )
-                    {
-                        mappedPt += roadRectTl;
-                        if ( mappedPt.x + mappedPt.y >= 600 || rectKymco.isBurstOrRecovery() )
-                        {
-                            cv::circle( roadMap, mappedPt, 3 , RED_C3, CV_FILLED );
-                        }
+                        cv::circle( roadMap, dst[j], 3 , RED_C3, CV_FILLED );
                     }
                 }
             }
@@ -259,31 +266,37 @@ int main( int argc, char *argv[] )
         /* kymco map tracked points to roadMap{{{ */
         for ( uint i = 0; i < trackerKymco.tracks.size(); i++ )
         {
-            if ( trackerKymco.tracks[i]->trace.size() > 0 )
+            if ( trackerKymco.tracks[i]->trace.size() > 5 )
             {
+                for ( uint j = 0; j < trackerKymco.tracks[i]->trace.size() - 1; j++ )
+                {
+                    line( inputImgKymco, trackerKymco.tracks[i]->trace[j], trackerKymco.tracks[i]->trace[j + 1],
+                          colors[trackerKymco.tracks[i]->trackId % colors.size()], 2, CV_AA );
+                }
                 vector<cv::Point2f> dst;
                 cv::perspectiveTransform( trackerKymco.tracks[i]->trace, dst, perspective_matrixKymco );
                 for ( unsigned int j = 0; j < dst.size(); j++ )
                 {
-                    for ( uint k = 0; k < trackerKymco.tracks[i]->trace.size() - 1; k++ )
+                    dst[j] -= ptransKymco.getDstTl();
+                    dst[j].x += roadRectTl.x;
+                    dst[j].y += roadRectTl.y;
+                }
+                dst.erase( remove_if( dst.begin(), dst.end(),
+                                      [roadMap]( cv::Point2f dst )
+                {
+                    return dst.x < 0 || dst.x > roadMap.cols || dst.y < 0 || dst.y > roadMap.rows;
+                } ) );
+                for ( unsigned int j = 0; j < dst.size(); j++ )
+                {
+                    /* move first, then rotated 180 degree for both directions */
+                    dst[j].x = abs( originRoadMap.cols - dst[j].x );
+                    dst[j].y = abs( originRoadMap.rows - dst[j].y );
+                    /* do some fix by human */
+                    dst[j].x -= 30;
+                    dst[j].y -= 30;
+                    if ( dst[j].x + dst[j].y <= 600 || rect711.isBurstOrRecovery() )
                     {
-                        line( inputImgKymco, trackerKymco.tracks[i]->trace[k], trackerKymco.tracks[i]->trace[k + 1], colors[i % 20], 2, CV_AA );
-                    }
-                    cv::Point mappedPt = dst[j] - ptransKymco.getDstTl();
-                    if ( mappedPt.x >= 0 && mappedPt.x <= roadMap.cols && mappedPt.y >= 0 && mappedPt.y <= roadMap.rows )
-                    {
-                        /* move first, then rotated 180 degree for both directions */
-                        mappedPt += roadRectTl;
-                        mappedPt.x = abs( originRoadMap.cols - mappedPt.x );
-                        mappedPt.y = abs( originRoadMap.rows - mappedPt.y );
-                        /* do some fix by human */
-                        mappedPt.x -= 30;
-                        mappedPt.y -= 30;
-                        if ( mappedPt.x + mappedPt.y <= 600 || rect711.isBurstOrRecovery() )
-                        {
-                            /* cv::circle( roadMap, mappedPt , 10 , BLUE_C3, CV_FILLED ); */
-                            cv::circle( roadMap, mappedPt , 3 , RED_C3, CV_FILLED );
-                        }
+                        cv::circle( roadMap, dst[j] , 3 , RED_C3, CV_FILLED );
                     }
                 }
             }
