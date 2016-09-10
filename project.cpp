@@ -192,7 +192,7 @@ int main( int argc, char *argv[] )
         /* }}} */
 
         /* 711 update tracker {{{ */
-        tracker711.Update( trackingPts711, rect711.getRects(), CTracker::CentersDist );
+        tracker711.Update( trackingPts711 );
         /* }}} */
 
         /* 711 show object count, frame number and time stamp {{{ */
@@ -219,7 +219,7 @@ int main( int argc, char *argv[] )
         /* }}} */
 
         /* kymco update tracker {{{ */
-        trackerKymco.Update( trackingPtsKymco, rectKymco.getRects(), CTracker::CentersDist );
+        trackerKymco.Update( trackingPtsKymco );
         /* }}} */
 
         /* kymco show object count, frame number and time stamp {{{ */

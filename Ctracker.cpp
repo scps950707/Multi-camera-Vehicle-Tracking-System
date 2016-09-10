@@ -1,35 +1,70 @@
 #include "Ctracker.hpp"
 
+/* CTrack::CTrack( const cv::Point2f &p, float dt, float accelNoiseMag, int trackID ) {{{*/
+CTrack::CTrack( const cv::Point2f &p, float dt, float accelNoiseMag, int trackID )
+    :
+    trackId( trackID ),
+    skippedFrames( 0 ),
+    prediction( p ),
+    KF( p, dt, accelNoiseMag )
+{
+}
+/* }}} */
+
+/* float CTrack::CalcDist( const cv::Point2f &p ) {{{*/
+float CTrack::CalcDist( const cv::Point2f &p )
+{
+    cv::Point2f diff = prediction - p;
+    return sqrtf( diff.x * diff.x + diff.y * diff.y );
+}
+/* }}} */
+
+/* void CTrack::Update( const cv::Point2f &p, bool dataCorrect, int maxTraceLength ) {{{*/
+void CTrack::Update( const cv::Point2f &p, bool dataCorrect, int maxTraceLength )
+{
+    KF.GetPrediction();
+    prediction = KF.Update( p, dataCorrect );
+
+    if ( trace.size() > ( uint )maxTraceLength )
+    {
+        trace.erase( trace.begin(), trace.end() - maxTraceLength );
+    }
+
+    trace.push_back( prediction );
+}
+/* }}} */
+
+/* CTracker::CTracker(...) {{{*/
 /* Tracker. Manage tracks. Create, remove, update. */
 CTracker::CTracker(
     float dt_,
-    float Accel_noise_mag_,
-    float dist_thres_,
-    int maximum_allowed_skipped_frames_,
-    int max_trace_length_
+    float accelNoiseMag,
+    float distThres,
+    int maximumAllowedSkippedFrames,
+    int maxTraceLength
 )
     :
     dt( dt_ ),
-    Accel_noise_mag( Accel_noise_mag_ ),
-    dist_thres( dist_thres_ ),
-    maximum_allowed_skipped_frames( maximum_allowed_skipped_frames_ ),
-    max_trace_length( max_trace_length_ ),
+    accelNoiseMag( accelNoiseMag ),
+    distThres( distThres ),
+    maximumAllowedSkippedFrames( maximumAllowedSkippedFrames ),
+    maxTraceLength( maxTraceLength ),
     NextTrackID( 0 )
 {
 
 }
+/* }}} */
 
-void CTracker::Update( const std::vector<cv::Point2f> &detections, const std::vector<cv::Rect> &rects, DistType distType )
+/* void CTracker::Update( const std::vector<cv::Point2f> &detections ) {{{*/
+void CTracker::Update( const std::vector<cv::Point2f> &detections )
 {
-    CV_Assert( detections.size() == rects.size() );
-
     /* If there is no tracks yet, then every cv::Point begins its own track. */
     if ( tracks.size() == 0 )
     {
         /* If no tracks yet */
         for ( uint i = 0; i < detections.size(); i++ )
         {
-            tracks.push_back( std::make_unique<CTrack>( detections[i], rects[i], dt, Accel_noise_mag, NextTrackID++ ) );
+            tracks.push_back( std::make_unique<CTrack>( detections[i], dt, accelNoiseMag, NextTrackID++ ) );
         }
     }
 
@@ -42,27 +77,12 @@ void CTracker::Update( const std::vector<cv::Point2f> &detections, const std::ve
     {
         vector<float> Cost( N * M );
 
-        switch ( distType )
+        for ( uint i = 0; i < tracks.size(); i++ )
         {
-        case CentersDist:
-            for ( uint i = 0; i < tracks.size(); i++ )
+            for ( uint j = 0; j < detections.size(); j++ )
             {
-                for ( uint j = 0; j < detections.size(); j++ )
-                {
-                    Cost[i + j * N] = tracks[i]->CalcDist( detections[j] );
-                }
+                Cost[i + j * N] = tracks[i]->CalcDist( detections[j] );
             }
-            break;
-
-        case RectsDist:
-            for ( uint i = 0; i < tracks.size(); i++ )
-            {
-                for ( uint j = 0; j < detections.size(); j++ )
-                {
-                    Cost[i + j * N] = tracks[i]->CalcDist( rects[j] );
-                }
-            }
-            break;
         }
 
         /* Solving assignment problem (tracks and predictions of Kalman filter) */
@@ -74,23 +94,23 @@ void CTracker::Update( const std::vector<cv::Point2f> &detections, const std::ve
         {
             if ( assignment[i] != -1 )
             {
-                if ( Cost[i + assignment[i] * N] > dist_thres )
+                if ( Cost[i + assignment[i] * N] > distThres )
                 {
                     assignment[i] = -1;
-                    tracks[i]->skipped_frames = 1;
+                    tracks[i]->skippedFrames = 1;
                 }
             }
             else
             {
                 // If track have no assigned detect, then increment skipped frames counter.
-                tracks[i]->skipped_frames++;
+                tracks[i]->skippedFrames++;
             }
         }
 
         /* If track didn't get detects long time, remove it. */
         for ( uint i = 0; i < tracks.size(); i++ )
         {
-            if ( tracks[i]->skipped_frames > maximum_allowed_skipped_frames )
+            if ( tracks[i]->skippedFrames > maximumAllowedSkippedFrames )
             {
                 tracks.erase( tracks.begin() + i );
                 assignment.erase( assignment.begin() + i );
@@ -104,7 +124,7 @@ void CTracker::Update( const std::vector<cv::Point2f> &detections, const std::ve
     {
         if ( find( assignment.begin(), assignment.end(), i ) == assignment.end() )
         {
-            tracks.push_back( std::make_unique<CTrack>( detections[i], rects[i], dt, Accel_noise_mag, NextTrackID++ ) );
+            tracks.push_back( std::make_unique<CTrack>( detections[i], dt, accelNoiseMag, NextTrackID++ ) );
         }
     }
 
@@ -117,14 +137,15 @@ void CTracker::Update( const std::vector<cv::Point2f> &detections, const std::ve
         /* If we have assigned detect, then update using its coordinates */
         if ( assignment[i] != -1 )
         {
-            tracks[i]->skipped_frames = 0;
-            tracks[i]->Update( detections[assignment[i]], rects[assignment[i]], true, max_trace_length );
+            tracks[i]->skippedFrames = 0;
+            tracks[i]->Update( detections[assignment[i]], true, maxTraceLength );
         }
         /* if not continue using predictions */
         else
         {
-            tracks[i]->Update( cv::Point2f(), cv::Rect(), false, max_trace_length );
+            tracks[i]->Update( cv::Point2f(), false, maxTraceLength );
         }
     }
 
 }
+/* }}} */

@@ -118,7 +118,7 @@ int main( int argc, char *argv[] )
         }
         if ( boundRect.size() > 0 )
         {
-            tracker.Update( rect.getRectCentersFloat(), rect.getRects(), CTracker::CentersDist );
+            tracker.Update( rect.getRectCentersFloat() );
 
             /* for ( size_t i = 0; i < pts.size(); i++ ) */
             /* { */
@@ -135,7 +135,12 @@ int main( int argc, char *argv[] )
                     /* } */
                     for ( size_t j = 0; j < tracker.tracks[i]->trace.size(); j++ )
                     {
-                        cv::circle( inputImg, tracker.tracks[i]->trace[j], 2, colors[i], CV_FILLED );
+                        cv::Point tmp = tracker.tracks[i]->trace[j];
+                        cv::circle( inputImg, tmp , 2, colors[i], CV_FILLED );
+                        if ( j == 0 )
+                        {
+                            putText( inputImg, to_string( tracker.tracks[i]->trackId ), cv::Point( tmp.x + 5, tmp.y + 5 ), cv::FONT_HERSHEY_PLAIN, 1,  RED_C3, 1 );
+                        }
                     }
                 }
             }
