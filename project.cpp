@@ -10,8 +10,8 @@ int main( int argc, char *argv[] )
 {
     /* random colors array for drawing {{{*/
     cv::RNG rng( 12345 );
-    cv::Scalar colors[20];
-    for ( int i = 0; i < 20; i++ )
+    array<cv::Scalar, 20> colors;
+    for ( uint i = 0; i < colors.size(); i++ )
     {
         colors[i] = cv::Scalar( rng.uniform( 0, 255 ), rng.uniform( 0, 255 ), rng.uniform( 0, 255 ) );
     }
