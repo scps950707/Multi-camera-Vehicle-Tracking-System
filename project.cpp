@@ -7,13 +7,17 @@
 
 int main( int argc, char *argv[] )
 {
-    /* random colors array for drawing {{{*/
-    cv::RNG rng( 12345 );
-    array<cv::Scalar, 20> colors;
-    for ( uint i = 0; i < colors.size(); i++ )
+    /* color array for drawing {{{*/
+    array<cv::Scalar, 20> colors
     {
-        colors[i] = cv::Scalar( rng.uniform( 0, 255 ), rng.uniform( 0, 255 ), rng.uniform( 0, 255 ) );
-    }
+        {
+            cv::Scalar( 113, 58, 83 ), cv::Scalar( 216, 132, 97 ), cv::Scalar( 216, 132, 97 ), cv::Scalar( 183, 197, 80 ),
+            cv::Scalar( 101, 244, 240 ), cv::Scalar( 242, 223, 123 ), cv::Scalar( 239, 247, 178 ), cv::Scalar( 246, 247, 239 ),
+            cv::Scalar( 224, 214, 247 ), cv::Scalar( 212, 181, 242 ), cv::Scalar( 229, 255, 248 ), cv::Scalar( 160, 214, 6 ),
+            cv::Scalar( 170, 154, 27 ), cv::Scalar( 111, 71, 239 ), cv::Scalar( 61, 196, 255 ), cv::Scalar( 102, 102, 255 ),
+            cv::Scalar( 102, 255, 204 ), cv::Scalar( 140, 46, 93 ), cv::Scalar( 182, 196, 46 ), cv::Scalar( 241, 232, 184 )
+        }
+    };
     /* }}} */
 
     /* {{{ global variable set by commad line parameters */
