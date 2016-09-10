@@ -179,19 +179,25 @@ int main( int argc, char *argv[] )
         /* 711 kymco findBoundingRect, decide points inside rects to be tracked as mapping points on road map {{{ */
         rect711.update( inputImg711, outputMorp711 );
         vector<cv::Rect> boundRect711 = rect711.getRects();
-        vector<cv::Point2f> trackingPts711;
+        vector<cv::Point2f> trackingPts711( boundRect711.size() );
 
         for ( unsigned int i = 0; i < boundRect711.size(); i++ )
         {
             rectangle( inputImg711, boundRect711[i].tl(), boundRect711[i].br(), RED_C3, 2 );
-            cv::Point2f mapPts( boundRect711[i].x + boundRect711[i].width / 2, boundRect711[i].y + boundRect711[i].height );
-            if ( boundRect711[i].width > boundRect711[i].height )
-            {
-                mapPts.y -= boundRect711[i].height * 0.15;
-            }
-            /* cv::circle( inputImg711, mapPts, 4 , GREEN_C3, CV_FILLED ); */
-            trackingPts711.push_back( mapPts );
         }
+
+        std::transform( boundRect711.begin(), boundRect711.end(), trackingPts711.begin(), []( cv::Rect rect )
+        {
+            if ( rect.width > rect.height )
+            {
+                return cv::Point2f( rect.x + rect.width / 2, rect.y + rect.height * 0.85 );
+            }
+            else
+            {
+                return cv::Point2f( rect.x + rect.width / 2, rect.y + rect.height );
+            }
+        } );
+
         /* }}} */
 
         /* 711 update tracker {{{ */
@@ -206,19 +212,25 @@ int main( int argc, char *argv[] )
         /* kymco findBoundingRect, decide points inside rects to be tracked as mapping points on road map {{{ */
         rectKymco.update( inputImgKymco, outputMorpKymco );
         vector<cv::Rect> boundRectKymco =  rectKymco.getRects();
-        vector<cv::Point2f> trackingPtsKymco;
+        vector<cv::Point2f> trackingPtsKymco( boundRectKymco.size() );
 
         for ( unsigned int i = 0; i < boundRectKymco.size(); i++ )
         {
             rectangle( inputImgKymco, boundRectKymco[i].tl(), boundRectKymco[i].br(), BLUE_C3, 2 );
-            cv::Point2f mapPts( boundRectKymco[i].x + boundRectKymco[i].width / 2, boundRectKymco[i].y + boundRectKymco[i].height );
-            if ( boundRectKymco[i].width > boundRectKymco[i].height )
-            {
-                mapPts.y -= boundRectKymco[i].height * 0.1;
-            }
-            /* cv::circle( inputImgKymco, mapPts, 4 , GREEN_C3, CV_FILLED ); */
-            trackingPtsKymco.push_back( mapPts );
         }
+
+        std::transform( boundRectKymco.begin(), boundRectKymco.end(), trackingPtsKymco.begin(), []( cv::Rect rect )
+        {
+            if ( rect.width > rect.height )
+            {
+                return cv::Point2f( rect.x + rect.width / 2, rect.y + rect.height * 0.9 );
+            }
+            else
+            {
+                return cv::Point2f( rect.x + rect.width / 2, rect.y + rect.height );
+            }
+        } );
+
         /* }}} */
 
         /* kymco update tracker {{{ */
