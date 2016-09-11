@@ -20,7 +20,7 @@ private:
 class CTracker
 {
 public:
-    CTracker( float dt_, float Accel_noise_mag_, float dist_thres_ = 60, int maximum_allowed_skipped_frames_ = 10, int max_trace_length_ = 10 );
+    CTracker( float dt, float accelNoiseMag, float distThres = 60, int maxiumAllowedSkippedFrames = 10, int maxTraceLength = 10 );
     std::vector<std::unique_ptr<CTrack>> tracks;
     void Update( const std::vector<cv::Point2f> &detections );
 private:

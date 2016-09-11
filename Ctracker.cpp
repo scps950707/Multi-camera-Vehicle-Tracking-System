@@ -37,21 +37,20 @@ void CTrack::Update( const cv::Point2f &p, bool dataCorrect, int maxTraceLength 
 /* CTracker::CTracker(...) {{{*/
 /* Tracker. Manage tracks. Create, remove, update. */
 CTracker::CTracker(
-    float dt_,
+    float dt,
     float accelNoiseMag,
     float distThres,
     int maximumAllowedSkippedFrames,
     int maxTraceLength
 )
     :
-    dt( dt_ ),
+    dt( dt ),
     accelNoiseMag( accelNoiseMag ),
     distThres( distThres ),
     maximumAllowedSkippedFrames( maximumAllowedSkippedFrames ),
-    maxTraceLength( maxTraceLength ),
-    NextTrackID( 0 )
+    maxTraceLength( maxTraceLength )
 {
-
+    this->NextTrackID = 0;
 }
 /* }}} */
 
