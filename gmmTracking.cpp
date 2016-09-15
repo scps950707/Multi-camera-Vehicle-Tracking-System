@@ -177,6 +177,5 @@ int main( int argc, char *argv[] )
         }
         /* }}} */
     }
-    bsgmm.freeMem();
     return EXIT_SUCCESS;
 }

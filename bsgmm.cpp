@@ -216,8 +216,8 @@ bool BackgroundSubtractorGMM::isBackGround( double red, double green, double blu
 }
 /* }}} */
 
-/* void BackgroundSubtractorGMM::freeMem() {{{*/
-void BackgroundSubtractorGMM::freeMem()
+/* BackgroundSubtractorGMM::~BackgroundSubtractorGMM() {{{*/
+BackgroundSubtractorGMM::~BackgroundSubtractorGMM()
 {
     delete[] pixelGMMBuffer;
 }

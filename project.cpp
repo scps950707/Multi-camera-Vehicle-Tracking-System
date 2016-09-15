@@ -351,7 +351,5 @@ int main( int argc, char *argv[] )
         }
         //}}}
     }
-    bsgmm711.freeMem();
-    bsgmmKymco.freeMem();
     return EXIT_SUCCESS;
 }

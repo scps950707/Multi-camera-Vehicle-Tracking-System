@@ -56,7 +56,7 @@ class BackgroundSubtractorGMM
 public:
     BackgroundSubtractorGMM( int frameHeight, int frameWidth );
     void updateFrame( uchar *inputPtr, uchar *outputPtr );
-    void freeMem();
+    ~BackgroundSubtractorGMM();
     double alpha;
     /*
      * If the object be in static for approximately
