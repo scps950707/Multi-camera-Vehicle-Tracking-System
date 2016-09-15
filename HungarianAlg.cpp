@@ -8,6 +8,7 @@ AssignmentProblemSolver::~AssignmentProblemSolver()
 {
 }
 
+/* float AssignmentProblemSolver::Solve; {{{*/
 float AssignmentProblemSolver::Solve(
     const vector<float> &distMatrixIn,
     size_t nOfRows,
@@ -37,6 +38,9 @@ float AssignmentProblemSolver::Solve(
 
     return cost;
 }
+/* }}} */
+
+/* void AssignmentProblemSolver::assignmentoptimal {{{*/
 // --------------------------------------------------------------------------
 // Computes the optimal assignment (minimum overall costs) using Munkres algorithm.
 // --------------------------------------------------------------------------
@@ -48,7 +52,7 @@ void AssignmentProblemSolver::assignmentoptimal( vector<int> &assignment, float 
     // Total elements number
     size_t nOfElements = nOfRows * nOfColumns;
     // Memory allocation
-    float *distMatrix = ( float * )malloc( nOfElements * sizeof( float ) );
+    float *distMatrix = new float[nOfElements];
     // Pointer to last element
     float *distMatrixEnd = distMatrix + nOfElements;
 
@@ -58,12 +62,12 @@ void AssignmentProblemSolver::assignmentoptimal( vector<int> &assignment, float 
         distMatrix[row] = value;
     }
 
-    // Memory allocation
-    bool *coveredColumns = ( bool * )calloc( nOfColumns, sizeof( bool ) );
-    bool *coveredRows = ( bool * )calloc( nOfRows, sizeof( bool ) );
-    bool *starMatrix = ( bool * )calloc( nOfElements, sizeof( bool ) );
-    bool *primeMatrix = ( bool * )calloc( nOfElements, sizeof( bool ) );
-    bool *newStarMatrix = ( bool * )calloc( nOfElements, sizeof( bool ) ); /* used in step4 */
+    // Memory allocation use () opterator in C++ to init array to 0
+    bool *coveredColumns = new bool[nOfColumns]();
+    bool *coveredRows = new bool[nOfRows]();
+    bool *starMatrix = new bool[nOfElements]();
+    bool *primeMatrix = new bool[nOfElements]();
+    bool *newStarMatrix = new bool[nOfElements](); /* used in step4 */
 
     /* preliminary steps */
     if ( nOfRows <= nOfColumns )
@@ -159,17 +163,17 @@ void AssignmentProblemSolver::assignmentoptimal( vector<int> &assignment, float 
     /* compute cost and remove invalid assignments */
     computeassignmentcost( assignment, cost, distMatrixIn, nOfRows );
     /* free allocated memory */
-    free( distMatrix );
-    free( coveredColumns );
-    free( coveredRows );
-    free( starMatrix );
-    free( primeMatrix );
-    free( newStarMatrix );
+    delete []distMatrix;
+    delete []coveredColumns;
+    delete []coveredRows;
+    delete []starMatrix;
+    delete []primeMatrix;
+    delete []newStarMatrix;
     return;
 }
-// --------------------------------------------------------------------------
-//
-// --------------------------------------------------------------------------
+/* }}} */
+
+/* void AssignmentProblemSolver::buildassignmentvector {{{*/
 void AssignmentProblemSolver::buildassignmentvector( vector<int> &assignment, bool *starMatrix, size_t nOfRows, size_t nOfColumns )
 {
     for ( size_t row = 0; row < nOfRows; row++ )
@@ -184,9 +188,9 @@ void AssignmentProblemSolver::buildassignmentvector( vector<int> &assignment, bo
         }
     }
 }
-// --------------------------------------------------------------------------
-//
-// --------------------------------------------------------------------------
+/* }}} */
+
+/* void AssignmentProblemSolver::computeassignmentcost {{{*/
 void AssignmentProblemSolver::computeassignmentcost( const vector<int> &assignment, float &cost, const vector<float> &distMatrixIn, size_t nOfRows )
 {
     for ( size_t row = 0; row < nOfRows; row++ )
@@ -198,10 +202,9 @@ void AssignmentProblemSolver::computeassignmentcost( const vector<int> &assignme
         }
     }
 }
+/* }}} */
 
-// --------------------------------------------------------------------------
-//
-// --------------------------------------------------------------------------
+/* void AssignmentProblemSolver::step2a {{{*/
 void AssignmentProblemSolver::step2a( vector<int> &assignment, float *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, size_t nOfRows, size_t nOfColumns, size_t minDim )
 {
     bool *starMatrixTemp, *columnEnd;
@@ -222,10 +225,9 @@ void AssignmentProblemSolver::step2a( vector<int> &assignment, float *distMatrix
     /* move to step 3 */
     step2b( assignment, distMatrix, starMatrix, newStarMatrix, primeMatrix, coveredColumns, coveredRows, nOfRows, nOfColumns, minDim );
 }
+/* }}} */
 
-// --------------------------------------------------------------------------
-//
-// --------------------------------------------------------------------------
+/* void AssignmentProblemSolver::step2b {{{*/
 void AssignmentProblemSolver::step2b( vector<int> &assignment, float *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, size_t nOfRows, size_t nOfColumns, size_t minDim )
 {
     /* count covered columns */
@@ -248,10 +250,9 @@ void AssignmentProblemSolver::step2b( vector<int> &assignment, float *distMatrix
         step3( assignment, distMatrix, starMatrix, newStarMatrix, primeMatrix, coveredColumns, coveredRows, nOfRows, nOfColumns, minDim );
     }
 }
+/* }}} */
 
-// --------------------------------------------------------------------------
-//
-// --------------------------------------------------------------------------
+/* void AssignmentProblemSolver::step3 {{{*/
 void AssignmentProblemSolver::step3( vector<int> &assignment, float *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, size_t nOfRows, size_t nOfColumns, size_t minDim )
 {
     bool zerosFound = true;
@@ -298,10 +299,9 @@ void AssignmentProblemSolver::step3( vector<int> &assignment, float *distMatrix,
     /* move to step 5 */
     step5( assignment, distMatrix, starMatrix, newStarMatrix, primeMatrix, coveredColumns, coveredRows, nOfRows, nOfColumns, minDim );
 }
+/* }}} */
 
-// --------------------------------------------------------------------------
-//
-// --------------------------------------------------------------------------
+/* void AssignmentProblemSolver::step4 {{{*/
 void AssignmentProblemSolver::step4( vector<int> &assignment, float *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, size_t nOfRows, size_t nOfColumns, size_t minDim, size_t row, size_t col )
 {
     const size_t nOfElements = nOfRows * nOfColumns;
@@ -362,10 +362,9 @@ void AssignmentProblemSolver::step4( vector<int> &assignment, float *distMatrix,
     /* move to step 2a */
     step2a( assignment, distMatrix, starMatrix, newStarMatrix, primeMatrix, coveredColumns, coveredRows, nOfRows, nOfColumns, minDim );
 }
+/* }}} */
 
-// --------------------------------------------------------------------------
-//
-// --------------------------------------------------------------------------
+/* void AssignmentProblemSolver::step5 {{{*/
 void AssignmentProblemSolver::step5( vector<int> &assignment, float *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, size_t nOfRows, size_t nOfColumns, size_t minDim )
 {
     /* find smallest uncovered element h */
@@ -412,8 +411,9 @@ void AssignmentProblemSolver::step5( vector<int> &assignment, float *distMatrix,
     /* move to step 3 */
     step3( assignment, distMatrix, starMatrix, newStarMatrix, primeMatrix, coveredColumns, coveredRows, nOfRows, nOfColumns, minDim );
 }
+/* }}} */
 
-
+/* void AssignmentProblemSolver::assignmentsuboptimal2 {{{*/
 // --------------------------------------------------------------------------
 // Computes a suboptimal solution. Good for cases without forbidden assignments.
 // --------------------------------------------------------------------------
@@ -421,7 +421,7 @@ void AssignmentProblemSolver::assignmentsuboptimal2( vector<int> &assignment, fl
 {
     /* make working copy of distance Matrix */
     const size_t nOfElements = nOfRows * nOfColumns;
-    float *distMatrix = ( float * )malloc( nOfElements * sizeof( float ) );
+    float *distMatrix = new float[nOfElements];
     for ( size_t n = 0; n < nOfElements; n++ )
     {
         distMatrix[n] = distMatrixIn[n];
@@ -467,8 +467,11 @@ void AssignmentProblemSolver::assignmentsuboptimal2( vector<int> &assignment, fl
         }
     }
 
-    free( distMatrix );
+    delete []distMatrix;
 }
+/* }}} */
+
+/* void AssignmentProblemSolver::assignmentsuboptimal1 {{{*/
 // --------------------------------------------------------------------------
 // Computes a suboptimal solution. Good for cases with many forbidden assignments.
 // --------------------------------------------------------------------------
@@ -476,15 +479,15 @@ void AssignmentProblemSolver::assignmentsuboptimal1( vector<int> &assignment, fl
 {
     /* make working copy of distance Matrix */
     const size_t nOfElements = nOfRows * nOfColumns;
-    float *distMatrix = ( float * )malloc( nOfElements * sizeof( float ) );
+    float *distMatrix = new float[nOfElements];
     for ( size_t n = 0; n < nOfElements; n++ )
     {
         distMatrix[n] = distMatrixIn[n];
     }
 
     /* allocate memory */
-    int *nOfValidObservations = ( int * )calloc( nOfRows, sizeof( int ) );
-    int *nOfValidTracks = ( int * )calloc( nOfColumns, sizeof( int ) );
+    int *nOfValidObservations = new int[nOfRows]();
+    int *nOfValidTracks = new int[nOfColumns]();
 
     /* compute number of validations */
     bool infiniteValueFound = false;
@@ -704,7 +707,8 @@ void AssignmentProblemSolver::assignmentsuboptimal1( vector<int> &assignment, fl
     }
 
     /* free allocated memory */
-    free( nOfValidObservations );
-    free( nOfValidTracks );
-    free( distMatrix );
+    delete []nOfValidObservations;
+    delete []nOfValidTracks;
+    delete []distMatrix;
 }
+/* }}} */
