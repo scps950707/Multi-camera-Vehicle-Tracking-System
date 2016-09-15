@@ -1,4 +1,4 @@
-#include "Ctracker.hpp"
+#include "ctracker.hpp"
 
 /* CTrack::CTrack( const cv::Point2f &p, float dt, float accelNoiseMag, int trackID ) {{{*/
 CTrack::CTrack( const cv::Point2f &p, float dt, float accelNoiseMag, int trackID )

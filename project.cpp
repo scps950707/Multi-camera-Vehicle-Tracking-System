@@ -3,7 +3,7 @@
 #include "rect.hpp"
 #include "ptrans.hpp"
 #include "avi.hpp"
-#include "Ctracker.hpp"
+#include "ctracker.hpp"
 
 int main( int argc, char *argv[] )
 {
