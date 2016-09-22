@@ -148,7 +148,6 @@ void AssignmentProblemSolver::assignmentoptimal( vector<int> &assignment, float 
     delete []starMatrix;
     delete []primeMatrix;
     delete []newStarMatrix;
-    return;
 }
 /* }}} */
 
@@ -347,7 +346,7 @@ void AssignmentProblemSolver::step4( vector<int> &assignment, float *distMatrix,
 void AssignmentProblemSolver::step5( vector<int> &assignment, float *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, size_t nOfRows, size_t nOfColumns, size_t minDim )
 {
     /* find smallest uncovered element h */
-    float h = std::numeric_limits<float>::max();
+    float h = FLT_MAX;
     for ( size_t row = 0; row < nOfRows; row++ )
     {
         if ( !coveredRows[row] )

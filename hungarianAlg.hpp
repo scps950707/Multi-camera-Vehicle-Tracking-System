@@ -1,8 +1,4 @@
-#include <vector>
-#include <iostream>
-#include <limits>
-#include <time.h>
-using namespace std;
+#include "header.hpp"
 
 class AssignmentProblemSolver
 {
