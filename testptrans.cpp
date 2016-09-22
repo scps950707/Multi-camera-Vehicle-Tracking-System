@@ -6,7 +6,7 @@ int main( int argc, char *argv[] )
     // codes for control command line options {{{
     if ( argc < 2 )
     {
-        cout << "usage: ./exe -s 711.jpg -k kymco.jpg" << endl;
+        cout << "usage: ./testptrans -s 711.jpg -k kymco.jpg" << endl;
         exit( EXIT_FAILURE );
     }
 

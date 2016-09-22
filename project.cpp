@@ -33,7 +33,7 @@ int main( int argc, char *argv[] )
 
     if ( argc == 1 )
     {
-        cout << "./usage [options]" << endl;
+        cout << "./project [options]" << endl;
         cout << "options:" << endl;
         cout << "-i [input 711 video path] (required)" << endl;
         cout << "-j [input kymco video path] (required)" << endl;
