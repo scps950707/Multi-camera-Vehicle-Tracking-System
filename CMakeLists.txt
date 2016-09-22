@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 project( finalProject )
 find_package( OpenCV REQUIRED )
-find_package( Boost COMPONENTS iostreams system filesystem REQUIRED )
 
 add_executable( gmm gmm.cpp bsgmm.cpp rect.cpp )
 target_link_libraries( gmm ${OpenCV_LIBS} )
