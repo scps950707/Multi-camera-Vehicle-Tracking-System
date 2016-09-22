@@ -216,7 +216,7 @@ int main( int argc, char *argv[] )
 
         for ( unsigned int i = 0; i < boundRectKymco.size(); i++ )
         {
-            rectangle( inputImgKymco, boundRectKymco[i].tl(), boundRectKymco[i].br(), BLUE_C3, 2 );
+            rectangle( inputImgKymco, boundRectKymco[i].tl(), boundRectKymco[i].br(), RED_C3, 2 );
         }
 
         std::transform( boundRectKymco.begin(), boundRectKymco.end(), trackingPtsKymco.begin(), []( cv::Rect rect )
