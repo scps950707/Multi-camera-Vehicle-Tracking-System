@@ -1,148 +1,27 @@
 #include "hungarianAlg.hpp"
 
-AssignmentProblemSolver::AssignmentProblemSolver()
+/* assignmentProblemSolver::assignmentProblemSolver( int nOfRows, int nOfColumns ) {{{*/
+assignmentProblemSolver::assignmentProblemSolver( int nOfRows, int nOfColumns )
 {
-}
-
-/* float AssignmentProblemSolver::Solve; {{{*/
-float AssignmentProblemSolver::Solve(
-    const vector<float> &distMatrixIn,
-    size_t nOfRows,
-    size_t nOfColumns,
-    std::vector<int> &assignment
-)
-{
-    assignment.resize( nOfRows, -1 );
-    float cost = 0;
-    assignmentoptimal( assignment, cost, distMatrixIn, nOfRows, nOfColumns );
-    return cost;
+    this->nOfRows = nOfRows;
+    this->nOfColumns = nOfColumns;
+    // Total elements number
+    this->nOfElements = nOfRows * nOfColumns;
+    // Memory allocation use () opterator in C++ to init array to 0
+    this->coveredColumns = new bool[nOfColumns]();
+    this->coveredRows = new bool[nOfRows]();
+    this->starMatrix = new bool[nOfElements]();
+    this->primeMatrix = new bool[nOfElements]();
+    this->newStarMatrix = new bool[nOfElements](); /* used in step4 */
+    this->costMatrix = new float[nOfElements];
+    this->minDim = nOfRows <= nOfColumns ? nOfRows : nOfColumns;
 }
 /* }}} */
 
-/* void AssignmentProblemSolver::assignmentoptimal {{{*/
-// --------------------------------------------------------------------------
-// Computes the optimal assignment (minimum overall costs) using Munkres algorithm.
-// --------------------------------------------------------------------------
-void AssignmentProblemSolver::assignmentoptimal( vector<int> &assignment, float &cost, const vector<float> &distMatrixIn, size_t nOfRows, size_t nOfColumns )
+/* assignmentProblemSolver::~assignmentProblemSolver() {{{*/
+assignmentProblemSolver::~assignmentProblemSolver()
 {
-    // Generate distance cv::Matrix
-    // and check cv::Matrix elements positiveness :)
-
-    // Total elements number
-    size_t nOfElements = nOfRows * nOfColumns;
-    // Memory allocation
-    float *distMatrix = new float[nOfElements];
-    // Pointer to last element
-    float *distMatrixEnd = distMatrix + nOfElements;
-
-    for ( size_t row = 0; row < nOfElements; row++ )
-    {
-        float value = distMatrixIn[row];
-        distMatrix[row] = value;
-    }
-
-    // Memory allocation use () opterator in C++ to init array to 0
-    bool *coveredColumns = new bool[nOfColumns]();
-    bool *coveredRows = new bool[nOfRows]();
-    bool *starMatrix = new bool[nOfElements]();
-    bool *primeMatrix = new bool[nOfElements]();
-    bool *newStarMatrix = new bool[nOfElements](); /* used in step4 */
-
-    /* preliminary steps */
-    if ( nOfRows <= nOfColumns )
-    {
-        for ( size_t row = 0; row < nOfRows; row++ )
-        {
-            /* find the smallest element in the row */
-            float *distMatrixTemp = distMatrix + row;
-            float  minValue = *distMatrixTemp;
-            distMatrixTemp += nOfRows;
-            while ( distMatrixTemp < distMatrixEnd )
-            {
-                float value = *distMatrixTemp;
-                if ( value < minValue )
-                {
-                    minValue = value;
-                }
-                distMatrixTemp += nOfRows;
-            }
-            /* subtract the smallest element from each element of the row */
-            distMatrixTemp = distMatrix + row;
-            while ( distMatrixTemp < distMatrixEnd )
-            {
-                *distMatrixTemp -= minValue;
-                distMatrixTemp += nOfRows;
-            }
-        }
-        /* Steps 1 and 2a */
-        for ( size_t row = 0; row < nOfRows; row++ )
-        {
-            for ( size_t col = 0; col < nOfColumns; col++ )
-            {
-                if ( distMatrix[row + nOfRows * col] == 0 )
-                {
-                    if ( !coveredColumns[col] )
-                    {
-                        starMatrix[row + nOfRows * col] = true;
-                        coveredColumns[col] = true;
-                        break;
-                    }
-                }
-            }
-        }
-    }
-    else /* if(nOfRows > nOfColumns) */
-    {
-        for ( size_t col = 0; col < nOfColumns; col++ )
-        {
-            /* find the smallest element in the column */
-            float *distMatrixTemp = distMatrix + nOfRows * col;
-            float *columnEnd = distMatrixTemp + nOfRows;
-            float  minValue = *distMatrixTemp++;
-            while ( distMatrixTemp < columnEnd )
-            {
-                float value = *distMatrixTemp++;
-                if ( value < minValue )
-                {
-                    minValue = value;
-                }
-            }
-            /* subtract the smallest element from each element of the column */
-            distMatrixTemp = distMatrix + nOfRows * col;
-            while ( distMatrixTemp < columnEnd )
-            {
-                *distMatrixTemp++ -= minValue;
-            }
-        }
-        /* Steps 1 and 2a */
-        for ( size_t col = 0; col < nOfColumns; col++ )
-        {
-            for ( size_t row = 0; row < nOfRows; row++ )
-            {
-                if ( distMatrix[row + nOfRows * col] == 0 )
-                {
-                    if ( !coveredRows[row] )
-                    {
-                        starMatrix[row + nOfRows * col] = true;
-                        coveredColumns[col] = true;
-                        coveredRows[row] = true;
-                        break;
-                    }
-                }
-            }
-        }
-
-        for ( size_t row = 0; row < nOfRows; row++ )
-        {
-            coveredRows[row] = false;
-        }
-    }
-    /* move to step 2b */
-    step2b( assignment, distMatrix, starMatrix, newStarMatrix, primeMatrix, coveredColumns, coveredRows, nOfRows, nOfColumns, ( nOfRows <= nOfColumns ) ? nOfRows : nOfColumns );
-    /* compute cost and remove invalid assignments */
-    computeassignmentcost( assignment, cost, distMatrixIn, nOfRows );
-    /* free allocated memory */
-    delete []distMatrix;
+    delete []costMatrix;
     delete []coveredColumns;
     delete []coveredRows;
     delete []starMatrix;
@@ -151,16 +30,104 @@ void AssignmentProblemSolver::assignmentoptimal( vector<int> &assignment, float 
 }
 /* }}} */
 
-/* void AssignmentProblemSolver::buildassignmentvector {{{*/
-void AssignmentProblemSolver::buildassignmentvector( vector<int> &assignment, bool *starMatrix, size_t nOfRows, size_t nOfColumns )
+/* float assignmentProblemSolver::Solve; {{{*/
+void assignmentProblemSolver::Solve( vector<float> &costMatrixIn, vector<int> &assignment )
 {
-    for ( size_t row = 0; row < nOfRows; row++ )
+    assignment.resize( nOfRows, -1 );
+    assignmentOptimal( assignment, costMatrixIn );
+}
+/* }}} */
+
+/* void assignmentProblemSolver::assignmentOptimal {{{*/
+void assignmentProblemSolver::assignmentOptimal( vector<int> &assignment, vector<float> &costMatrixIn )
+{
+    for ( int i = 0; i < nOfElements; i++ )
     {
-        for ( size_t col = 0; col < nOfColumns; col++ )
+        costMatrix[i] = costMatrixIn[i];
+    }
+
+    /* preliminary steps */
+    if ( nOfRows <= nOfColumns )
+    {
+        for ( int row = 0; row < nOfRows; row++ )
+        {
+            /* find the smallest element in the row */
+            float  minValue = FLT_MAX;
+            for ( int i = 0; i < nOfColumns; i++ )
+            {
+                minValue = min( minValue, costMatrix[nOfColumns * row + i] );
+            }
+            /* subtract the smallest element from each element of the row */
+            for ( int i = 0; i < nOfColumns; i++ )
+            {
+                costMatrix[nOfColumns * row + i] -= minValue;
+            }
+        }
+        /* Steps 1 and 2a */
+        for ( int row = 0; row < nOfRows; row++ )
+        {
+            for ( int col = 0; col < nOfColumns; col++ )
+            {
+                if ( costMatrix[row + nOfRows * col] == 0 && !coveredColumns[col] )
+                {
+                    starMatrix[row + nOfRows * col] = true;
+                    coveredColumns[col] = true;
+                    break;
+                }
+            }
+        }
+    }
+    else /* if(nOfRows > nOfColumns) */
+    {
+        for ( int col = 0; col < nOfColumns; col++ )
+        {
+            /* find the smallest element in the column */
+            float  minValue = FLT_MAX;
+            for ( int i = 0; i < nOfRows; i++ )
+            {
+                minValue = min( minValue, costMatrix[nOfRows * col + i] );
+            }
+            /* subtract the smallest element from each element of the column */
+            for ( int i = 0; i < nOfRows; i++ )
+            {
+                costMatrix[nOfRows * col + i] -= minValue;
+            }
+        }
+        /* Steps 1 and 2a */
+        for ( int col = 0; col < nOfColumns; col++ )
+        {
+            for ( int row = 0; row < nOfRows; row++ )
+            {
+                if ( costMatrix[row + nOfRows * col] == 0 && !coveredRows[row] )
+                {
+                    starMatrix[row + nOfRows * col] = true;
+                    coveredColumns[col] = true;
+                    coveredRows[row] = true;
+                    break;
+                }
+            }
+        }
+
+        for ( int row = 0; row < nOfRows; row++ )
+        {
+            coveredRows[row] = false;
+        }
+    }
+    /* move to step 2b */
+    step2b( assignment );
+}
+/* }}} */
+
+/* void assignmentProblemSolver::buildAssignmentVector {{{*/
+void assignmentProblemSolver::buildAssignmentVector( vector<int> &assignment )
+{
+    for ( int row = 0; row < nOfRows; row++ )
+    {
+        for ( int col = 0; col < nOfColumns; col++ )
         {
             if ( starMatrix[row + nOfRows * col] )
             {
-                assignment[row] = static_cast<int>( col );
+                assignment[row] = col;
                 break;
             }
         }
@@ -168,32 +135,15 @@ void AssignmentProblemSolver::buildassignmentvector( vector<int> &assignment, bo
 }
 /* }}} */
 
-/* void AssignmentProblemSolver::computeassignmentcost {{{*/
-void AssignmentProblemSolver::computeassignmentcost( const vector<int> &assignment, float &cost, const vector<float> &distMatrixIn, size_t nOfRows )
+/* void assignmentProblemSolver::step2a {{{*/
+void assignmentProblemSolver::step2a( vector<int> &assignment )
 {
-    for ( size_t row = 0; row < nOfRows; row++ )
-    {
-        const int col = assignment[row];
-        if ( col >= 0 )
-        {
-            cost += distMatrixIn[row + nOfRows * col];
-        }
-    }
-}
-/* }}} */
-
-/* void AssignmentProblemSolver::step2a {{{*/
-void AssignmentProblemSolver::step2a( vector<int> &assignment, float *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, size_t nOfRows, size_t nOfColumns, size_t minDim )
-{
-    bool *starMatrixTemp, *columnEnd;
     /* cover every column containing a starred zero */
-    for ( size_t col = 0; col < nOfColumns; col++ )
+    for ( int col = 0; col < nOfColumns; col++ )
     {
-        starMatrixTemp = starMatrix + nOfRows * col;
-        columnEnd = starMatrixTemp + nOfRows;
-        while ( starMatrixTemp < columnEnd )
+        for ( int row = 0; row < nOfRows; row++ )
         {
-            if ( *starMatrixTemp++ )
+            if ( starMatrix[nOfRows * col + row] )
             {
                 coveredColumns[col] = true;
                 break;
@@ -201,16 +151,16 @@ void AssignmentProblemSolver::step2a( vector<int> &assignment, float *distMatrix
         }
     }
     /* move to step 3 */
-    step2b( assignment, distMatrix, starMatrix, newStarMatrix, primeMatrix, coveredColumns, coveredRows, nOfRows, nOfColumns, minDim );
+    step2b( assignment );
 }
 /* }}} */
 
-/* void AssignmentProblemSolver::step2b {{{*/
-void AssignmentProblemSolver::step2b( vector<int> &assignment, float *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, size_t nOfRows, size_t nOfColumns, size_t minDim )
+/* void assignmentProblemSolver::step2b {{{*/
+void assignmentProblemSolver::step2b( vector<int> &assignment )
 {
     /* count covered columns */
-    size_t nOfCoveredColumns = 0;
-    for ( size_t col = 0; col < nOfColumns; col++ )
+    int nOfCoveredColumns = 0;
+    for ( int col = 0; col < nOfColumns; col++ )
     {
         if ( coveredColumns[col] )
         {
@@ -220,35 +170,35 @@ void AssignmentProblemSolver::step2b( vector<int> &assignment, float *distMatrix
     if ( nOfCoveredColumns == minDim )
     {
         /* algorithm finished */
-        buildassignmentvector( assignment, starMatrix, nOfRows, nOfColumns );
+        buildAssignmentVector( assignment );
     }
     else
     {
         /* move to step 3 */
-        step3( assignment, distMatrix, starMatrix, newStarMatrix, primeMatrix, coveredColumns, coveredRows, nOfRows, nOfColumns, minDim );
+        step3( assignment );
     }
 }
 /* }}} */
 
-/* void AssignmentProblemSolver::step3 {{{*/
-void AssignmentProblemSolver::step3( vector<int> &assignment, float *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, size_t nOfRows, size_t nOfColumns, size_t minDim )
+/* void assignmentProblemSolver::step3 {{{*/
+void assignmentProblemSolver::step3( vector<int> &assignment )
 {
     bool zerosFound = true;
     while ( zerosFound )
     {
         zerosFound = false;
-        for ( size_t col = 0; col < nOfColumns; col++ )
+        for ( int col = 0; col < nOfColumns; col++ )
         {
             if ( !coveredColumns[col] )
             {
-                for ( size_t row = 0; row < nOfRows; row++ )
+                for ( int row = 0; row < nOfRows; row++ )
                 {
-                    if ( ( !coveredRows[row] ) && ( distMatrix[row + nOfRows * col] == 0 ) )
+                    if ( ( !coveredRows[row] ) && ( costMatrix[row + nOfRows * col] == 0 ) )
                     {
                         /* prime zero */
                         primeMatrix[row + nOfRows * col] = true;
                         /* find starred zero in current row */
-                        size_t starCol = 0;
+                        int starCol = 0;
                         for ( ; starCol < nOfColumns; starCol++ )
                         {
                             if ( starMatrix[row + nOfRows * starCol] )
@@ -259,7 +209,7 @@ void AssignmentProblemSolver::step3( vector<int> &assignment, float *distMatrix,
                         if ( starCol == nOfColumns ) /* no starred zero found */
                         {
                             /* move to step 4 */
-                            step4( assignment, distMatrix, starMatrix, newStarMatrix, primeMatrix, coveredColumns, coveredRows, nOfRows, nOfColumns, minDim, row, col );
+                            step4( assignment, row, col );
                             return;
                         }
                         else
@@ -275,24 +225,23 @@ void AssignmentProblemSolver::step3( vector<int> &assignment, float *distMatrix,
         }
     }
     /* move to step 5 */
-    step5( assignment, distMatrix, starMatrix, newStarMatrix, primeMatrix, coveredColumns, coveredRows, nOfRows, nOfColumns, minDim );
+    step5( assignment );
 }
 /* }}} */
 
-/* void AssignmentProblemSolver::step4 {{{*/
-void AssignmentProblemSolver::step4( vector<int> &assignment, float *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, size_t nOfRows, size_t nOfColumns, size_t minDim, size_t row, size_t col )
+/* void assignmentProblemSolver::step4 {{{*/
+void assignmentProblemSolver::step4( vector<int> &assignment, int row, int col )
 {
-    const size_t nOfElements = nOfRows * nOfColumns;
     /* generate temporary copy of starMatrix */
-    for ( size_t n = 0; n < nOfElements; n++ )
+    for ( int n = 0; n < nOfElements; n++ )
     {
         newStarMatrix[n] = starMatrix[n];
     }
     /* star current zero */
     newStarMatrix[row + nOfRows * col] = true;
     /* find starred zero in current column */
-    size_t starCol = col;
-    size_t starRow = 0;
+    int starCol = col;
+    int starRow = 0;
     for ( ; starRow < nOfRows; starRow++ )
     {
         if ( starMatrix[starRow + nOfRows * starCol] )
@@ -305,8 +254,8 @@ void AssignmentProblemSolver::step4( vector<int> &assignment, float *distMatrix,
         /* unstar the starred zero */
         newStarMatrix[starRow + nOfRows * starCol] = false;
         /* find primed zero in current row */
-        size_t primeRow = starRow;
-        size_t primeCol = 0;
+        int primeRow = starRow;
+        int primeCol = 0;
         for ( ; primeCol < nOfColumns; primeCol++ )
         {
             if ( primeMatrix[primeRow + nOfRows * primeCol] )
@@ -328,65 +277,61 @@ void AssignmentProblemSolver::step4( vector<int> &assignment, float *distMatrix,
     }
     /* use temporary copy as new starMatrix */
     /* delete all primes, uncover all rows */
-    for ( size_t n = 0; n < nOfElements; n++ )
+    for ( int n = 0; n < nOfElements; n++ )
     {
         primeMatrix[n] = false;
         starMatrix[n] = newStarMatrix[n];
     }
-    for ( size_t n = 0; n < nOfRows; n++ )
+    for ( int n = 0; n < nOfRows; n++ )
     {
         coveredRows[n] = false;
     }
     /* move to step 2a */
-    step2a( assignment, distMatrix, starMatrix, newStarMatrix, primeMatrix, coveredColumns, coveredRows, nOfRows, nOfColumns, minDim );
+    step2a( assignment );
 }
 /* }}} */
 
-/* void AssignmentProblemSolver::step5 {{{*/
-void AssignmentProblemSolver::step5( vector<int> &assignment, float *distMatrix, bool *starMatrix, bool *newStarMatrix, bool *primeMatrix, bool *coveredColumns, bool *coveredRows, size_t nOfRows, size_t nOfColumns, size_t minDim )
+/* void assignmentProblemSolver::step5 {{{*/
+void assignmentProblemSolver::step5( vector<int> &assignment )
 {
     /* find smallest uncovered element h */
     float h = FLT_MAX;
-    for ( size_t row = 0; row < nOfRows; row++ )
+    for ( int row = 0; row < nOfRows; row++ )
     {
         if ( !coveredRows[row] )
         {
-            for ( size_t col = 0; col < nOfColumns; col++ )
+            for ( int col = 0; col < nOfColumns; col++ )
             {
                 if ( !coveredColumns[col] )
                 {
-                    const float value = distMatrix[row + nOfRows * col];
-                    if ( value < h )
-                    {
-                        h = value;
-                    }
+                    h = min( h, costMatrix[row + nOfRows * col] );
                 }
             }
         }
     }
     /* add h to each covered row */
-    for ( size_t row = 0; row < nOfRows; row++ )
+    for ( int row = 0; row < nOfRows; row++ )
     {
         if ( coveredRows[row] )
         {
-            for ( size_t col = 0; col < nOfColumns; col++ )
+            for ( int col = 0; col < nOfColumns; col++ )
             {
-                distMatrix[row + nOfRows * col] += h;
+                costMatrix[row + nOfRows * col] += h;
             }
         }
     }
     /* subtract h from each uncovered column */
-    for ( size_t col = 0; col < nOfColumns; col++ )
+    for ( int col = 0; col < nOfColumns; col++ )
     {
         if ( !coveredColumns[col] )
         {
-            for ( size_t row = 0; row < nOfRows; row++ )
+            for ( int row = 0; row < nOfRows; row++ )
             {
-                distMatrix[row + nOfRows * col] -= h;
+                costMatrix[row + nOfRows * col] -= h;
             }
         }
     }
     /* move to step 3 */
-    step3( assignment, distMatrix, starMatrix, newStarMatrix, primeMatrix, coveredColumns, coveredRows, nOfRows, nOfColumns, minDim );
+    step3( assignment );
 }
 /* }}} */
