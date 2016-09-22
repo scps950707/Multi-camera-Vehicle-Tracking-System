@@ -14,6 +14,7 @@
 #include <vector>
 #include <algorithm>
 #include <cmath>
+#include <float.h>
 using namespace std;
 #define FPS 30
 #define BLACK_C1 cv::Scalar(0)
