@@ -1,10 +1,13 @@
 #include "hungarianAlg.hpp"
+#include <iomanip>
 
 int main()
 {
 
-    /* an example cost matrix */
-    vector<float> r(
+    /* for example row size:total worker, column size: total jobs */
+    int rows = 4;
+    int cols = 5;
+    vector<float> cost(
     {
         10, 10, 13, 12, 14,
         19, 18, 16, 19, 17,
@@ -14,17 +17,41 @@ int main()
     );
     vector<int> assignment;
 
-    assignmentProblemSolver aps( 4, 5 );
-    aps.Solve( r, assignment );
-    cout << "sizie:" << assignment.size() << endl;
+    assignmentProblemSolver aps( rows, cols );
+    aps.Solve( cost, assignment );
 
-    for ( uint i = 0; i < assignment.size(); i++ )
+    cout << "original matrix" << endl;
+    for ( int i = 0; i < rows; i++ )
     {
-        cout << assignment[i] << " ";
-        cout << r[i * 5 + assignment[i]] << endl;
+        for ( int j = 0; j < cols; j++ )
+        {
+            cout << setw( 3 ) << cost[i * cols + j];
+        }
+        cout << endl;
     }
 
+    cout << "expect" << endl;
+    cout << "10  x  x  x  x" << endl;
+    cout << " x  x  x  x 17" << endl;
+    cout << " x  x  9  x  x" << endl;
+    cout << " x 17  x  x  x" << endl;
 
+    cout << "assigned" << endl;
+
+    for ( unsigned int i = 0; i < assignment.size(); i++ )
+    {
+        for ( int j = 0; j < cols; j++ )
+        {
+            if ( assignment[i] == j )
+            {
+                cout << setw( 3 ) << cost[i * cols + assignment[i]];
+            }
+            else
+            {
+                cout << setw( 3 ) << "x";
+            }
+        }
+        cout << endl;
+    }
     return 0;
 }
-
