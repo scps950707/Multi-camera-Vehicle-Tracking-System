@@ -45,21 +45,31 @@ void assignmentProblemSolver::Solve( vector<float> &costMatrixIn, vector<int> &a
 /* void assignmentProblemSolver::assignmentOptimal {{{*/
 void assignmentProblemSolver::assignmentOptimal( vector<int> &assignment )
 {
+    float *distMatrixEnd = costMatrix + nOfElements;
     /* preliminary steps */
     if ( nOfRows <= nOfColumns )
     {
         for ( int row = 0; row < nOfRows; row++ )
         {
             /* find the smallest element in the row */
-            float  minValue = FLT_MAX;
-            for ( int col = 0; col < nOfColumns; col++ )
+            float *distMatrixTemp = costMatrix + row;
+            float  minValue = *distMatrixTemp;
+            distMatrixTemp += nOfRows;
+            while ( distMatrixTemp < distMatrixEnd )
             {
-                minValue = min( minValue, costMatrix[nOfColumns * row + col] );
+                float value = *distMatrixTemp;
+                if ( value < minValue )
+                {
+                    minValue = value;
+                }
+                distMatrixTemp += nOfRows;
             }
             /* subtract the smallest element from each element of the row */
-            for ( int col = 0; col < nOfColumns; col++ )
+            distMatrixTemp = costMatrix + row;
+            while ( distMatrixTemp < distMatrixEnd )
             {
-                costMatrix[nOfColumns * row + col] -= minValue;
+                *distMatrixTemp -= minValue;
+                distMatrixTemp += nOfRows;
             }
         }
         /* Steps 1 and 2a */
@@ -67,11 +77,14 @@ void assignmentProblemSolver::assignmentOptimal( vector<int> &assignment )
         {
             for ( int col = 0; col < nOfColumns; col++ )
             {
-                if ( costMatrix[row + nOfRows * col] == 0 && !coveredColumns[col] )
+                if ( costMatrix[row + nOfRows * col] == 0 )
                 {
-                    starMatrix[row + nOfRows * col] = true;
-                    coveredColumns[col] = true;
-                    break;
+                    if ( !coveredColumns[col] )
+                    {
+                        starMatrix[row + nOfRows * col] = true;
+                        coveredColumns[col] = true;
+                        break;
+                    }
                 }
             }
         }
@@ -81,15 +94,22 @@ void assignmentProblemSolver::assignmentOptimal( vector<int> &assignment )
         for ( int col = 0; col < nOfColumns; col++ )
         {
             /* find the smallest element in the column */
-            float  minValue = FLT_MAX;
-            for ( int row = 0; row < nOfRows; row++ )
+            float *distMatrixTemp = costMatrix + nOfRows * col;
+            float *columnEnd = distMatrixTemp + nOfRows;
+            float  minValue = *distMatrixTemp++;
+            while ( distMatrixTemp < columnEnd )
             {
-                minValue = min( minValue, costMatrix[nOfColumns * row + col] );
+                float value = *distMatrixTemp++;
+                if ( value < minValue )
+                {
+                    minValue = value;
+                }
             }
             /* subtract the smallest element from each element of the column */
-            for ( int row = 0; row < nOfRows; row++ )
+            distMatrixTemp = costMatrix + nOfRows * col;
+            while ( distMatrixTemp < columnEnd )
             {
-                costMatrix[nOfRows * col + row] -= minValue;
+                *distMatrixTemp++ -= minValue;
             }
         }
         /* Steps 1 and 2a */
@@ -97,12 +117,15 @@ void assignmentProblemSolver::assignmentOptimal( vector<int> &assignment )
         {
             for ( int row = 0; row < nOfRows; row++ )
             {
-                if ( costMatrix[row + nOfRows * col] == 0 && !coveredRows[row] )
+                if ( costMatrix[row + nOfRows * col] == 0 )
                 {
-                    starMatrix[row + nOfRows * col] = true;
-                    coveredColumns[col] = true;
-                    coveredRows[row] = true;
-                    break;
+                    if ( !coveredRows[row] )
+                    {
+                        starMatrix[row + nOfRows * col] = true;
+                        coveredColumns[col] = true;
+                        coveredRows[row] = true;
+                        break;
+                    }
                 }
             }
         }
@@ -137,12 +160,15 @@ void assignmentProblemSolver::buildAssignmentVector( vector<int> &assignment )
 /* void assignmentProblemSolver::step2a {{{*/
 void assignmentProblemSolver::step2a( vector<int> &assignment )
 {
+    bool *starMatrixTemp, *columnEnd;
     /* cover every column containing a starred zero */
     for ( int col = 0; col < nOfColumns; col++ )
     {
-        for ( int row = 0; row < nOfRows; row++ )
+        starMatrixTemp = starMatrix + nOfRows * col;
+        columnEnd = starMatrixTemp + nOfRows;
+        while ( starMatrixTemp < columnEnd )
         {
-            if ( starMatrix[nOfRows * col + row] )
+            if ( *starMatrixTemp++ )
             {
                 coveredColumns[col] = true;
                 break;
