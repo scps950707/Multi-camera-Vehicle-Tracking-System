@@ -45,31 +45,21 @@ void assignmentProblemSolver::Solve( vector<float> &costMatrixIn, vector<int> &a
 /* void assignmentProblemSolver::assignmentOptimal {{{*/
 void assignmentProblemSolver::assignmentOptimal( vector<int> &assignment )
 {
-    float *distMatrixEnd = costMatrix + nOfElements;
     /* preliminary steps */
     if ( nOfRows <= nOfColumns )
     {
         for ( int row = 0; row < nOfRows; row++ )
         {
             /* find the smallest element in the row */
-            float *distMatrixTemp = costMatrix + row;
-            float  minValue = *distMatrixTemp;
-            distMatrixTemp += nOfRows;
-            while ( distMatrixTemp < distMatrixEnd )
+            float minVal = FLT_MAX;
+            for ( int col = 0; col < nOfColumns; col++ )
             {
-                float value = *distMatrixTemp;
-                if ( value < minValue )
-                {
-                    minValue = value;
-                }
-                distMatrixTemp += nOfRows;
+                minVal = min( minVal, costMatrix[row * nOfColumns + col] );
             }
             /* subtract the smallest element from each element of the row */
-            distMatrixTemp = costMatrix + row;
-            while ( distMatrixTemp < distMatrixEnd )
+            for ( int col = 0; col < nOfColumns; col++ )
             {
-                *distMatrixTemp -= minValue;
-                distMatrixTemp += nOfRows;
+                costMatrix[row * nOfColumns + col] -= minVal;
             }
         }
         /* Steps 1 and 2a */
@@ -94,22 +84,15 @@ void assignmentProblemSolver::assignmentOptimal( vector<int> &assignment )
         for ( int col = 0; col < nOfColumns; col++ )
         {
             /* find the smallest element in the column */
-            float *distMatrixTemp = costMatrix + nOfRows * col;
-            float *columnEnd = distMatrixTemp + nOfRows;
-            float  minValue = *distMatrixTemp++;
-            while ( distMatrixTemp < columnEnd )
+            float minVal = FLT_MAX;
+            for ( int row = 0; row < nOfRows; row++ )
             {
-                float value = *distMatrixTemp++;
-                if ( value < minValue )
-                {
-                    minValue = value;
-                }
+                minVal = min( minVal, costMatrix[col * nOfRows + row] );
             }
             /* subtract the smallest element from each element of the column */
-            distMatrixTemp = costMatrix + nOfRows * col;
-            while ( distMatrixTemp < columnEnd )
+            for ( int row = 0; row < nOfRows; row++ )
             {
-                *distMatrixTemp++ -= minValue;
+                costMatrix[col * nOfRows + row] -= minVal;
             }
         }
         /* Steps 1 and 2a */
