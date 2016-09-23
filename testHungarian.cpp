@@ -6,13 +6,13 @@ int main()
 
     /* for example row size:total worker, column size: total jobs */
     int rows = 4;
-    int cols = 5;
+    int cols = 4;
     vector<float> cost(
     {
-        10, 10, 13, 12, 14,
-        19, 18, 16, 19, 17,
-        8, 7, 9, 8, 10,
-        15, 17, 14, 18, 19
+        80, 40, 50, 46,
+        40, 70, 20, 25,
+        30, 10, 20, 30,
+        35, 20, 25, 30
     }
     );
     vector<int> assignment;
@@ -29,12 +29,6 @@ int main()
         }
         cout << endl;
     }
-
-    cout << "expect" << endl;
-    cout << "10  x  x  x  x" << endl;
-    cout << " x  x  x  x 17" << endl;
-    cout << " x  x  9  x  x" << endl;
-    cout << " x 17  x  x  x" << endl;
 
     cout << "assigned" << endl;
 
