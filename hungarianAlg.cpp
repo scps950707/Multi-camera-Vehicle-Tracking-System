@@ -34,18 +34,17 @@ assignmentProblemSolver::~assignmentProblemSolver()
 void assignmentProblemSolver::Solve( vector<float> &costMatrixIn, vector<int> &assignment )
 {
     assignment.resize( nOfRows, -1 );
-    assignmentOptimal( assignment, costMatrixIn );
-}
-/* }}} */
-
-/* void assignmentProblemSolver::assignmentOptimal {{{*/
-void assignmentProblemSolver::assignmentOptimal( vector<int> &assignment, vector<float> &costMatrixIn )
-{
     for ( int i = 0; i < nOfElements; i++ )
     {
         costMatrix[i] = costMatrixIn[i];
     }
+    assignmentOptimal( assignment );
+}
+/* }}} */
 
+/* void assignmentProblemSolver::assignmentOptimal {{{*/
+void assignmentProblemSolver::assignmentOptimal( vector<int> &assignment )
+{
     /* preliminary steps */
     if ( nOfRows <= nOfColumns )
     {
@@ -90,7 +89,7 @@ void assignmentProblemSolver::assignmentOptimal( vector<int> &assignment, vector
             /* subtract the smallest element from each element of the column */
             for ( int row = 0; row < nOfRows; row++ )
             {
-                costMatrix[nOfColumns * row + col] -= minValue;
+                costMatrix[nOfRows * col + row] -= minValue;
             }
         }
         /* Steps 1 and 2a */
