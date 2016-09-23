@@ -53,14 +53,14 @@ void assignmentProblemSolver::assignmentOptimal( vector<int> &assignment, vector
         {
             /* find the smallest element in the row */
             float  minValue = FLT_MAX;
-            for ( int i = 0; i < nOfColumns; i++ )
+            for ( int col = 0; col < nOfColumns; col++ )
             {
-                minValue = min( minValue, costMatrix[nOfColumns * row + i] );
+                minValue = min( minValue, costMatrix[nOfColumns * row + col] );
             }
             /* subtract the smallest element from each element of the row */
-            for ( int i = 0; i < nOfColumns; i++ )
+            for ( int col = 0; col < nOfColumns; col++ )
             {
-                costMatrix[nOfColumns * row + i] -= minValue;
+                costMatrix[nOfColumns * row + col] -= minValue;
             }
         }
         /* Steps 1 and 2a */
@@ -83,14 +83,14 @@ void assignmentProblemSolver::assignmentOptimal( vector<int> &assignment, vector
         {
             /* find the smallest element in the column */
             float  minValue = FLT_MAX;
-            for ( int i = 0; i < nOfRows; i++ )
+            for ( int row = 0; row < nOfRows; row++ )
             {
-                minValue = min( minValue, costMatrix[nOfRows * col + i] );
+                minValue = min( minValue, costMatrix[nOfColumns * row + col] );
             }
             /* subtract the smallest element from each element of the column */
-            for ( int i = 0; i < nOfRows; i++ )
+            for ( int row = 0; row < nOfRows; row++ )
             {
-                costMatrix[nOfRows * col + i] -= minValue;
+                costMatrix[nOfColumns * row + col] -= minValue;
             }
         }
         /* Steps 1 and 2a */
