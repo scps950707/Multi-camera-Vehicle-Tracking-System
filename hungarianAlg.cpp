@@ -31,19 +31,26 @@ assignmentProblemSolver::~assignmentProblemSolver()
 /* }}} */
 
 /* float assignmentProblemSolver::Solve; {{{*/
-void assignmentProblemSolver::Solve( vector<float> &costMatrixIn, vector<int> &assignment )
+void assignmentProblemSolver::Solve( vector<float> &costMatrixIn )
 {
     assignment.resize( nOfRows, -1 );
     for ( int i = 0; i < nOfElements; i++ )
     {
         costMatrix[i] = costMatrixIn[i];
     }
-    assignmentOptimal( assignment );
+    assignmentOptimal();
+}
+/* }}} */
+
+/* vector<int> assignmentProblemSolver::getAssignment() {{{*/
+vector<int> assignmentProblemSolver::getAssignment()
+{
+    return this->assignment;
 }
 /* }}} */
 
 /* void assignmentProblemSolver::assignmentOptimal {{{*/
-void assignmentProblemSolver::assignmentOptimal( vector<int> &assignment )
+void assignmentProblemSolver::assignmentOptimal()
 {
     /* preliminary steps */
     if ( nOfRows <= nOfColumns )
@@ -119,12 +126,12 @@ void assignmentProblemSolver::assignmentOptimal( vector<int> &assignment )
         }
     }
     /* move to step 2b */
-    step2b( assignment );
+    step2b();
 }
 /* }}} */
 
 /* void assignmentProblemSolver::buildAssignmentVector {{{*/
-void assignmentProblemSolver::buildAssignmentVector( vector<int> &assignment )
+void assignmentProblemSolver::buildAssignmentVector()
 {
     for ( int row = 0; row < nOfRows; row++ )
     {
@@ -141,7 +148,7 @@ void assignmentProblemSolver::buildAssignmentVector( vector<int> &assignment )
 /* }}} */
 
 /* void assignmentProblemSolver::step2a {{{*/
-void assignmentProblemSolver::step2a( vector<int> &assignment )
+void assignmentProblemSolver::step2a()
 {
     for ( int col = 0; col < nOfColumns; col++ )
     {
@@ -154,12 +161,12 @@ void assignmentProblemSolver::step2a( vector<int> &assignment )
             }
         }
     }
-    step2b( assignment );
+    step2b();
 }
 /* }}} */
 
 /* void assignmentProblemSolver::step2b {{{*/
-void assignmentProblemSolver::step2b( vector<int> &assignment )
+void assignmentProblemSolver::step2b()
 {
     /* count covered columns */
     int nOfCoveredColumns = 0;
@@ -173,18 +180,18 @@ void assignmentProblemSolver::step2b( vector<int> &assignment )
     if ( nOfCoveredColumns == minDim )
     {
         /* algorithm finished */
-        buildAssignmentVector( assignment );
+        buildAssignmentVector();
     }
     else
     {
         /* move to step 3 */
-        step3( assignment );
+        step3();
     }
 }
 /* }}} */
 
 /* void assignmentProblemSolver::step3 {{{*/
-void assignmentProblemSolver::step3( vector<int> &assignment )
+void assignmentProblemSolver::step3()
 {
     bool zerosFound = true;
     while ( zerosFound )
@@ -212,7 +219,7 @@ void assignmentProblemSolver::step3( vector<int> &assignment )
                         if ( starCol == nOfColumns ) /* no starred zero found */
                         {
                             /* move to step 4 */
-                            step4( assignment, row, col );
+                            step4( row, col );
                             return;
                         }
                         else
@@ -228,12 +235,12 @@ void assignmentProblemSolver::step3( vector<int> &assignment )
         }
     }
     /* move to step 5 */
-    step5( assignment );
+    step5();
 }
 /* }}} */
 
 /* void assignmentProblemSolver::step4 {{{*/
-void assignmentProblemSolver::step4( vector<int> &assignment, int row, int col )
+void assignmentProblemSolver::step4( int row, int col )
 {
     /* generate temporary copy of starMatrix */
     for ( int n = 0; n < nOfElements; n++ )
@@ -290,12 +297,12 @@ void assignmentProblemSolver::step4( vector<int> &assignment, int row, int col )
         coveredRows[n] = false;
     }
     /* move to step 2a */
-    step2a( assignment );
+    step2a();
 }
 /* }}} */
 
 /* void assignmentProblemSolver::step5 {{{*/
-void assignmentProblemSolver::step5( vector<int> &assignment )
+void assignmentProblemSolver::step5()
 {
     /* find smallest uncovered element h */
     float h = FLT_MAX;
@@ -335,6 +342,6 @@ void assignmentProblemSolver::step5( vector<int> &assignment )
         }
     }
     /* move to step 3 */
-    step3( assignment );
+    step3();
 }
 /* }}} */

@@ -3,13 +3,13 @@
 class assignmentProblemSolver
 {
 private:
-    void assignmentOptimal( vector<int> &assignment );
-    void buildAssignmentVector( vector<int> &assignment );
-    void step2a( vector<int> &assignment );
-    void step2b( vector<int> &assignment );
-    void step3( vector<int> &assignment );
-    void step4( vector<int> &assignment, int row, int col );
-    void step5( vector<int> &assignment );
+    void assignmentOptimal();
+    void buildAssignmentVector();
+    void step2a();
+    void step2b();
+    void step3();
+    void step4( int row, int col );
+    void step5();
     int nOfRows;
     int nOfColumns;
     int nOfElements;
@@ -20,8 +20,10 @@ private:
     bool *primeMatrix;
     bool *newStarMatrix; /* used in step4 */
     float *costMatrix;
+    vector<int> assignment;
 public:
     assignmentProblemSolver( int nOfRows, int nOfColumns );
     ~assignmentProblemSolver();
-    void Solve( vector<float> &costMatrixIn, vector<int> &assignment );
+    void Solve( vector<float> &costMatrixIn );
+    vector<int> getAssignment();
 };

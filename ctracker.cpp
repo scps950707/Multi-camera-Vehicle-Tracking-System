@@ -86,7 +86,8 @@ void CTracker::Update( const std::vector<cv::Point2f> &detections )
 
         /* Solving assignment problem (tracks and predictions of Kalman filter) */
         assignmentProblemSolver APS( N, M );
-        APS.Solve( Cost, assignment );
+        APS.Solve( Cost );
+        assignment = APS.getAssignment();
 
         /* clean assignment from pairs with large distance */
         for ( uint i = 0; i < assignment.size(); i++ )

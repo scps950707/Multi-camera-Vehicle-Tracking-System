@@ -15,10 +15,10 @@ int main()
         35, 20, 25, 30
     }
     );
-    vector<int> assignment;
 
     assignmentProblemSolver aps( rows, cols );
-    aps.Solve( cost, assignment );
+    aps.Solve( cost );
+    vector<int> assignment = aps.getAssignment();
 
     cout << "original matrix" << endl;
     for ( int i = 0; i < rows; i++ )
