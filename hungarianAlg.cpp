@@ -143,22 +143,17 @@ void assignmentProblemSolver::buildAssignmentVector( vector<int> &assignment )
 /* void assignmentProblemSolver::step2a {{{*/
 void assignmentProblemSolver::step2a( vector<int> &assignment )
 {
-    bool *starMatrixTemp, *columnEnd;
-    /* cover every column containing a starred zero */
     for ( int col = 0; col < nOfColumns; col++ )
     {
-        starMatrixTemp = starMatrix + nOfRows * col;
-        columnEnd = starMatrixTemp + nOfRows;
-        while ( starMatrixTemp < columnEnd )
+        for ( int row = 0; row < nOfRows; row++ )
         {
-            if ( *starMatrixTemp++ )
+            if ( starMatrix[nOfRows * col + row] )
             {
                 coveredColumns[col] = true;
                 break;
             }
         }
     }
-    /* move to step 3 */
     step2b( assignment );
 }
 /* }}} */
