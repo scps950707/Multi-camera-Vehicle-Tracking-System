@@ -21,12 +21,12 @@ int main( int argc, char *argv[] )
 
     if ( argc == 1 )
     {
-        cout << "usage: ./BSGMM [options]" << endl;
+        cout << "usage: ./gmmTracking [options]" << endl;
         cout << "options:" << endl;
-        cout << "-i [input video path]  (required)" << endl;
-        cout << "-v [output video path]" << endl;
-        cout << "-m [mask video output path]" << endl;
-        cout << "-t [video start time (secs)]" << endl;
+        cout << "-i [input video path] (required)" << endl;
+        cout << "-v [output video path] (optional)" << endl;
+        cout << "-m [mask video output path] (optional)" << endl;
+        cout << "-t [video start time (secs)] (optional)" << endl;
         exit( EXIT_FAILURE );
     }
     struct option  long_opt[] =

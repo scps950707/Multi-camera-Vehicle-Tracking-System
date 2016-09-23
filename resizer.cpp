@@ -5,7 +5,7 @@ int main( int argc, char *argv[] )
 {
     if ( argc != 5 )
     {
-        cout << "./usage input_path output_path width height" << endl;
+        cout << "./resizer input_path output_path width height" << endl;
         exit( EXIT_FAILURE );
     }
     cv::VideoCapture cap( argv[1] );
