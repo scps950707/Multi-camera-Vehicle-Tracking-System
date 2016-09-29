@@ -204,11 +204,6 @@ int main( int argc, char *argv[] )
         tracker711.Update( trackingPts711 );
         /* }}} */
 
-        /* 711 show object count, frame number and time stamp {{{ */
-        string str711 = "Count:" + to_string( boundRect711.size() ) + " Frame:" + to_string( ( int )capture711.get( CV_CAP_PROP_POS_FRAMES ) ) + "time:" + to_string( ( int )( capture711.get( CV_CAP_PROP_POS_FRAMES ) / FPS ) );
-        putText( inputImg711, str711, cv::Point( 300, inputImg711.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
-        /* }}} */
-
         /* kymco findBoundingRect, decide points inside rects to be tracked as mapping points on road map {{{ */
         rectKymco.update( inputImgKymco, outputMorpKymco );
         vector<cv::Rect> boundRectKymco =  rectKymco.getRects();
@@ -235,11 +230,6 @@ int main( int argc, char *argv[] )
 
         /* kymco update tracker {{{ */
         trackerKymco.Update( trackingPtsKymco );
-        /* }}} */
-
-        /* kymco show object count, frame number and time stamp {{{ */
-        string strKymco = "Count:" + to_string( boundRectKymco.size() ) + " Frame:" + to_string( ( int )captureKymco.get( CV_CAP_PROP_POS_FRAMES ) ) + "time:" + to_string( ( int )( capture711.get( CV_CAP_PROP_POS_FRAMES ) / FPS ) );
-        putText( inputImgKymco, strKymco, cv::Point( 300, inputImg711.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
         /* }}} */
 
         cv::Mat roadMap = originRoadMap.clone();
@@ -318,6 +308,11 @@ int main( int argc, char *argv[] )
         }
         /* }}} */
 
+        /* codes for print text on merge {{{ */
+        string frame_num = " Frame:" + to_string( ( int )captureKymco.get( CV_CAP_PROP_POS_FRAMES ) ) + "time:" + to_string( ( int )( capture711.get( CV_CAP_PROP_POS_FRAMES ) / FPS ) );
+        putText( merge, frame_num, cv::Point( 800, 650 ), cv::FONT_HERSHEY_PLAIN, 3,  RED_C3, 2 );
+        /* }}} */
+
         /* codes for imshow {{{*/
         if ( Imshow )
         {
@@ -339,10 +334,12 @@ int main( int argc, char *argv[] )
         roadMap.copyTo( merge( cv::Range( 0, roadMap.rows ) , cv::Range( newSize.width + 5, roadMap.cols + newSize.width + 5 ) ) );
         /* }}} */
 
+        /* codes for output video{{{ */
         if ( outputAvi )
         {
             aw << merge;
         }
+        /* }}} */
 
         // monitor keys to stop{{{
         if ( cv::waitKey( 1 ) > 0 )
