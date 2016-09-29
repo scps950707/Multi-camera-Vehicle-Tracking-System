@@ -80,7 +80,6 @@ int main( int argc, char *argv[] )
 
     cv::Mat inputImg711, outputMask711;
     cv::Mat inputImgKymco, outputMaskKymco;
-    cv::Size newSize( 800, 450 );
     cv::VideoCapture capture711( inputPath711 );
     cv::VideoCapture captureKymco( inputPathKymco );
     // perform fast foward
@@ -96,8 +95,6 @@ int main( int argc, char *argv[] )
         cout << " Can't recieve input from source " << endl;
         exit( EXIT_FAILURE );
     }
-    /* cv::resize( inputImg711, inputImg711, newSize ); */
-    /* cv::resize( inputImgKymco, inputImgKymco, newSize ); */
     outputMask711 = cv::Mat( inputImg711.size(), CV_8UC1, BLACK_C1 );
     outputMaskKymco = cv::Mat( inputImgKymco.size(), CV_8UC1, BLACK_C1 );
     cv::Mat originRoadMap( cv::Size( 600, 600 ), inputImg711.type(), GRAY_C3 );
@@ -133,8 +130,8 @@ int main( int argc, char *argv[] )
         cv::rectangle( originRoadMap, cv::Point( 100 + 35 * i, 10 ), cv::Point( 120 + 35 * i, 90 ), WHITE_C3, CV_FILLED );
         cv::rectangle( originRoadMap, cv::Point( 100 + 35 * i, 510 ), cv::Point( 120 + 35 * i, 590 ), WHITE_C3, CV_FILLED );
     }
-    putText( originRoadMap , "7-11", cv::Point( 5, 25 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
-    putText( originRoadMap , "KYMCO", cv::Point( 490, 590 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
+    putText( originRoadMap , "7-11", cv::Point( 5, 25 ), cv::FONT_HERSHEY_PLAIN, 2,  BLUE_C3, 2 );
+    putText( originRoadMap , "KYMCO", cv::Point( 490, 590 ), cv::FONT_HERSHEY_PLAIN, 2,  BLUE_C3, 2 );
     /* cv::line( originRoadMap, cv::Point( 0, 600 ), cv::Point( 600, 0 ), GREEN_C3, 2, CV_AA ); */
 
     /* }}} */
@@ -159,24 +156,21 @@ int main( int argc, char *argv[] )
     CTracker trackerKymco( 0.2, 0.5, 60, 10, 25 );
     /* }}} */
 
+    /* process two videos {{{*/
 
     while ( capture711.read( inputImg711 ) && captureKymco.read( inputImgKymco ) )
     {
+        /* declare variables used inside while loop{{{*/
+        cv::Mat roadMap = originRoadMap.clone();
+        /* }}} */
+
         /* 711 do GMM operation and do morphologyEx {{{ */
-        /* cv::resize( inputImg711, inputImg711, newSize ); */
         bsgmm711.updateFrame( inputImg711.ptr(), outputMask711.ptr() );
         cv::Mat outputMorp711;
         cv::morphologyEx( outputMask711, outputMorp711, CV_MOP_CLOSE, getStructuringElement( cv::MORPH_RECT, cv::Size( 5, 5 ) ) );
         /* }}} */
 
-        /* kymco do GMM operation and do morphologyEx {{{ */
-        /* cv::resize( inputImgKymco, inputImgKymco, newSize ); */
-        bsgmmKymco.updateFrame( inputImgKymco.ptr(), outputMaskKymco.ptr() );
-        cv::Mat outputMorpKymco;
-        cv::morphologyEx( outputMaskKymco, outputMorpKymco, CV_MOP_CLOSE, getStructuringElement( cv::MORPH_RECT, cv::Size( 5, 5 ) ) );
-        /* }}} */
-
-        /* 711 kymco findBoundingRect, decide points inside rects to be tracked as mapping points on road map {{{ */
+        /* 711 findBoundingRect, decide points inside rects to be tracked as mapping points on road map {{{ */
         rect711.update( inputImg711, outputMorp711 );
         vector<cv::Rect> boundRect711 = rect711.getRects();
         vector<cv::Point2f> trackingPts711( boundRect711.size() );
@@ -202,6 +196,12 @@ int main( int argc, char *argv[] )
 
         /* 711 update tracker {{{ */
         tracker711.Update( trackingPts711 );
+        /* }}} */
+
+        /* kymco do GMM operation and do morphologyEx {{{ */
+        bsgmmKymco.updateFrame( inputImgKymco.ptr(), outputMaskKymco.ptr() );
+        cv::Mat outputMorpKymco;
+        cv::morphologyEx( outputMaskKymco, outputMorpKymco, CV_MOP_CLOSE, getStructuringElement( cv::MORPH_RECT, cv::Size( 5, 5 ) ) );
         /* }}} */
 
         /* kymco findBoundingRect, decide points inside rects to be tracked as mapping points on road map {{{ */
@@ -231,8 +231,6 @@ int main( int argc, char *argv[] )
         /* kymco update tracker {{{ */
         trackerKymco.Update( trackingPtsKymco );
         /* }}} */
-
-        cv::Mat roadMap = originRoadMap.clone();
 
         /* 711 map tracked points to roadMap{{{ */
         for ( uint i = 0; i < tracker711.tracks.size(); i++ )
@@ -308,6 +306,13 @@ int main( int argc, char *argv[] )
         }
         /* }}} */
 
+        /* merge windows together {{{ */
+        merge.setTo( 0 );
+        inputImg711.copyTo( merge( cv::Range( 0, inputImg711.rows ) , cv::Range( 0, inputImg711.cols ) ) );
+        inputImgKymco.copyTo( merge( cv::Range( inputImgKymco.rows + 5, inputImgKymco.rows * 2 + 5 ) , cv::Range( 0, inputImgKymco.cols ) ) );
+        roadMap.copyTo( merge( cv::Range( 0, roadMap.rows ) , cv::Range( inputImg711.cols + 5, roadMap.cols + inputImg711.cols + 5 ) ) );
+        /* }}} */
+
         /* codes for print text on merge {{{ */
         string frame_num = " Frame:" + to_string( ( int )captureKymco.get( CV_CAP_PROP_POS_FRAMES ) ) + "time:" + to_string( ( int )( capture711.get( CV_CAP_PROP_POS_FRAMES ) / FPS ) );
         putText( merge, frame_num, cv::Point( 800, 650 ), cv::FONT_HERSHEY_PLAIN, 3,  RED_C3, 2 );
@@ -327,13 +332,6 @@ int main( int argc, char *argv[] )
         }
         /* }}} */
 
-        /* merge windows together {{{ */
-        merge.setTo( 0 );
-        inputImg711.copyTo( merge( cv::Range( 0, newSize.height ) , cv::Range( 0, newSize.width ) ) );
-        inputImgKymco.copyTo( merge( cv::Range( newSize.height + 5, newSize.height * 2 + 5 ) , cv::Range( 0, newSize.width ) ) );
-        roadMap.copyTo( merge( cv::Range( 0, roadMap.rows ) , cv::Range( newSize.width + 5, roadMap.cols + newSize.width + 5 ) ) );
-        /* }}} */
-
         /* codes for output video{{{ */
         if ( outputAvi )
         {
@@ -348,5 +346,7 @@ int main( int argc, char *argv[] )
         }
         //}}}
     }
+
+    /* }}} */
     return EXIT_SUCCESS;
 }
