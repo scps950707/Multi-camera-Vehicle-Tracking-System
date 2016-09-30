@@ -111,14 +111,28 @@ int main( int argc, char *argv[] )
         findRect rect;
         rect.update( inputImg, outputMorp );
         vector<cv::Rect> boundRect =  rect.getRects();
+        vector<cv::Point2f> trackingPts( boundRect.size() );
+        std::transform( boundRect.begin(), boundRect.end(), trackingPts.begin(), []( cv::Rect rect )
+        {
+            if ( rect.width > rect.height )
+            {
+                return cv::Point2f( rect.x + rect.width / 2, rect.y + rect.height * 0.85 );
+            }
+            else
+            {
+                return cv::Point2f( rect.x + rect.width / 2, rect.y + rect.height );
+            }
+        } );
 
         for ( unsigned int i = 0; i < boundRect.size(); i++ )
         {
             rectangle( inputImg, boundRect[i].tl(), boundRect[i].br(), RED_C3, 2 );
+            putText( inputImg, to_string( ( int )trackingPts[i].x ) + "," + to_string( ( int )trackingPts[i].y ) , trackingPts[i], cv::FONT_HERSHEY_PLAIN, 1,  BLUE_C3, 2 );
         }
         if ( boundRect.size() > 0 )
         {
-            tracker.Update( rect.getRectCentersFloat() );
+            tracker.setFrameNum( capture.get( CV_CAP_PROP_POS_FRAMES ) );
+            tracker.Update( trackingPts );
 
             /* for ( size_t i = 0; i < pts.size(); i++ ) */
             /* { */
@@ -139,7 +153,7 @@ int main( int argc, char *argv[] )
                         cv::circle( inputImg, tmp , 2, colors[i], CV_FILLED );
                         if ( j == 0 )
                         {
-                            putText( inputImg, to_string( tracker.tracks[i]->trackId ), cv::Point( tmp.x + 5, tmp.y + 5 ), cv::FONT_HERSHEY_PLAIN, 1,  RED_C3, 1 );
+                            /* putText( inputImg, to_string( tracker.tracks[i]->trackId ), cv::Point( tmp.x + 5, tmp.y + 5 ), cv::FONT_HERSHEY_PLAIN, 1,  RED_C3, 1 ); */
                         }
                     }
                 }

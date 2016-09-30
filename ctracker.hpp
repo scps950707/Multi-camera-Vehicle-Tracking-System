@@ -12,9 +12,11 @@ public:
     std::vector<cv::Point2f> trace;
     int trackId;
     int skippedFrames;
+    void setFrameNum( int n );
 private:
     cv::Point2f prediction;
     TKalmanFilter KF;
+    int frameNum;
 };
 
 class CTracker
@@ -23,6 +25,7 @@ public:
     CTracker( float dt, float accelNoiseMag, float distThres = 60, int maxiumAllowedSkippedFrames = 10, int maxTraceLength = 10 );
     std::vector<std::unique_ptr<CTrack>> tracks;
     void Update( const std::vector<cv::Point2f> &detections );
+    void setFrameNum( int n );
 private:
     float dt;
     float accelNoiseMag;
@@ -30,5 +33,6 @@ private:
     int maximumAllowedSkippedFrames;
     int maxTraceLength;
     int NextTrackID;
+    int frameNum;
 };
 

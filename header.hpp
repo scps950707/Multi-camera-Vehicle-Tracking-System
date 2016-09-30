@@ -16,6 +16,7 @@
 #include <cmath>
 #include <float.h>
 #include <limits.h>
+#include <iomanip>
 using namespace std;
 #define FPS 30
 #define BLACK_C1 cv::Scalar(0)
@@ -27,6 +28,5 @@ using namespace std;
 #define RED_C3 cv::Scalar(0,0,255)
 #define BLUE_C3 cv::Scalar(255,0,0)
 #define GREEN_C3 cv::Scalar(0,255,0)
-
 
 #endif

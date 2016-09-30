@@ -1,5 +1,10 @@
 #include "ctracker.hpp"
 
+void CTrack::setFrameNum( int n )
+{
+    this->frameNum = n;
+}
+
 /* CTrack::CTrack( const cv::Point2f &p, float dt, float accelNoiseMag, int trackID ) {{{*/
 CTrack::CTrack( const cv::Point2f &p, float dt, float accelNoiseMag, int trackID )
     :
@@ -15,6 +20,12 @@ CTrack::CTrack( const cv::Point2f &p, float dt, float accelNoiseMag, int trackID
 float CTrack::CalcDist( const cv::Point2f &p )
 {
     cv::Point2f diff = prediction - p;
+    if ( this->frameNum == 212 )
+    {
+        cout << "tracker point:" << prediction <<
+             "updated point:" << p <<
+             "dist:" << ( int )sqrtf( diff.x * diff.x + diff.y * diff.y ) << endl;
+    }
     return sqrtf( diff.x * diff.x + diff.y * diff.y );
 }
 /* }}} */
@@ -54,6 +65,11 @@ CTracker::CTracker(
 }
 /* }}} */
 
+void CTracker::setFrameNum( int n )
+{
+    this->frameNum = n;
+}
+
 /* void CTracker::Update( const std::vector<cv::Point2f> &detections ) {{{*/
 void CTracker::Update( const std::vector<cv::Point2f> &detections )
 {
@@ -78,6 +94,7 @@ void CTracker::Update( const std::vector<cv::Point2f> &detections )
 
         for ( uint i = 0; i < tracks.size(); i++ )
         {
+            tracks[i]->setFrameNum( this->frameNum );
             for ( uint j = 0; j < detections.size(); j++ )
             {
                 Cost[i + j * N] = tracks[i]->CalcDist( detections[j] );
@@ -88,6 +105,22 @@ void CTracker::Update( const std::vector<cv::Point2f> &detections )
         assignmentProblemSolver APS( N, M );
         APS.Solve( Cost );
         assignment = APS.getAssignment();
+        if ( frameNum == 212 )
+        {
+            cout << "frameNum:" << frameNum << endl;
+            cout << "detections size:" << detections.size() << endl;
+            cout << "tracks size:" << tracks.size() << endl;
+            for ( uint i = 0; i < tracks.size(); i++ )
+            {
+                for ( uint j = 0; j < detections.size(); j++ )
+                {
+                    cout << setw( 4 ) << static_cast<int>( Cost[i + j * N] ) << " ";
+                }
+                cout << endl;
+            }
+            cout << endl;
+            cout << endl;
+        }
 
         /* clean assignment from pairs with large distance */
         for ( uint i = 0; i < assignment.size(); i++ )
@@ -129,6 +162,13 @@ void CTracker::Update( const std::vector<cv::Point2f> &detections )
     }
 
     /* Update Kalman Filters state */
+    if ( frameNum == 212 )
+    {
+        for ( uint i = 0; i < assignment.size(); i++ )
+        {
+            cout << "tracker:" << i << " uses detections:" << assignment[i]  << endl;
+        }
+    }
 
     for ( uint i = 0; i < assignment.size(); i++ )
     {
