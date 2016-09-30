@@ -14,10 +14,6 @@ target_link_libraries( testptrans ${OpenCV_LIBS} )
 add_executable( project project.cpp bsgmm.cpp rect.cpp ptrans.cpp avi.cpp ctracker.cpp kalman.cpp hungarianAlg.cpp )
 target_link_libraries( project ${OpenCV_LIBS} ${Boost_LIBRARIES} )
 
-add_executable( projectO3 project.cpp bsgmm.cpp rect.cpp ptrans.cpp avi.cpp ctracker.cpp kalman.cpp hungarianAlg.cpp )
-target_link_libraries( projectO3 ${OpenCV_LIBS} ${Boost_LIBRARIES} )
-set_target_properties(projectO3 PROPERTIES COMPILE_FLAGS "-Wall -std=c++14 -O3")
-
 add_executable( resizer resizer.cpp avi.cpp )
 target_link_libraries( resizer ${OpenCV_LIBS} )
 
