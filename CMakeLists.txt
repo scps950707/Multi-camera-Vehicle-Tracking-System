@@ -27,5 +27,5 @@ target_link_libraries( gmmTracking ${OpenCV_LIBS} )
 add_executable( testHungarian testHungarian.cpp hungarianAlg.cpp )
 target_link_libraries( testHungarian ${OpenCV_LIBS} )
 
-set(CMAKE_CXX_FLAGS "-Wall -std=c++14")
+set(CMAKE_CXX_FLAGS "-Wall -std=c++14 -O2")
 set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
