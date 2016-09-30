@@ -30,34 +30,31 @@ BackgroundSubtractorGMM::BackgroundSubtractorGMM( int frameHeight, int frameWidt
 /* void BackgroundSubtractorGMM::updateFrame( uchar *inputPtr, uchar *outputPtr ) {{{*/
 void BackgroundSubtractorGMM::updateFrame( uchar *inputPtr, uchar *outputPtr )
 {
-    PIXELGMM *curPixelGMM = this->pixelGMMBuffer;
     for ( int i = 0; i < this->frameWidth * this->frameHeight; i++ )
     {
-        double red = *inputPtr++;
-        double green = *inputPtr++;
-        double blue = *inputPtr++;
+        double blue = inputPtr[3 * i];
+        double green = inputPtr[3 * i + 1];
+        double red = inputPtr[3 * i + 2];
         bool isShdw = false;
-        bool isBG = isBackGround( red, green, blue, curPixelGMM );
+        bool isBG = isBackGround( red, green, blue, pixelGMMBuffer + i );
         if ( this->shadowDetection && isBG == false )
         {
-            isShdw = this->isShadow( red, green, blue, curPixelGMM );
+            isShdw = this->isShadow( red, green, blue, pixelGMMBuffer + i );
         }
         if ( isBG )
         {
-            *outputPtr = BLACK;
+            outputPtr[i] = BLACK;
         }
         else
         {
-            *outputPtr = isShdw ? ( this->shadowBeBackground ? BLACK : GRAY ) : WHITE;
+            outputPtr[i] = isShdw ? ( this->shadowBeBackground ? BLACK : GRAY ) : WHITE;
             if ( this->removeForeground )
             {
-                *( inputPtr - 3 ) = curPixelGMM->arr[0].R;
-                *( inputPtr - 2 ) = curPixelGMM->arr[0].G;
-                *( inputPtr - 1 ) = curPixelGMM->arr[0].B;
+                inputPtr[3 * i] = ( pixelGMMBuffer + i )->arr[0].B;
+                inputPtr[3 * i + 1] = ( pixelGMMBuffer + i )->arr[0].G;
+                inputPtr[3 * i + 2] = ( pixelGMMBuffer + i )->arr[0].R;
             }
         }
-        curPixelGMM++;
-        outputPtr++;
     }
 }
 /* }}} */
@@ -130,9 +127,9 @@ bool BackgroundSubtractorGMM::isBackGround( double red, double green, double blu
                 double mul = this->alpha / weight;
                 weight = this->alpha_bar * weight + this->prune;
                 weight += this->alpha;
-                curPixelGMM->arr[GMMIndex].R -= mul * ( dR );
-                curPixelGMM->arr[GMMIndex].G -= mul * ( dG );
-                curPixelGMM->arr[GMMIndex].B -= mul * ( dB );
+                curPixelGMM->arr[GMMIndex].R -= mul * dR;
+                curPixelGMM->arr[GMMIndex].G -= mul * dG;
+                curPixelGMM->arr[GMMIndex].B -= mul * dB;
                 double newVar = var + mul * ( dist - var );
                 curPixelGMM->arr[GMMIndex].variance = newVar<4 ? 4 : newVar>5 * this->defaultVariance ? 5 * this->defaultVariance : newVar;
                 for ( int sortIndex = GMMIndex; sortIndex > 0; sortIndex-- )
