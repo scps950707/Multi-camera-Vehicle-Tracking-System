@@ -1,9 +1,5 @@
 #! /bin/sh
-if [ "$1" = "O3" ]; then
-    EXE=./projectO3
-else
-    EXE=./project
-fi
+EXE=./project
 cd build
 make
 START=$(date +%s)
