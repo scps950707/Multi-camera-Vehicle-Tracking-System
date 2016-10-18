@@ -12,7 +12,7 @@ add_executable( testptrans testptrans.cpp ptrans.cpp )
 target_link_libraries( testptrans ${OpenCV_LIBS} )
 
 add_executable( project project.cpp bsgmm.cpp rect.cpp ptrans.cpp avi.cpp ctracker.cpp kalman.cpp hungarianAlg.cpp )
-target_link_libraries( project ${OpenCV_LIBS} ${Boost_LIBRARIES} )
+target_link_libraries( project ${OpenCV_LIBS} )
 
 add_executable( resizer resizer.cpp avi.cpp )
 target_link_libraries( resizer ${OpenCV_LIBS} )
