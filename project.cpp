@@ -182,14 +182,8 @@ int main( int argc, char *argv[] )
 
         std::transform( boundRect711.begin(), boundRect711.end(), trackingPts711.begin(), []( cv::Rect rect )
         {
-            if ( rect.width > rect.height )
-            {
-                return cv::Point2f( rect.x + rect.width / 2, rect.y + rect.height * 0.85 );
-            }
-            else
-            {
-                return cv::Point2f( rect.x + rect.width / 2, rect.y + rect.height );
-            }
+            float height =  rect.width > rect.height ?  rect.y + rect.height * 0.85 : rect.y + rect.height;
+            return cv::Point2f( rect.x + rect.width / 2, height );
         } );
 
         /* }}} */
@@ -216,14 +210,8 @@ int main( int argc, char *argv[] )
 
         std::transform( boundRectKymco.begin(), boundRectKymco.end(), trackingPtsKymco.begin(), []( cv::Rect rect )
         {
-            if ( rect.width > rect.height )
-            {
-                return cv::Point2f( rect.x + rect.width / 2, rect.y + rect.height * 0.9 );
-            }
-            else
-            {
-                return cv::Point2f( rect.x + rect.width / 2, rect.y + rect.height );
-            }
+            float height =  rect.width > rect.height ?  rect.y + rect.height * 0.9 : rect.y + rect.height;
+            return cv::Point2f( rect.x + rect.width / 2, height );
         } );
 
         /* }}} */
