@@ -21,7 +21,7 @@ class CTracker
 {
 public:
     CTracker( float dt, float accelNoiseMag, float distThres = 60, int maxiumAllowedSkippedFrames = 10, int maxTraceLength = 10 );
-    std::vector<std::unique_ptr<CTrack>> tracks;
+    std::vector<CTrack> tracks;
     void Update( const std::vector<cv::Point2f> &detections );
 private:
     float dt;

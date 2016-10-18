@@ -127,19 +127,19 @@ int main( int argc, char *argv[] )
 
             for ( size_t i = 0; i < tracker.tracks.size(); i++ )
             {
-                if ( tracker.tracks[i]->trace.size() > 1 )
+                if ( tracker.tracks[i].trace.size() > 1 )
                 {
-                    /* for ( size_t j = 0; j < tracker.tracks[i]->trace.size() - 1; j++ ) */
+                    /* for ( size_t j = 0; j < tracker.tracks[i].trace.size() - 1; j++ ) */
                     /* { */
-                    /*     line( inputImg, tracker.tracks[i]->trace[j], tracker.tracks[i]->trace[j + 1], colors[i], 2, CV_AA ); */
+                    /*     line( inputImg, tracker.tracks[i].trace[j], tracker.tracks[i].trace[j + 1], colors[i], 2, CV_AA ); */
                     /* } */
-                    for ( size_t j = 0; j < tracker.tracks[i]->trace.size(); j++ )
+                    for ( size_t j = 0; j < tracker.tracks[i].trace.size(); j++ )
                     {
-                        cv::Point tmp = tracker.tracks[i]->trace[j];
+                        cv::Point tmp = tracker.tracks[i].trace[j];
                         cv::circle( inputImg, tmp , 2, colors[i], CV_FILLED );
                         if ( j == 0 )
                         {
-                            putText( inputImg, to_string( tracker.tracks[i]->trackId ), cv::Point( tmp.x + 5, tmp.y + 5 ), cv::FONT_HERSHEY_PLAIN, 1,  RED_C3, 1 );
+                            putText( inputImg, to_string( tracker.tracks[i].trackId ), cv::Point( tmp.x + 5, tmp.y + 5 ), cv::FONT_HERSHEY_PLAIN, 1,  RED_C3, 1 );
                         }
                     }
                 }
