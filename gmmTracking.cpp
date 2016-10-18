@@ -1,7 +1,7 @@
 #include "header.hpp"
 #include "bsgmm.hpp"
 #include "rect.hpp"
-#include "ctracker.hpp"
+#include "multiTracker.hpp"
 
 int main( int argc, char *argv[] )
 {

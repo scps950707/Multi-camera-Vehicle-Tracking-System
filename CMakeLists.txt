@@ -11,13 +11,13 @@ target_link_libraries( roadmap ${OpenCV_LIBS} )
 add_executable( testptrans testptrans.cpp ptrans.cpp )
 target_link_libraries( testptrans ${OpenCV_LIBS} )
 
-add_executable( project project.cpp bsgmm.cpp rect.cpp ptrans.cpp avi.cpp ctracker.cpp kalman.cpp hungarianAlg.cpp )
+add_executable( project project.cpp bsgmm.cpp rect.cpp ptrans.cpp avi.cpp tracker.cpp multiTracker.cpp kalman.cpp hungarianAlg.cpp )
 target_link_libraries( project ${OpenCV_LIBS} )
 
 add_executable( resizer resizer.cpp avi.cpp )
 target_link_libraries( resizer ${OpenCV_LIBS} )
 
-add_executable( gmmTracking gmmTracking.cpp kalman.cpp ctracker.cpp hungarianAlg.cpp bsgmm.cpp rect.cpp )
+add_executable( gmmTracking gmmTracking.cpp kalman.cpp tracker.cpp multiTracker.cpp hungarianAlg.cpp bsgmm.cpp rect.cpp )
 target_link_libraries( gmmTracking ${OpenCV_LIBS} )
 
 add_executable( testHungarian testHungarian.cpp hungarianAlg.cpp )
