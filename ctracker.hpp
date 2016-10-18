@@ -1,3 +1,6 @@
+#ifndef __CTRACKER_HPP__
+#define __CTRACKER_HPP__
+
 #include "kalman.hpp"
 #include "hungarianAlg.hpp"
 #include "header.hpp"
@@ -32,3 +35,4 @@ private:
     int NextTrackID;
 };
 
+#endif

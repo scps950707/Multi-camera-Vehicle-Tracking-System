@@ -1,3 +1,6 @@
+#ifndef __KALMAN_HPP__
+#define __KALMAN_HPP__
+
 #include "header.hpp"
 
 class TKalmanFilter
@@ -11,3 +14,4 @@ public:
     cv::Point2f Update( cv::Point2f p, bool DataCorrect );
 };
 
+#endif

@@ -1,3 +1,6 @@
+#ifndef __HUNGARIANALG_HPP__
+#define __HUNGARIANALG_HPP__
+
 #include "header.hpp"
 
 class assignmentProblemSolver
@@ -27,3 +30,5 @@ public:
     void Solve( vector<float> &costMatrixIn );
     vector<int> getAssignment();
 };
+
+#endif
