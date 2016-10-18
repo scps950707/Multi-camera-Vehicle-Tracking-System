@@ -59,7 +59,7 @@ cv::Point2f TKalmanFilter::GetPrediction()
 cv::Point2f TKalmanFilter::Update( cv::Point2f p, bool DataCorrect )
 {
     cv::Mat measurement( 2, 1, CV_32FC1 );
-    if ( !DataCorrect )
+    if ( DataCorrect == false )
     {
         measurement.at<float>( 0 ) = LastResult.x;
         measurement.at<float>( 1 ) = LastResult.y;

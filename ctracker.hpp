@@ -6,13 +6,13 @@
 #include "header.hpp"
 #include <memory>
 
-class CTrack
+class Tracker
 {
 public:
-    CTrack( const cv::Point2f &p, float dt, float accelNoiseMag, int trackID );
-    float CalcDist( const cv::Point2f &p );
-    void Update( const cv::Point2f &p, bool dataCorrect, int maxTraceLength );
-    std::vector<cv::Point2f> trace;
+    Tracker( const cv::Point2f &p, float dt, float accelNoiseMag, int trackID );
+    float calcDist( const cv::Point2f &p );
+    void update( const cv::Point2f &p, bool dataCorrect, int maxTraceLength );
+    vector<cv::Point2f> trackedPts;
     int trackId;
     int skippedFrames;
 private:
@@ -20,12 +20,12 @@ private:
     TKalmanFilter KF;
 };
 
-class CTracker
+class MultiTracker
 {
 public:
-    CTracker( float dt, float accelNoiseMag, float distThres = 60, int maxiumAllowedSkippedFrames = 10, int maxTraceLength = 10 );
-    std::vector<CTrack> tracks;
-    void Update( const std::vector<cv::Point2f> &detections );
+    MultiTracker( float dt, float accelNoiseMag, float distThres = 60, int maxiumAllowedSkippedFrames = 10, int maxTraceLength = 10 );
+    void update( const vector<cv::Point2f> &detections );
+    vector<Tracker> tracks;
 private:
     float dt;
     float accelNoiseMag;

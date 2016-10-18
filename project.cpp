@@ -152,8 +152,8 @@ int main( int argc, char *argv[] )
 
     /* create tracker object and points vector {{{*/
     /* float _dt, float _Accel_noise_mag, double _dist_thres = 60, int _maximum_allowed_skipped_frames = 10, int _max_trace_length = 10 */
-    CTracker tracker711( 0.2, 0.5, 60, 10, 25 );
-    CTracker trackerKymco( 0.2, 0.5, 60, 10, 25 );
+    MultiTracker tracker711( 0.2, 0.5, 60, 10, 25 );
+    MultiTracker trackerKymco( 0.2, 0.5, 60, 10, 25 );
     /* }}} */
 
     /* process two videos {{{*/
@@ -195,7 +195,7 @@ int main( int argc, char *argv[] )
         /* }}} */
 
         /* 711 update tracker {{{ */
-        tracker711.Update( trackingPts711 );
+        tracker711.update( trackingPts711 );
         /* }}} */
 
         /* kymco do GMM operation and do morphologyEx {{{ */
@@ -229,21 +229,21 @@ int main( int argc, char *argv[] )
         /* }}} */
 
         /* kymco update tracker {{{ */
-        trackerKymco.Update( trackingPtsKymco );
+        trackerKymco.update( trackingPtsKymco );
         /* }}} */
 
         /* 711 map tracked points to roadMap{{{ */
         for ( uint i = 0; i < tracker711.tracks.size(); i++ )
         {
-            if ( tracker711.tracks[i].trace.size() > 5 )
+            if ( tracker711.tracks[i].trackedPts.size() > 5 )
             {
-                for ( uint j = 0; j < tracker711.tracks[i].trace.size() - 1; j++ )
+                for ( uint j = 0; j < tracker711.tracks[i].trackedPts.size() - 1; j++ )
                 {
-                    line( inputImg711, tracker711.tracks[i].trace[j], tracker711.tracks[i].trace[j + 1],
+                    line( inputImg711, tracker711.tracks[i].trackedPts[j], tracker711.tracks[i].trackedPts[j + 1],
                           colors[tracker711.tracks[i].trackId % colors.size()], 2, CV_AA );
                 }
                 vector<cv::Point2f> dst;
-                cv::perspectiveTransform( tracker711.tracks[i].trace , dst, perspective_matrix711 );
+                cv::perspectiveTransform( tracker711.tracks[i].trackedPts , dst, perspective_matrix711 );
                 for ( unsigned int j = 0; j < dst.size(); j++ )
                 {
                     dst[j] -= ptrans711.getDstTl();
@@ -269,15 +269,15 @@ int main( int argc, char *argv[] )
         /* kymco map tracked points to roadMap{{{ */
         for ( uint i = 0; i < trackerKymco.tracks.size(); i++ )
         {
-            if ( trackerKymco.tracks[i].trace.size() > 5 )
+            if ( trackerKymco.tracks[i].trackedPts.size() > 5 )
             {
-                for ( uint j = 0; j < trackerKymco.tracks[i].trace.size() - 1; j++ )
+                for ( uint j = 0; j < trackerKymco.tracks[i].trackedPts.size() - 1; j++ )
                 {
-                    line( inputImgKymco, trackerKymco.tracks[i].trace[j], trackerKymco.tracks[i].trace[j + 1],
+                    line( inputImgKymco, trackerKymco.tracks[i].trackedPts[j], trackerKymco.tracks[i].trackedPts[j + 1],
                           colors[trackerKymco.tracks[i].trackId % colors.size()], 2, CV_AA );
                 }
                 vector<cv::Point2f> dst;
-                cv::perspectiveTransform( trackerKymco.tracks[i].trace, dst, perspective_matrixKymco );
+                cv::perspectiveTransform( trackerKymco.tracks[i].trackedPts, dst, perspective_matrixKymco );
                 for ( unsigned int j = 0; j < dst.size(); j++ )
                 {
                     dst[j] -= ptransKymco.getDstTl();

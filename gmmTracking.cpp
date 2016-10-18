@@ -96,7 +96,7 @@ int main( int argc, char *argv[] )
 
     /* }}} */
 
-    CTracker tracker( 0.2, 0.5, 60.0, 30, 25 );
+    MultiTracker tracker( 0.2, 0.5, 60.0, 30, 25 );
     while ( capture.read( inputImg ) )
     {
         cv::resize( inputImg, inputImg, newSize );
@@ -118,7 +118,7 @@ int main( int argc, char *argv[] )
         }
         if ( boundRect.size() > 0 )
         {
-            tracker.Update( rect.getRectCentersFloat() );
+            tracker.update( rect.getRectCentersFloat() );
 
             /* for ( size_t i = 0; i < pts.size(); i++ ) */
             /* { */
@@ -127,15 +127,15 @@ int main( int argc, char *argv[] )
 
             for ( size_t i = 0; i < tracker.tracks.size(); i++ )
             {
-                if ( tracker.tracks[i].trace.size() > 1 )
+                if ( tracker.tracks[i].trackedPts.size() > 1 )
                 {
-                    /* for ( size_t j = 0; j < tracker.tracks[i].trace.size() - 1; j++ ) */
+                    /* for ( size_t j = 0; j < tracker.tracks[i].trackedPts.size() - 1; j++ ) */
                     /* { */
-                    /*     line( inputImg, tracker.tracks[i].trace[j], tracker.tracks[i].trace[j + 1], colors[i], 2, CV_AA ); */
+                    /*     line( inputImg, tracker.tracks[i].trackedPts[j], tracker.tracks[i].trackedPts[j + 1], colors[i], 2, CV_AA ); */
                     /* } */
-                    for ( size_t j = 0; j < tracker.tracks[i].trace.size(); j++ )
+                    for ( size_t j = 0; j < tracker.tracks[i].trackedPts.size(); j++ )
                     {
-                        cv::Point tmp = tracker.tracks[i].trace[j];
+                        cv::Point tmp = tracker.tracks[i].trackedPts[j];
                         cv::circle( inputImg, tmp , 2, colors[i], CV_FILLED );
                         if ( j == 0 )
                         {

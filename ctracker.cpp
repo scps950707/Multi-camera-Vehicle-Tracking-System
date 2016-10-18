@@ -1,7 +1,7 @@
 #include "ctracker.hpp"
 
-/* CTrack::CTrack( const cv::Point2f &p, float dt, float accelNoiseMag, int trackID ) {{{*/
-CTrack::CTrack( const cv::Point2f &p, float dt, float accelNoiseMag, int trackID )
+/* Tracker::CTraerckcartTt cv::Point2f &p, float dt, float accelNoiseMag, int trackID ) {{{*/
+Tracker::Tracker( const cv::Point2f &p, float dt, float accelNoiseMag, int trackID )
     :
     trackId( trackID ),
     skippedFrames( 0 ),
@@ -11,32 +11,32 @@ CTrack::CTrack( const cv::Point2f &p, float dt, float accelNoiseMag, int trackID
 }
 /* }}} */
 
-/* float CTrack::CalcDist( const cv::Point2f &p ) {{{*/
-float CTrack::CalcDist( const cv::Point2f &p )
+/* float Tracker::calcDist( const cv::Point2f &p ) {{{*/
+float Tracker::calcDist( const cv::Point2f &p )
 {
     cv::Point2f diff = prediction - p;
     return sqrtf( diff.x * diff.x + diff.y * diff.y );
 }
 /* }}} */
 
-/* void CTrack::Update( const cv::Point2f &p, bool dataCorrect, int maxTraceLength ) {{{*/
-void CTrack::Update( const cv::Point2f &p, bool dataCorrect, int maxTraceLength )
+/* void Tracker::Update( const cv::Point2f &p, bool dataCorrect, int maxTraceLength ) {{{*/
+void Tracker::update( const cv::Point2f &p, bool dataCorrect, int maxTraceLength )
 {
     KF.GetPrediction();
     prediction = KF.Update( p, dataCorrect );
 
-    if ( trace.size() > ( uint )maxTraceLength )
+    if ( trackedPts.size() > ( uint )maxTraceLength )
     {
-        trace.erase( trace.begin(), trace.end() - maxTraceLength );
+        trackedPts.erase( trackedPts.begin(), trackedPts.end() - maxTraceLength );
     }
 
-    trace.push_back( prediction );
+    trackedPts.push_back( prediction );
 }
 /* }}} */
 
-/* CTracker::CTracker(...) {{{*/
+/* MultiTracker::MultiTracker(...) {{{*/
 /* Tracker. Manage tracks. Create, remove, update. */
-CTracker::CTracker(
+MultiTracker::MultiTracker(
     float dt,
     float accelNoiseMag,
     float distThres,
@@ -54,8 +54,8 @@ CTracker::CTracker(
 }
 /* }}} */
 
-/* void CTracker::Update( const std::vector<cv::Point2f> &detections ) {{{*/
-void CTracker::Update( const std::vector<cv::Point2f> &detections )
+/* void MultiTracker::update( const vector<cv::Point2f> &detections ) {{{*/
+void MultiTracker::update( const vector<cv::Point2f> &detections )
 {
     /* If there is no tracks yet, then every cv::Point begins its own track. */
     if ( tracks.size() == 0 )
@@ -63,7 +63,7 @@ void CTracker::Update( const std::vector<cv::Point2f> &detections )
         /* If no tracks yet */
         for ( uint i = 0; i < detections.size(); i++ )
         {
-            tracks.push_back( CTrack( detections[i], dt, accelNoiseMag, NextTrackID++ ) );
+            tracks.push_back( Tracker( detections[i], dt, accelNoiseMag, NextTrackID++ ) );
         }
     }
 
@@ -72,7 +72,7 @@ void CTracker::Update( const std::vector<cv::Point2f> &detections )
 
     vector<int> assignment;
 
-    if ( !tracks.empty() )
+    if ( tracks.empty() == false )
     {
         vector<float> Cost( N * M );
 
@@ -80,7 +80,7 @@ void CTracker::Update( const std::vector<cv::Point2f> &detections )
         {
             for ( uint j = 0; j < detections.size(); j++ )
             {
-                Cost[i + j * N] = tracks[i].CalcDist( detections[j] );
+                Cost[i + j * N] = tracks[i].calcDist( detections[j] );
             }
         }
 
@@ -124,7 +124,7 @@ void CTracker::Update( const std::vector<cv::Point2f> &detections )
     {
         if ( find( assignment.begin(), assignment.end(), i ) == assignment.end() )
         {
-            tracks.push_back( CTrack( detections[i], dt, accelNoiseMag, NextTrackID++ ) );
+            tracks.push_back( Tracker( detections[i], dt, accelNoiseMag, NextTrackID++ ) );
         }
     }
 
@@ -138,12 +138,12 @@ void CTracker::Update( const std::vector<cv::Point2f> &detections )
         if ( assignment[i] != -1 )
         {
             tracks[i].skippedFrames = 0;
-            tracks[i].Update( detections[assignment[i]], true, maxTraceLength );
+            tracks[i].update( detections[assignment[i]], true, maxTraceLength );
         }
         /* if not continue using predictions */
         else
         {
-            tracks[i].Update( cv::Point2f(), false, maxTraceLength );
+            tracks[i].update( cv::Point2f(), false, maxTraceLength );
         }
     }
 
