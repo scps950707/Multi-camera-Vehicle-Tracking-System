@@ -220,6 +220,19 @@ int main( int argc, char *argv[] )
         trackerKymco.update( trackingPtsKymco );
         /* }}} */
 
+        /* codes for counting cars {{{*/
+        int detectedCars = 0;
+        int camUsed = 0;
+        if ( rectKymco.isBurstOrRecovery() == false )
+        {
+            camUsed++;
+        }
+        if ( rect711.isBurstOrRecovery() == false )
+        {
+            camUsed++;
+        }
+        /* }}} */
+
         /* 711 map tracked points to roadMap{{{ */
         for ( uint i = 0; i < tracker711.tracks.size(); i++ )
         {
@@ -250,6 +263,7 @@ int main( int argc, char *argv[] )
                         cv::circle( roadMap, dst[j], 3 , RED_C3, CV_FILLED );
                     }
                 }
+                detectedCars++;
             }
         }
         /* }}} */
@@ -291,6 +305,7 @@ int main( int argc, char *argv[] )
                     }
                 }
             }
+            detectedCars++;
         }
         /* }}} */
 
@@ -302,8 +317,12 @@ int main( int argc, char *argv[] )
         /* }}} */
 
         /* codes for print text on merge {{{ */
-        string frame_num = " Frame:" + to_string( ( int )captureKymco.get( CV_CAP_PROP_POS_FRAMES ) ) + "time:" + to_string( ( int )( capture711.get( CV_CAP_PROP_POS_FRAMES ) / FPS ) );
-        putText( merge, frame_num, cv::Point( 800, 650 ), cv::FONT_HERSHEY_PLAIN, 3,  RED_C3, 2 );
+        putText( merge, "Frame:" + to_string( static_cast<int>( captureKymco.get( CV_CAP_PROP_POS_FRAMES ) ) ), cv::Point( 810, 650 ), cv::FONT_HERSHEY_PLAIN, 3,  RED_C3, 2 );
+        putText( merge, "Time:" + to_string( static_cast<int>( captureKymco.get( CV_CAP_PROP_POS_FRAMES ) / 30 ) ), cv::Point( 810, 700 ), cv::FONT_HERSHEY_PLAIN, 3,  RED_C3, 2 );
+        if ( camUsed > 0 )
+        {
+            putText( merge, "Cars:" + to_string( static_cast<int>( detectedCars / camUsed ) ), cv::Point( 810, 750 ), cv::FONT_HERSHEY_PLAIN, 3,  RED_C3, 2 );
+        }
         /* }}} */
 
         /* codes for imshow {{{*/
