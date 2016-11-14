@@ -1,7 +1,6 @@
 #!/usr/bin/python
 
-from tkinter import *
-from tkinter import filedialog
+from Tkinter import *
 import os
 import configparser
 
