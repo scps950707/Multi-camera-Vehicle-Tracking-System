@@ -3,8 +3,23 @@
 from tkinter import *
 from tkinter import filedialog
 import os
+import configparser
 
 class GUIDemo(Frame):
+    config=configparser.RawConfigParser()
+    config.read("path.ini")
+    execute= config.get('path','execute')
+    seven1 = config.get('path','seven1')
+    seven2 = config.get('path','seven2')
+    seven3 = config.get('path','seven3')
+    seven4 = config.get('path','seven4')
+    seven5 = config.get('path','seven5')
+    kymco1 = config.get('path','kymco1')
+    kymco2 = config.get('path','kymco2')
+    kymco3 = config.get('path','kymco3')
+    kymco4 = config.get('path','kymco4')
+    kymco5 = config.get('path','kymco5')
+
     def __init__(self, master=None):
         master.minsize(width=500, height=150)
         Frame.__init__(self, master)
@@ -12,50 +27,53 @@ class GUIDemo(Frame):
         self.createWidgets()
 
     def createWidgets(self):
-        self.inputText = Label(self)
-        self.inputText["text"] = "Kymco:"
-        self.inputText.grid(row=0, column=0)
-
-        self.kymcoPath = Entry(self)
-        self.kymcoPath["width"] = 50
-        self.kymcoPath.grid(row=0, column=1, columnspan=6)
-
-        self.outputText = Label(self)
-        self.outputText["text"] = "711"
-        self.outputText.grid(row=1, column=0)
-
-        self.sevenPath = Entry(self)
-        self.sevenPath["width"] = 50
-        self.sevenPath.grid(row=1, column=1, columnspan=6)
-
         self.buttonKymco = Button(self)
-        self.buttonKymco["text"] = "LoadKymco"
-        self.buttonKymco.grid(row=2, column=0)
-        self.buttonKymco["command"] =  self.loadKymco
+        self.buttonKymco["text"] = "DEMO 1"
+        self.buttonKymco.grid(row=1, column=0)
+        self.buttonKymco["command"] =  self.DEMO1
 
         self.buttonSeven = Button(self)
-        self.buttonSeven["text"] = "Load711"
-        self.buttonSeven.grid(row=2, column=1)
-        self.buttonSeven["command"] =  self.loadSeven
+        self.buttonSeven["text"] = "DEMO 2"
+        self.buttonSeven.grid(row=1, column=1)
+        self.buttonSeven["command"] =  self.DEMO2
+
         self.buttonRun = Button(self)
-        self.buttonRun["text"] = "run"
-        self.buttonRun.grid(row=2, column=2)
-        self.buttonRun["command"] =  self.runProject
+        self.buttonRun["text"] = "DEMO 3"
+        self.buttonRun.grid(row=1, column=3)
+        self.buttonRun["command"] =  self.DEMO3
 
-    def loadKymco(self):
-        self.kymcoPath.delete(0, END)
-        self.kymcoPath.insert(END,filedialog.askopenfilename())
+        self.buttonRun = Button(self)
+        self.buttonRun["text"] = "DEMO 4"
+        self.buttonRun.grid(row=1, column=4)
+        self.buttonRun["command"] =  self.DEMO4
 
-    def loadSeven(self):
-        self.sevenPath.delete(0, END)
-        self.sevenPath.insert(END,filedialog.askopenfilename())
+        self.buttonRun = Button(self)
+        self.buttonRun["text"] = "DEMO 5"
+        self.buttonRun.grid(row=1, column=5)
+        self.buttonRun["command"] =  self.DEMO5
 
-    def runProject(self):
-        cmd = "./build/project -i " + self.kymcoPath.get() + " -j " + self.sevenPath.get()
+    def DEMO1(self):
+        cmd = self.execute + " -i " + self.seven1 + " -j " + self.kymco1
         os.system(cmd)
 
+    def DEMO2(self):
+        cmd = self.execute + " -i " + self.seven2 + " -j " + self.kymco2
+        os.system(cmd)
+
+    def DEMO3(self):
+        cmd = self.execute + " -i " + self.seven3 + " -j " + self.kymco3
+        os.system(cmd)
+
+    def DEMO4(self):
+        cmd = self.execute + " -i " + self.seven4 + " -j " + self.kymco4
+        os.system(cmd)
+
+    def DEMO5(self):
+        cmd = self.execute + " -i " + self.seven5 + " -j " + self.kymco5
+        os.system(cmd)
 
 if __name__ == '__main__':
     root = Tk()
+    root.title("Multi-camera Vehicle Tracking System")
     app = GUIDemo(master=root)
     app.mainloop()
