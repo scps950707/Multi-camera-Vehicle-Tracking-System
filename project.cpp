@@ -335,7 +335,7 @@ int main( int argc, char *argv[] )
             /* cv::imshow( "GMMKymco", outputMaskKymco ); */
             /* cv::imshow( "outputMorpKymco", outputMorpKymco ); */
             /* cv::imshow( "roadMap", roadMap ); */
-            cv::imshow( "merge", merge );
+            cv::imshow( "Multi-camera Vehicle Tracking System", merge );
         }
         /* }}} */
 
