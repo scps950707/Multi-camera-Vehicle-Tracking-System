@@ -17,7 +17,7 @@ target_link_libraries( project ${OpenCV_LIBS} )
 add_executable( resizer resizer.cpp avi.cpp )
 target_link_libraries( resizer ${OpenCV_LIBS} )
 
-add_executable( gmmTracking gmmTracking.cpp kalman.cpp tracker.cpp multiTracker.cpp hungarianAlg.cpp bsgmm.cpp rect.cpp )
+add_executable( gmmTracking gmmTracking.cpp kalman.cpp tracker.cpp multiTracker.cpp hungarianAlg.cpp bsgmm.cpp rect.cpp avi.cpp )
 target_link_libraries( gmmTracking ${OpenCV_LIBS} )
 
 add_executable( testHungarian testHungarian.cpp hungarianAlg.cpp )

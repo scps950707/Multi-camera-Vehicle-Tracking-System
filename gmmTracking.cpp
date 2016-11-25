@@ -2,6 +2,7 @@
 #include "bsgmm.hpp"
 #include "rect.hpp"
 #include "multiTracker.hpp"
+#include "avi.hpp"
 
 int main( int argc, char *argv[] )
 {
@@ -17,45 +18,45 @@ int main( int argc, char *argv[] )
         }
     };
     /* }}} */
+
     /* codes for control command line options {{{ */
 
-    bool aviOutput = false;
-    bool maskOutput = false;
+    bool outputAvi = false;
+    bool imshow = true;
     int fastforward = 0;
     int options;
-    string videoOutPath, maskOutPath, inputPath;
+    string videoOutPath, inputPath;
 
     if ( argc == 1 )
     {
-        cout << "usage: ./gmmTracking [options]" << endl;
+        cout << "usage: ./gmm [options]" << endl;
         cout << "options:" << endl;
         cout << "-i [input video path] (required)" << endl;
-        cout << "-v [output video path] (optional)" << endl;
-        cout << "-m [mask video output path] (optional)" << endl;
+        cout << "[-n] [--noImshow] (optional)" << endl;
+        cout << "-o [output video path] (optional)" << endl;
         cout << "-t [video start time (secs)] (optional)" << endl;
         exit( EXIT_FAILURE );
     }
     struct option long_opt[] =
     {
         {"input", required_argument, NULL, 'i'},
-        {"mask", required_argument, NULL, 'm'},
-        {"video", required_argument, NULL, 'v'},
+        {"output", required_argument, NULL, 'o'},
+        {"noImshow", required_argument, NULL, 'n'},
         {"time", required_argument, NULL, 't'},
         {NULL, 0, NULL, 0}
     };
-    while ( ( options = getopt_long( argc, argv, "i:m:v:t:", long_opt, NULL ) ) != -1 )
+    while ( ( options = getopt_long( argc, argv, "i:no:t:", long_opt, NULL ) ) != -1 )
     {
         switch ( options )
         {
         case 'i':
             inputPath = string( optarg );
             break;
-        case 'm':
-            maskOutPath = string( optarg );
-            maskOutput = true;
+        case 'n':
+            imshow = false;
             break;
-        case 'v':
-            aviOutput = true;
+        case 'o':
+            outputAvi = true;
             videoOutPath = string( optarg );
             break;
         case 't':
@@ -66,10 +67,9 @@ int main( int argc, char *argv[] )
 
     /* }}} */
 
-    /* {{{ declare mat for input and mask */
+    /* {{{ global variable declaration */
 
-    cv::Mat inputImg, outputMask;
-    cv::Size newSize( 800, 450 );
+    cv::Mat inputImg;
     cv::VideoCapture capture( inputPath );
     // perform fast foward
     capture.set( CV_CAP_PROP_POS_FRAMES, fastforward * FPS );
@@ -78,21 +78,14 @@ int main( int argc, char *argv[] )
         cout << " Can't recieve input from source " << endl;
         exit( EXIT_FAILURE );
     }
-    cv::resize( inputImg, inputImg, newSize );
-    outputMask = cv::Mat( inputImg.size(), CV_8UC1, BLACK_C1 );
-    /* }}} */
-
-    /* declare output stream{{{ */
-
-    cv::VideoWriter writer, writer2;
-    if ( aviOutput )
+    cv::Mat outputMask = cv::Mat( inputImg.size(), CV_8UC1, BLACK_C1 );
+    cv::Mat merge( inputImg.rows * 2, inputImg.cols, inputImg.type() );
+    aviWriter aw;
+    if ( outputAvi )
     {
-        writer.open( videoOutPath, CV_FOURCC( 'D', 'I', 'V', 'X' ), FPS, newSize );
+        aw = aviWriter( videoOutPath, FPS, merge.size() );
     }
-    if ( maskOutput )
-    {
-        writer2.open( maskOutPath, CV_FOURCC( 'D', 'I', 'V', 'X' ), FPS, newSize );
-    }
+    MultiTracker tracker( 0.2, 0.5, 60.0, 10, 25 );
     /* }}} */
 
     /* {{{creat GMM Class object */
@@ -102,16 +95,13 @@ int main( int argc, char *argv[] )
 
     /* }}} */
 
-    MultiTracker tracker( 0.2, 0.5, 60.0, 30, 25 );
     while ( capture.read( inputImg ) )
     {
-        cv::resize( inputImg, inputImg, newSize );
-        /* cv::Mat inputBlur; */
-        /* cv::GaussianBlur( inputImg, inputBlur, cv::Size( 5, 5 ), 0, 0 ); */
-        /* bsgmm.updateFrame( inputBlur.ptr(), outputMask.ptr() ); */
+        /* DO GMM and morphologyEx {{{ */
         bsgmm.updateFrame( inputImg.ptr(), outputMask.ptr() );
         cv::Mat outputMorp;
         cv::morphologyEx( outputMask, outputMorp, CV_MOP_CLOSE, getStructuringElement( cv::MORPH_RECT, cv::Size( 5, 5 ) ) );
+        /* }}} */
 
         /* draw rect print words on img for debug {{{ */
         findRect rect;
@@ -122,32 +112,26 @@ int main( int argc, char *argv[] )
         {
             rectangle( inputImg, boundRect[i].tl(), boundRect[i].br(), RED_C3, 2 );
         }
+
         if ( boundRect.size() > 0 )
         {
             tracker.update( rect.getRectCentersFloat() );
-
-            /* for ( size_t i = 0; i < pts.size(); i++ ) */
-            /* { */
-            /*     circle( inputImg, pts[i], 3, GREEN_C3, 1, CV_AA ); */
-            /* } */
-
             for ( size_t i = 0; i < tracker.tracks.size(); i++ )
             {
                 if ( tracker.tracks[i].trackedPts.size() > 1 )
                 {
-                    /* for ( size_t j = 0; j < tracker.tracks[i].trackedPts.size() - 1; j++ ) */
-                    /* { */
-                    /*     line( inputImg, tracker.tracks[i].trackedPts[j], tracker.tracks[i].trackedPts[j + 1], colors[i], 2, CV_AA ); */
-                    /* } */
-                    for ( size_t j = 0; j < tracker.tracks[i].trackedPts.size(); j++ )
+                    for ( size_t j = 0; j < tracker.tracks[i].trackedPts.size() - 1; j++ )
                     {
-                        cv::Point tmp = tracker.tracks[i].trackedPts[j];
-                        cv::circle( inputImg, tmp , 2, colors[i], CV_FILLED );
-                        if ( j == 0 )
-                        {
-                            putText( inputImg, to_string( tracker.tracks[i].trackId ), cv::Point( tmp.x + 5, tmp.y + 5 ), cv::FONT_HERSHEY_PLAIN, 1, RED_C3, 1 );
-                        }
+                        line( inputImg, tracker.tracks[i].trackedPts[j], tracker.tracks[i].trackedPts[j + 1], colors[i], 2, CV_AA );
                     }
+                    /* for ( size_t j = 0; j < tracker.tracks[i].trackedPts.size(); j++ ) */
+                    /* { */
+                    /* cv::circle( inputImg, tracker.tracks[i].trackedPts[j], 2, colors[i], CV_FILLED ); */
+                    /* } */
+                    putText( inputImg, to_string( tracker.tracks[i].trackId ),
+                             cv::Point( tracker.tracks[i].trackedPts[0].x + 5,
+                                        tracker.tracks[i].trackedPts[0].y + 5 ),
+                             cv::FONT_HERSHEY_PLAIN, 1, RED_C3, 2 );
                 }
             }
         }
@@ -156,23 +140,25 @@ int main( int argc, char *argv[] )
         putText( inputImg, str, cv::Point( 300, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2, RED_C3, 2 );
         /* }}} */
 
-        cv::imshow( "video", inputImg );
-        cv::imshow( "GMM", outputMask );
-        /* cv::imshow( "inputBlur", inputBlur ); */
-        cv::imshow( "outputMorp", outputMorp );
+        /* Merge results {{{ */
+        merge.setTo( 0 );
+        inputImg.copyTo( merge( cv::Range( 0, inputImg.rows ), cv::Range( 0, inputImg.cols ) ) );
+        cv::Mat maskBGR( outputMask.size(), outputMask.type() );
+        cv::cvtColor( outputMask, maskBGR, CV_GRAY2BGR );
+        maskBGR.copyTo( merge( cv::Range( inputImg.rows, inputImg.rows + maskBGR.rows ), cv::Range( 0, maskBGR.cols ) ) );
+        /* }}} */
+
+        /* Code for imshow {{{*/
+        if ( imshow )
+        {
+            cv::imshow( "Tracking DEMO", merge );
+        }
+        /* }}} */
 
         /* write to avi{{{ */
-        if ( aviOutput )
+        if ( outputAvi )
         {
-            writer << inputImg;
-        }
-        if ( maskOutput )
-        {
-            cv::Mat maskForAvi;
-            cv::cvtColor( outputMorp, maskForAvi, CV_GRAY2RGB );
-            //because our mask is single channel, we need to convert it to three channel to output avi
-            putText( maskForAvi , str, cv::Point( 300, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2, RED_C3, 2 );
-            writer2 << maskForAvi;
+            aw << merge;
         }
         /* }}} */
 
