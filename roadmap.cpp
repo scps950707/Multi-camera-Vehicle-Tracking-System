@@ -11,7 +11,7 @@ int main( int argc, char *argv[] )
     bool aviOutput = false;
     bool maskOutput = false;
     int fastforward = 0;
-    int  options;
+    int options;
     string videoOutPath, maskOutPath, inputPath;
 
     if ( argc == 1 )
@@ -24,7 +24,7 @@ int main( int argc, char *argv[] )
         cout << "-t [video start time (secs)] (optional)" << endl;
         exit( EXIT_FAILURE );
     }
-    struct option  long_opt[] =
+    struct option long_opt[] =
     {
         {"input", required_argument, NULL, 'i'},
         {"mask", required_argument, NULL, 'm'},
@@ -34,7 +34,7 @@ int main( int argc, char *argv[] )
     };
     while ( ( options = getopt_long( argc, argv, "i:m:v:t:", long_opt, NULL ) ) != -1 )
     {
-        switch  ( options )
+        switch ( options )
         {
         case 'i':
             inputPath = string( optarg );
@@ -112,7 +112,7 @@ int main( int argc, char *argv[] )
 
     /* {{{creat GMM Class object */
 
-    BackgroundSubtractorGMM bsgmm(  inputImg.rows, inputImg.cols );
+    BackgroundSubtractorGMM bsgmm( inputImg.rows, inputImg.cols );
     bsgmm.shadowBeBackground = true;
 
     /* }}} */
@@ -130,7 +130,7 @@ int main( int argc, char *argv[] )
         /* draw rect print words on img for debug {{{ */
         findRect rect;
         rect.update( inputImg, outputMorp );
-        vector<cv::Rect> boundRect =  rect.getRects();
+        vector<cv::Rect> boundRect = rect.getRects();
         vector<cv::Point2f> ori;
 
         for ( unsigned int i = 0; i < boundRect.size(); i++ )
@@ -142,7 +142,7 @@ int main( int argc, char *argv[] )
         }
 
         string str = "Count:" + to_string( boundRect.size() ) + " Frame:" + to_string( ( int )capture.get( CV_CAP_PROP_POS_FRAMES ) ) + "time:" + to_string( ( int )( capture.get( CV_CAP_PROP_POS_FRAMES ) / FPS ) );
-        putText( inputImg, str, cv::Point( 300, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
+        putText( inputImg, str, cv::Point( 300, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2, RED_C3, 2 );
         /* }}} */
 
         cv::Mat roadMap = originRoadMap.clone();
@@ -153,7 +153,7 @@ int main( int argc, char *argv[] )
             cv::perspectiveTransform( ori, dst, perspective_matrix );
             for ( unsigned int i = 0; i < dst.size(); i++ )
             {
-                cv::circle( roadMap, cv::Point( dst[i].x - 300 + 100 , dst[i].y - 20 + 100  ), 10 , RED_C3, CV_FILLED );
+                cv::circle( roadMap, cv::Point( dst[i].x - 300 + 100 , dst[i].y - 20 + 100 ), 10 , RED_C3, CV_FILLED );
             }
         }
         cv::imshow( "video", inputImg );
@@ -173,7 +173,7 @@ int main( int argc, char *argv[] )
             cv::Mat maskForAvi;
             cv::cvtColor( outputMorp, maskForAvi, CV_GRAY2RGB );
             //because our mask is single channel, we need to convert it to three channel to output avi
-            putText( maskForAvi , str, cv::Point( 300, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
+            putText( maskForAvi , str, cv::Point( 300, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2, RED_C3, 2 );
             writer2 << maskForAvi;
         }
         /* }}} */

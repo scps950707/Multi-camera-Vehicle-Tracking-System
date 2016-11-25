@@ -10,10 +10,10 @@ int main( int argc, char *argv[] )
         exit( EXIT_FAILURE );
     }
 
-    int  options;
+    int options;
     string path711 = "", pathKymco = "";
     cv::RNG rng( 12345 );
-    struct option  long_opt[] =
+    struct option long_opt[] =
     {
         {"711", required_argument, NULL, 's'},
         {"kymco", required_argument, NULL, 'k'},
@@ -21,7 +21,7 @@ int main( int argc, char *argv[] )
     };
     while ( ( options = getopt_long( argc, argv, "s:k:", long_opt, NULL ) ) != -1 )
     {
-        switch  ( options )
+        switch ( options )
         {
         case 's':
             path711 = string( optarg );

@@ -7,7 +7,7 @@
  * Usage:
  * #include "bsgmm.hpp"
  * cv::Mat inputImg, outputImg;
- * BackgroundSubtractorGMM bsgmm(  inputImg.rows, inputImg.cols );
+ * BackgroundSubtractorGMM bsgmm( inputImg.rows, inputImg.cols );
  * And keep update frames using loop
  * bsgmm.updateFrame( inputImg.ptr(), outputImg.ptr() );
  * When works are done, release the resources
@@ -19,7 +19,7 @@ enum Color
 {
     BLACK = 0,
     WHITE = 255,
-    GRAY  = 127
+    GRAY = 127
 };
 
 // Gaussian Mixture Models

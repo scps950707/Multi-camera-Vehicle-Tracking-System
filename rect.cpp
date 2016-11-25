@@ -41,15 +41,15 @@ cv::Rect findRect::removeShadowRect ( cv::Rect rect )
         {
             if ( ( uint )mask.at<uchar>( ybase + j * ( rect.height / h ), xbase + i * ( rect.width / w ) ) == 255 )
             {
-                /* cv::circle( inputImg, cv::Point( xbase + i * ( rect.width / w ),  ybase + j * ( rect.height / h ) ), 1, BLACK_C3, 2 ); */
+                /* cv::circle( inputImg, cv::Point( xbase + i * ( rect.width / w ), ybase + j * ( rect.height / h ) ), 1, BLACK_C3, 2 ); */
             }
             else
             {
-                /* cv::circle( inputImg, cv::Point( xbase + i * ( rect.width / w ),  ybase + j * ( rect.height / h ) ), 1, WHITE_C3, 2 ); */
+                /* cv::circle( inputImg, cv::Point( xbase + i * ( rect.width / w ), ybase + j * ( rect.height / h ) ), 1, WHITE_C3, 2 ); */
                 numOfBGSquare++;
             }
         }
-        if ( numOfBGSquare >= ( int )( 0.75 * h )  )
+        if ( numOfBGSquare >= ( int )( 0.75 * h ) )
         {
             if ( leftSideCutCnt == i )
             {
@@ -88,7 +88,7 @@ void findRect::update( cv::Mat &inputImg, cv::Mat &mask )
     int percentage = ( int )( ( ( double )whitePixelCnt / ( double )( mask.cols * mask.rows ) ) * 100 );
     if ( percentage >= 30 )
     {
-        putText( inputImg, "Warning:burst light", cv::Point( 30, 50 ), CV_FONT_HERSHEY_SIMPLEX, 2,  RED_C3, 3 );
+        putText( inputImg, "Warning:burst light", cv::Point( 30, 50 ), CV_FONT_HERSHEY_SIMPLEX, 2, RED_C3, 3 );
         this->burstLight = true;
         this->rects.clear();
         this->rectCenters.clear();
@@ -99,7 +99,7 @@ void findRect::update( cv::Mat &inputImg, cv::Mat &mask )
     {
         if ( this->burstLight )
         {
-            putText( inputImg, "start burst light recovery", cv::Point( 30, 50 ), CV_FONT_HERSHEY_SIMPLEX, 2,  RED_C3, 3 );
+            putText( inputImg, "start burst light recovery", cv::Point( 30, 50 ), CV_FONT_HERSHEY_SIMPLEX, 2, RED_C3, 3 );
             this->burstLight = false;
             this->recovery = true;
             frameRecoveryCnt = 40;
@@ -107,7 +107,7 @@ void findRect::update( cv::Mat &inputImg, cv::Mat &mask )
         }
         else if ( this->recovery )
         {
-            putText( inputImg, "burst light recovery", cv::Point( 30, 50 ), CV_FONT_HERSHEY_SIMPLEX, 2,  RED_C3, 3 );
+            putText( inputImg, "burst light recovery", cv::Point( 30, 50 ), CV_FONT_HERSHEY_SIMPLEX, 2, RED_C3, 3 );
             if ( --frameRecoveryCnt == 0 )
             {
                 this->recovery = false;

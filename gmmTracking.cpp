@@ -5,18 +5,24 @@
 
 int main( int argc, char *argv[] )
 {
-    cv::RNG rng( 12345 );
-    /* codes for control command line options {{{ */
-    cv::Scalar colors[20];
-    for ( int i = 0; i < 20; i++ )
+    /* color array for drawing {{{*/
+    array<cv::Scalar, 20> colors
     {
-        colors[i] = cv::Scalar( rng.uniform( 0, 255 ), rng.uniform( 0, 255 ), rng.uniform( 0, 255 ) );
-    }
+        {
+            cv::Scalar( 113, 58, 83 ), cv::Scalar( 216, 132, 97 ), cv::Scalar( 216, 132, 97 ), cv::Scalar( 183, 197, 80 ),
+            cv::Scalar( 101, 244, 240 ), cv::Scalar( 242, 223, 123 ), cv::Scalar( 239, 247, 178 ), cv::Scalar( 246, 247, 239 ),
+            cv::Scalar( 224, 214, 247 ), cv::Scalar( 212, 181, 242 ), cv::Scalar( 229, 255, 248 ), cv::Scalar( 160, 214, 6 ),
+            cv::Scalar( 170, 154, 27 ), cv::Scalar( 111, 71, 239 ), cv::Scalar( 61, 196, 255 ), cv::Scalar( 102, 102, 255 ),
+            cv::Scalar( 102, 255, 204 ), cv::Scalar( 140, 46, 93 ), cv::Scalar( 182, 196, 46 ), cv::Scalar( 241, 232, 184 )
+        }
+    };
+    /* }}} */
+    /* codes for control command line options {{{ */
 
     bool aviOutput = false;
     bool maskOutput = false;
     int fastforward = 0;
-    int  options;
+    int options;
     string videoOutPath, maskOutPath, inputPath;
 
     if ( argc == 1 )
@@ -29,7 +35,7 @@ int main( int argc, char *argv[] )
         cout << "-t [video start time (secs)] (optional)" << endl;
         exit( EXIT_FAILURE );
     }
-    struct option  long_opt[] =
+    struct option long_opt[] =
     {
         {"input", required_argument, NULL, 'i'},
         {"mask", required_argument, NULL, 'm'},
@@ -39,7 +45,7 @@ int main( int argc, char *argv[] )
     };
     while ( ( options = getopt_long( argc, argv, "i:m:v:t:", long_opt, NULL ) ) != -1 )
     {
-        switch  ( options )
+        switch ( options )
         {
         case 'i':
             inputPath = string( optarg );
@@ -91,7 +97,7 @@ int main( int argc, char *argv[] )
 
     /* {{{creat GMM Class object */
 
-    BackgroundSubtractorGMM bsgmm(  inputImg.rows, inputImg.cols );
+    BackgroundSubtractorGMM bsgmm( inputImg.rows, inputImg.cols );
     bsgmm.shadowBeBackground = true;
 
     /* }}} */
@@ -110,7 +116,7 @@ int main( int argc, char *argv[] )
         /* draw rect print words on img for debug {{{ */
         findRect rect;
         rect.update( inputImg, outputMorp );
-        vector<cv::Rect> boundRect =  rect.getRects();
+        vector<cv::Rect> boundRect = rect.getRects();
 
         for ( unsigned int i = 0; i < boundRect.size(); i++ )
         {
@@ -139,7 +145,7 @@ int main( int argc, char *argv[] )
                         cv::circle( inputImg, tmp , 2, colors[i], CV_FILLED );
                         if ( j == 0 )
                         {
-                            putText( inputImg, to_string( tracker.tracks[i].trackId ), cv::Point( tmp.x + 5, tmp.y + 5 ), cv::FONT_HERSHEY_PLAIN, 1,  RED_C3, 1 );
+                            putText( inputImg, to_string( tracker.tracks[i].trackId ), cv::Point( tmp.x + 5, tmp.y + 5 ), cv::FONT_HERSHEY_PLAIN, 1, RED_C3, 1 );
                         }
                     }
                 }
@@ -147,7 +153,7 @@ int main( int argc, char *argv[] )
         }
 
         string str = "Count:" + to_string( boundRect.size() ) + " Frame:" + to_string( ( int )capture.get( CV_CAP_PROP_POS_FRAMES ) ) + "time:" + to_string( ( int )( capture.get( CV_CAP_PROP_POS_FRAMES ) / FPS ) );
-        putText( inputImg, str, cv::Point( 300, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
+        putText( inputImg, str, cv::Point( 300, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2, RED_C3, 2 );
         /* }}} */
 
         cv::imshow( "video", inputImg );
@@ -165,7 +171,7 @@ int main( int argc, char *argv[] )
             cv::Mat maskForAvi;
             cv::cvtColor( outputMorp, maskForAvi, CV_GRAY2RGB );
             //because our mask is single channel, we need to convert it to three channel to output avi
-            putText( maskForAvi , str, cv::Point( 300, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2,  RED_C3, 2 );
+            putText( maskForAvi , str, cv::Point( 300, inputImg.rows - 20 ), cv::FONT_HERSHEY_PLAIN, 2, RED_C3, 2 );
             writer2 << maskForAvi;
         }
         /* }}} */
