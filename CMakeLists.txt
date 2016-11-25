@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8)
 project( finalProject )
 find_package( OpenCV REQUIRED )
 
-add_executable( gmm gmm.cpp bsgmm.cpp rect.cpp )
+add_executable( gmm gmm.cpp bsgmm.cpp rect.cpp avi.cpp )
 target_link_libraries( gmm ${OpenCV_LIBS} )
 
 add_executable( roadmap roadmap.cpp bsgmm.cpp rect.cpp ptrans.cpp )
