@@ -22,14 +22,13 @@ int main( int argc, char *argv[] )
 
     /* {{{ global variable set by commad line parameters */
     int fastforward = 0;
-    int  options;
+    int options;
     string videoOutPath, maskOutPath, inputPath711, inputPathKymco, outputPath;
     bool outputAvi = false;
     bool Imshow = true;
     /* }}} */
 
     // codes for control command line options {{{
-
 
     if ( argc == 1 )
     {
@@ -42,7 +41,7 @@ int main( int argc, char *argv[] )
         cout << "-t [video start time (secs)] (optional)" << endl;
         exit( EXIT_FAILURE );
     }
-    struct option  long_opt[] =
+    struct option long_opt[] =
     {
         {"input", required_argument, NULL, 'i'},
         {"input2", required_argument, NULL, 'j'},
@@ -53,7 +52,7 @@ int main( int argc, char *argv[] )
     };
     while ( ( options = getopt_long( argc, argv, "i:j:no:t:", long_opt, NULL ) ) != -1 )
     {
-        switch  ( options )
+        switch ( options )
         {
         case 'i':
             inputPath711 = string( optarg );
@@ -98,7 +97,7 @@ int main( int argc, char *argv[] )
     outputMask711 = cv::Mat( inputImg711.size(), CV_8UC1, BLACK_C1 );
     outputMaskKymco = cv::Mat( inputImgKymco.size(), CV_8UC1, BLACK_C1 );
     cv::Mat originRoadMap( cv::Size( 600, 600 ), inputImg711.type(), GRAY_C3 );
-    cv::Mat merge = cv::Mat::zeros( inputImg711.rows * 2 + 5, inputImg711.cols + originRoadMap.cols + 5, inputImg711.type() );
+    cv::Mat merge = cv::Mat( inputImg711.rows * 2, inputImg711.cols + originRoadMap.cols, inputImg711.type() );
     aviWriter aw;
     if ( outputAvi )
     {
@@ -138,10 +137,10 @@ int main( int argc, char *argv[] )
 
     // {{{creat GMM Class object
 
-    BackgroundSubtractorGMM bsgmm711(  inputImg711.rows, inputImg711.cols );
+    BackgroundSubtractorGMM bsgmm711( inputImg711.rows, inputImg711.cols );
     bsgmm711.shadowBeBackground = true;
 
-    BackgroundSubtractorGMM bsgmmKymco(  inputImgKymco.rows, inputImgKymco.cols );
+    BackgroundSubtractorGMM bsgmmKymco( inputImgKymco.rows, inputImgKymco.cols );
     bsgmmKymco.shadowBeBackground = true;
 
     // }}}
@@ -182,7 +181,7 @@ int main( int argc, char *argv[] )
 
         std::transform( boundRect711.begin(), boundRect711.end(), trackingPts711.begin(), []( cv::Rect rect )
         {
-            float height =  rect.width > rect.height ?  rect.y + rect.height * 0.85 : rect.y + rect.height;
+            float height = rect.width > rect.height ? rect.y + rect.height * 0.85 : rect.y + rect.height;
             return cv::Point2f( rect.x + rect.width / 2, height );
         } );
 
@@ -200,7 +199,7 @@ int main( int argc, char *argv[] )
 
         /* kymco findBoundingRect, decide points inside rects to be tracked as mapping points on road map {{{ */
         rectKymco.update( inputImgKymco, outputMorpKymco );
-        vector<cv::Rect> boundRectKymco =  rectKymco.getRects();
+        vector<cv::Rect> boundRectKymco = rectKymco.getRects();
         vector<cv::Point2f> trackingPtsKymco( boundRectKymco.size() );
 
         for ( unsigned int i = 0; i < boundRectKymco.size(); i++ )
@@ -210,7 +209,7 @@ int main( int argc, char *argv[] )
 
         std::transform( boundRectKymco.begin(), boundRectKymco.end(), trackingPtsKymco.begin(), []( cv::Rect rect )
         {
-            float height =  rect.width > rect.height ?  rect.y + rect.height * 0.9 : rect.y + rect.height;
+            float height = rect.width > rect.height ? rect.y + rect.height * 0.9 : rect.y + rect.height;
             return cv::Point2f( rect.x + rect.width / 2, height );
         } );
 
@@ -312,8 +311,8 @@ int main( int argc, char *argv[] )
         /* merge windows together {{{ */
         merge.setTo( 0 );
         inputImg711.copyTo( merge( cv::Range( 0, inputImg711.rows ) , cv::Range( 0, inputImg711.cols ) ) );
-        inputImgKymco.copyTo( merge( cv::Range( inputImgKymco.rows + 5, inputImgKymco.rows * 2 + 5 ) , cv::Range( 0, inputImgKymco.cols ) ) );
-        roadMap.copyTo( merge( cv::Range( 0, roadMap.rows ) , cv::Range( inputImg711.cols + 5, roadMap.cols + inputImg711.cols + 5 ) ) );
+        inputImgKymco.copyTo( merge( cv::Range( inputImgKymco.rows, inputImgKymco.rows * 2 ) , cv::Range( 0, inputImgKymco.cols ) ) );
+        roadMap.copyTo( merge( cv::Range( 0, roadMap.rows ) , cv::Range( inputImg711.cols, roadMap.cols + inputImg711.cols ) ) );
         /* }}} */
 
         /* codes for print text on merge {{{ */

@@ -131,7 +131,7 @@ bool BackgroundSubtractorGMM::isBackGround( double red, double green, double blu
                 curPixelGMM->arr[GMMIndex].G -= mul * dG;
                 curPixelGMM->arr[GMMIndex].B -= mul * dB;
                 double newVar = var + mul * ( dist - var );
-                curPixelGMM->arr[GMMIndex].variance = newVar<4 ? 4 : newVar>5 * this->defaultVariance ? 5 * this->defaultVariance : newVar;
+                curPixelGMM->arr[GMMIndex].variance = newVar < 4 ? 4 : newVar > 5 * this->defaultVariance ? 5 * this->defaultVariance : newVar;
                 for ( int sortIndex = GMMIndex; sortIndex > 0; sortIndex-- )
                 {
                     if ( weight < ( curPixelGMM->arr[sortIndex - 1].weight ) )
