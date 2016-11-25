@@ -5,6 +5,9 @@ find_package( OpenCV REQUIRED )
 add_executable( gmm gmm.cpp bsgmm.cpp rect.cpp avi.cpp )
 target_link_libraries( gmm ${OpenCV_LIBS} )
 
+add_executable( gmmOpencv gmmOpencv.cpp rect.cpp avi.cpp )
+target_link_libraries( gmmOpencv ${OpenCV_LIBS} )
+
 add_executable( roadmap roadmap.cpp bsgmm.cpp rect.cpp ptrans.cpp )
 target_link_libraries( roadmap ${OpenCV_LIBS} )
 
